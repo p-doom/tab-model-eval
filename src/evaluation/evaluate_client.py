@@ -11,6 +11,7 @@ class Args:
     name: str = "hello_world_insert"
     input_path: str = "data/incremental_test_cases/"
     output_path: str = "data/evaluation_results/"
+    system_prompt_file: str = "data/system_prompts/minimal_v1.md"
     api_base_url: str = "http://hai005:30000/v1"
 
 
@@ -36,7 +37,7 @@ def run_evaluation_client(args: Args):
     client = openai.OpenAI(base_url=args.api_base_url, api_key="EMPTY")
 
     test_cases = list(load_dataset(args.input_path + args.name + ".jsonl"))
-    system_prompt = "You are an expert Linux agent. Provide the single final bash command to complete the task."
+    system_prompt = open(args.system_prompt_file, "r").read()
 
     num_correct = 0
     results = []
