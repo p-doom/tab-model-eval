@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Args:
-    name: str = "insert_hello_world"
+    name: str = "hello_world_insert"
     input_path: str = "data/handcrafted_traces/"
     output_path: str = "data/incremental_test_cases/"
 
@@ -27,7 +27,7 @@ def parse_md_file(file_path):
                 parsed_data.append(current_dialogue)
             current_dialogue = {
                 "role": section.lower(),
-                "content": sections[index + 1].strip(),
+                "content": sections[index + 1].strip().replace("\n```", "```"),
             }
 
     if current_dialogue is not None:
@@ -67,15 +67,12 @@ def write_jsonl(test_cases, output_file):
 
 # Main execution
 if __name__ == "__main__":
-    args = Args()
+    args = tyro.cli(Args)
 
-    # Construct task_id as needed
-    task_id = args.name  # or create a more complex unique identifier
-
+    task_id = args.name
     input_file_path = args.input_path + args.name + ".md"
     output_file_path = args.output_path + args.name + ".jsonl"
 
     parsed_data = parse_md_file(input_file_path)
     incremental_test_cases = create_incremental_test_cases(parsed_data, task_id)
     write_jsonl(incremental_test_cases, output_file_path)
-    print(f"Incremental test cases saved to {output_file_path}")

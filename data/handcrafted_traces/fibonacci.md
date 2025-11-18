@@ -1,7 +1,9 @@
+# Assistant
 ``` bash
 ls -la
 ```
 
+# User
 <stdout>
 [alfred.nguyen@hai-login1.haicore.berlin:~] $ ls -la
 total 336
@@ -10,6 +12,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 [alfred.nguyen@hai-login1.haicore.berlin:~] $ 
 </stdout>
 
+# Assistant
 ``` bash
 cat <<'EOF' > fibonnacci.py
 import argparse
@@ -27,13 +30,10 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=10)
     args = parser.parse_args()
     print(fibonnacci(args.n))
-EOF
+EOF && cat -n fibonnacci.py
 ```
 
-``` bash
-cat -n fibonnacci.py
-```
-
+# User
 <stdout>
      1  import argparse
      2  def fibonnacci(n):
@@ -51,10 +51,17 @@ cat -n fibonnacci.py
     14     print(fibonnacci(args.n))
 </stdout>
 
+# Assistant
 ``` bash
 python fibonnacci.py --n 15
 ```
 
+# User
 <stdout>
 55
 </stdout>
+
+# Assistant
+```
+echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
+```
