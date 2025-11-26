@@ -6,13 +6,12 @@ from dataclasses import dataclass
 
 @dataclass
 class Args:
-    name: str = "hello_world_insert"
-    input_path: str = "data/handcrafted_traces/"
-    output_path: str = "data/incremental_test_cases/"
+    input_file: str = "data/eval/hello_world_insert.md"
+    output_file: str = "data/eval/hello_world_insert.jsonl"
 
 
-def parse_md_file(file_path):
-    with open(file_path, "r") as file:
+def parse_md_file(input_file):
+    with open(input_file, "r") as file:
         content = file.read()
 
     sections = re.split(r"# (User|Assistant)", content)
@@ -27,7 +26,7 @@ def parse_md_file(file_path):
                 parsed_data.append(current_dialogue)
             current_dialogue = {
                 "role": section.lower(),
-                "content": sections[index + 1].strip().replace("\n```", "```"),
+                "content": sections[index + 1].strip(),
             }
 
     if current_dialogue is not None:
@@ -36,7 +35,7 @@ def parse_md_file(file_path):
     return parsed_data
 
 
-def create_incremental_test_cases(parsed_data, task_id):
+def create_incremental_test_cases(parsed_data, task_name):
     test_cases = []
 
     task_number = 0
@@ -49,7 +48,7 @@ def create_incremental_test_cases(parsed_data, task_id):
         )
 
         test_case = {
-            "task_id": f"{task_id}/{task_number}",
+            "task_id": f"{task_name}/{task_number}",
             "context": context,
             "expected_final_response": expected_response,
         }
@@ -69,10 +68,10 @@ def write_jsonl(test_cases, output_file):
 if __name__ == "__main__":
     args = tyro.cli(Args)
 
-    task_id = args.name
-    input_file_path = args.input_path + args.name + ".md"
-    output_file_path = args.output_path + args.name + ".jsonl"
-
-    parsed_data = parse_md_file(input_file_path)
-    incremental_test_cases = create_incremental_test_cases(parsed_data, task_id)
-    write_jsonl(incremental_test_cases, output_file_path)
+    task_name = args.input_file.split("/")[-1].split(".")[0]
+    parsed_data = parse_md_file(args.input_file)
+    incremental_test_cases = create_incremental_test_cases(parsed_data, task_name)
+    write_jsonl(incremental_test_cases, args.output_file)
+    print(
+        f"Created {len(incremental_test_cases)} incremental test cases and saved to {args.output_file}"
+    )
