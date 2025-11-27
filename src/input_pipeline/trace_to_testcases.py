@@ -1,13 +1,14 @@
 import json
 import re
 import tyro
+import os
 from dataclasses import dataclass
 
 
 @dataclass
 class Args:
-    input_file: str = "data/eval/hello_world_insert.md"
-    output_file: str = "data/eval/hello_world_insert.jsonl"
+    input_dir: str = "data/eval/handcrafted"
+    output_file: str = "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
 
 
 def parse_md_file(input_file):
@@ -68,10 +69,20 @@ def write_jsonl(test_cases, output_file):
 if __name__ == "__main__":
     args = tyro.cli(Args)
 
-    task_name = args.input_file.split("/")[-1].split(".")[0]
-    parsed_data = parse_md_file(args.input_file)
-    incremental_test_cases = create_incremental_test_cases(parsed_data, task_name)
-    write_jsonl(incremental_test_cases, args.output_file)
+    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
+
+    incremental_test_cases_total = []
+    # iterate over all md files in the data/eval/handcrafted directory
+    for file in os.listdir(args.input_dir):
+        if file.endswith(".md"):
+            task_name = file.split("/")[-1].split(".")[0]
+            parsed_data = parse_md_file(os.path.join(args.input_dir, file))
+            incremental_test_cases = create_incremental_test_cases(
+                parsed_data, task_name
+            )
+            incremental_test_cases_total.extend(incremental_test_cases)
+
+    write_jsonl(incremental_test_cases_total, args.output_file)
     print(
-        f"Created {len(incremental_test_cases)} incremental test cases and saved to {args.output_file}"
+        f"Created {len(incremental_test_cases_total)} incremental test cases and saved to {args.output_file}"
     )

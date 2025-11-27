@@ -16,13 +16,11 @@ from tqdm.asyncio import tqdm_asyncio
 # ----------------------------
 # Argument definitions
 # ----------------------------
-
-
 @dataclass
 class Args:
     # Eval-related
     input_file: str = "data/eval/hello_world_insert.jsonl"
-    output_file: str = "data/eval/generations/hello_world_insert_generations.jsonl"
+    output_file: str = "data/eval/generations/hello_world_insert_generations.json"
     limit: int = -1
     system_prompt_file: str = "data/prompts/minimal_v1.md"
     model_name: str = "default"
@@ -31,7 +29,8 @@ class Args:
     model_path: str = "Qwen/Qwen3-0.6B"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
-    context_length: int = 2048
+    context_length: int = 40960
+    problem_length: int = 40960
     mem_fraction_static: float = 0.95
 
     # HTTP / client config
@@ -39,7 +38,7 @@ class Args:
     max_connections: int = 256
     keepalive: int = 60
     max_attempts: int = 6
-    timeout: float = 30.0
+    timeout: float = 300.0
 
     # Control whether to launch server from this script
     launch_server: bool = True
@@ -50,12 +49,22 @@ class Args:
 # ----------------------------
 # Dataset helpers
 # ----------------------------
-
-
 def load_dataset(filepath):
+    # with open(filepath, "r") as f:
+    #     for line in f:
+    #         yield json.loads(line)
+
+    data = []
     with open(filepath, "r") as f:
         for line in f:
-            yield json.loads(line)
+            data.append(json.loads(line))
+        # data.sort(
+        #     key=lambda x: (
+        #         int(x["task_id"].split("/")[0].split("_")[1]),  # conversation_0 -> 0
+        #         int(x["task_id"].split("/")[-1]),  # validation_mi
+        #     )
+        # )
+        return data
 
 
 def extract_first_bash_block(text: str) -> str:
@@ -63,11 +72,56 @@ def extract_first_bash_block(text: str) -> str:
     return m.group(1) if m else ""
 
 
+def estimate_token_count(messages: List[Dict[str, str]]) -> int:
+    """
+    Rough estimate of token count for a list of messages.
+    Assumes ~3 characters per token as a conservative estimate.
+    """
+    total_chars = sum(len(msg.get("content", "")) for msg in messages)
+    return total_chars // 3
+
+
+def filter_tasks_by_context_length(
+    test_cases: List[Dict[str, Any]],
+    system_prompt: str,
+    max_context_length: int = 40960,
+    problem_length: int = 40960,
+    buffer_tokens: int = 512,  # Reserve space for response
+) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """
+    Filter out test cases whose context would exceed the model's context length.
+    Returns (valid_cases, skipped_cases)
+    """
+    valid_cases = []
+    skipped_cases = []
+
+    for tc in test_cases:
+        # Estimate tokens for system prompt + context
+        messages = [{"role": "system", "content": system_prompt}]
+        messages.extend(tc["context"])
+        estimated_tokens = estimate_token_count(messages)
+
+        length = estimated_tokens + buffer_tokens
+        if length <= max_context_length and length <= problem_length:
+            valid_cases.append(tc)
+        else:
+            print(
+                f"Skipping {tc['task_id']}: estimated {estimated_tokens} tokens (limit: {max_context_length}, problem_length: {problem_length})"
+            )
+            skipped_cases.append(
+                {
+                    "task_id": tc["task_id"],
+                    "estimated_tokens": estimated_tokens,
+                    "reason": "context_too_long",
+                }
+            )
+
+    return valid_cases, skipped_cases
+
+
 # ----------------------------
 # Eval logic
 # ----------------------------
-
-
 async def generate_next_command(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
@@ -79,6 +133,7 @@ async def generate_next_command(
     formatted_messages = [{"role": "system", "content": system_prompt}]
     formatted_messages.extend(test_case["context"])
 
+    print(f"Generating next command for task {test_case['task_id']} ...")
     async with sem:
         delay = 0.25
         for attempt in range(max_attempts):
@@ -126,6 +181,20 @@ async def run_eval(args: Args, base_url: str):
         test_cases = test_cases[: args.limit]
     system_prompt = open(args.system_prompt_file, "r").read()
 
+    # Filter out tasks with context that's too long
+    test_cases, skipped_cases = filter_tasks_by_context_length(
+        test_cases,
+        system_prompt,
+        max_context_length=args.context_length,
+        problem_length=args.problem_length,
+        buffer_tokens=512,
+    )
+
+    print(f"\nFiltered dataset:")
+    print(f"  Valid test cases: {len(test_cases)}")
+    print(f"  Skipped (too long): {len(skipped_cases)}")
+    print()
+
     # Clean output
     if os.path.exists(args.output_file):
         os.remove(args.output_file)
@@ -167,6 +236,7 @@ async def run_eval(args: Args, base_url: str):
     results.sort(key=lambda x: x["task_id"])
 
     # Write once
+    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
     correct = sum(r.get("exact_match", 0) for r in results)
     with open(args.output_file, "w") as f:
         for r in results:
@@ -186,9 +256,7 @@ async def run_eval(args: Args, base_url: str):
 # ----------------------------
 # Server launch + waiting
 # ----------------------------
-
-
-async def wait_for_server(base_url: str, timeout: float = 120.0) -> None:
+async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
     """
     Poll the server's OpenAI-compatible endpoint until it responds or timeout.
     We’ll try a lightweight call to /models.
@@ -261,8 +329,6 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
 # ----------------------------
 # Main
 # ----------------------------
-
-
 async def amain(args: Args):
     base_url = f"http://{args.server_host}:{args.server_port}/v1"
     print(f"Using server at {base_url}")
