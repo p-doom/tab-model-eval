@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import tyro
 from dataclasses import dataclass
@@ -72,6 +73,7 @@ if __name__ == "__main__":
     task_id = args.name
     input_file_path = args.input_path + args.name + ".md"
     output_file_path = args.output_path + args.name + ".jsonl"
+    os.makedirs(args.output_path, exist_ok=True)
 
     parsed_data = parse_md_file(input_file_path)
     incremental_test_cases = create_incremental_test_cases(parsed_data, task_id)
