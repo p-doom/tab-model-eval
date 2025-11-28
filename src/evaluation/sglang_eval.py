@@ -209,9 +209,14 @@ async def evaluate_generated_command(
 
 async def run_eval(args: Args, base_url: str):
     loaded_data = load_dataset(args.generations_file)
-    metadata = loaded_data["metadata"]
     test_cases = loaded_data["generation_results"]
-    metadata.update(args.__dict__)
+
+    config_generations = loaded_data["config_generations"]
+    config_evaluations = args.__dict__
+    metadata = {
+        "config_generations": config_generations,
+        "config_evaluations": config_evaluations,
+    }
 
     wandb.init(
         project=args.wandb_project,

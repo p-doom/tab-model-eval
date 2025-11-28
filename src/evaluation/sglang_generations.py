@@ -231,13 +231,7 @@ async def run_eval(args: Args, base_url: str):
     with open(args.generations_file, "w") as f:
         json.dump(
             {
-                "metadata": {
-                    "generation_model_path": args.model_path,
-                    "system_prompt_file": args.system_prompt_file,
-                    "test_cases_file": args.test_cases_file,
-                    "generations_file": args.generations_file,
-                    "limit": args.limit,
-                },
+                "config_generations": args.__dict__,
                 "generation_scores": {
                     "total_test_cases": len(test_cases),
                     "num_exact_match": correct,
