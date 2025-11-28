@@ -81,7 +81,7 @@ cat -n src/input_pipeline/validation_to_testcases.py
 
 # Assistant
 ```bash
-sed -i '1,1c\import json\nimport tyro' src/input_pipeline/validation_to_testcases.py
+sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py
 ```
 
 # User
