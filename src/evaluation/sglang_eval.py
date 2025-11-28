@@ -301,6 +301,23 @@ async def run_eval(args: Args, base_url: str):
     with open(args.output_file, "w") as f:
         json.dump(
             {
+                "metadata": {
+                    "model_path": args.model_path,
+                    "input_file": args.input_file,
+                    "output_file": args.output_file,
+                    "limit": args.limit,
+                    "system_prompt_file": args.system_prompt_file,
+                    "prompt_file": args.prompt_file,
+                    "judge_name": args.judge_name,
+                    "context_length": args.context_length,
+                    "problem_length": args.problem_length,
+                    "accept_threshold": args.accept_threshold,
+                    "max_attempts": args.max_attempts,
+                    "timeout": args.timeout,
+                    "concurrency": args.concurrency,
+                    "max_connections": args.max_connections,
+                    "keepalive": args.keepalive,
+                },
                 "judge_eval_scores": {
                     "total_test_cases": len(test_cases),
                     "num_correct": num_correct,
