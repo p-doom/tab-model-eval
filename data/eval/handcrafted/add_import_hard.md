@@ -19,7 +19,7 @@ cat -n src/input_pipeline/validation_to_testcases.py
 
 # User
 <stdout>
-     1  import tyro
+     1  import json
      2  import os
      3  from dataclasses import dataclass
      4
