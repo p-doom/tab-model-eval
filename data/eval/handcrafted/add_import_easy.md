@@ -121,8 +121,3 @@ Converted 6 entries to data/temp/validation_testcases.jsonl
 Converted 3 entries to data/temp/validation_testcases.jsonl
 Converted 3 entries to data/temp/validation_testcases.jsonl
 </stdout>
-
-# Assistant
-```bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```

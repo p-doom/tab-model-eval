@@ -40,8 +40,3 @@ python hello_world.py
 <stdout>
 Hello, World!
 </stdout>
-
-# Assistant
-```bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```

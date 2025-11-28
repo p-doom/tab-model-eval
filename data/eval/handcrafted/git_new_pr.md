@@ -88,8 +88,3 @@ To github.com:p-doom/tab-model-eval.git
  * [new branch]      feat/new-handcrafted-tasks -> feat/new-handcrafted-tasks
 branch 'feat/new-handcrafted-tasks' set up to track 'origin/feat/new-handcrafted-tasks'.
 </stdout>
-
-# Assistant
-```bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```

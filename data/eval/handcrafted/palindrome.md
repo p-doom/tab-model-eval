@@ -65,8 +65,3 @@ python palindrome_checker.py hello
 <stdout>
 "hello" is not a palindrome
 </stdout>
-
-# Assistant
-``` bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```

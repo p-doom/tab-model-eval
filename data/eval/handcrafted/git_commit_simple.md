@@ -27,8 +27,3 @@ black....................................................................Passed
 [chore/refactor-diffusion-branch cf058bf] Added sampling scripts for diffusion and maskgit baselines
  2 files changed, 72 insertions(+)!
 </stdout>
-
-# Assistant
-```bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```

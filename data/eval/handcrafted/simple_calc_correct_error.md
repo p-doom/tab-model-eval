@@ -134,8 +134,3 @@ python calculator.py divide 5 2
 <stdout>
 2.5
 </stdout>
-
-# Assistant
-``` bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```
