@@ -25,8 +25,8 @@ class Args:
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
 
-    input_file: str = "data/eval/hello_world_insert_generations.json"
-    output_file: str = "data/eval/hello_world_insert_evaluations.jsonl"
+    generations_file: str = "data/eval/hello_world_insert_generations.json"
+    evaluations_file: str = "data/eval/hello_world_insert_evaluations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
     prompt_file: str = "data/prompts/command_evaluation_prompt_no_context.txt"
@@ -34,7 +34,7 @@ class Args:
     accept_threshold: float = 0.8
 
     # Server-related (sglang)
-    model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
@@ -60,21 +60,8 @@ class Args:
 
 
 def load_dataset(filepath):
-    # with open(filepath, "r") as f:
-    #     for line in f:
-    #         yield json.loads(line)
-
-    data = []
     with open(filepath, "r") as f:
-        for line in f:
-            data.append(json.loads(line))
-        # data.sort(
-        #     key=lambda x: (
-        #         int(x["task_id"].split("/")[0].split("_")[1]),  # conversation_0 -> 0
-        #         int(x["task_id"].split("/")[-1]),  # validation_mi
-        #     )
-        # )
-        return data
+        return json.loads(f.read())
 
 
 def estimate_token_count(messages: List[Dict[str, str]]) -> int:
@@ -221,9 +208,17 @@ async def evaluate_generated_command(
 
 
 async def run_eval(args: Args, base_url: str):
-    test_cases = list(load_dataset(args.input_file))
+    loaded_data = load_dataset(args.generations_file)
+    metadata = loaded_data["metadata"]
+    test_cases = loaded_data["generation_results"]
+    metadata.update(args.__dict__)
 
-    wandb.init(project=args.wandb_project, name=args.wandb_name, tags=args.wandb_tags)
+    wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        tags=args.wandb_tags,
+        config=metadata,
+    )
 
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
@@ -246,8 +241,8 @@ async def run_eval(args: Args, base_url: str):
     print()
 
     # Clean output
-    if os.path.exists(args.output_file):
-        os.remove(args.output_file)
+    if os.path.exists(args.evaluations_file):
+        os.remove(args.evaluations_file)
 
     # Reuse a single HTTP/2 client with a large pool
     http = httpx.AsyncClient(
@@ -287,43 +282,32 @@ async def run_eval(args: Args, base_url: str):
     pass_rate = 100.0 * num_correct / len(test_cases) if test_cases else 0.0
     avg_score = total_score_sum / len(test_cases) if test_cases else 0.0
 
+    os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
+
     wandb.log(
         {
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
             f"{args.wandb_eval_type}/num_correct": num_correct,
+            f"{args.wandb_eval_type}/num_exact_match": loaded_data["generation_scores"][
+                "num_exact_match"
+            ],
             f"{args.wandb_eval_type}/pass_rate": pass_rate,
             f"{args.wandb_eval_type}/avg_score": avg_score,
             f"{args.wandb_eval_type}/accept_threshold": args.accept_threshold,
         }
     )
 
-    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
-    with open(args.output_file, "w") as f:
+    with open(args.evaluations_file, "w") as f:
         json.dump(
             {
-                "metadata": {
-                    "model_path": args.model_path,
-                    "input_file": args.input_file,
-                    "output_file": args.output_file,
-                    "limit": args.limit,
-                    "system_prompt_file": args.system_prompt_file,
-                    "prompt_file": args.prompt_file,
-                    "judge_name": args.judge_name,
-                    "context_length": args.context_length,
-                    "problem_length": args.problem_length,
-                    "accept_threshold": args.accept_threshold,
-                    "max_attempts": args.max_attempts,
-                    "timeout": args.timeout,
-                    "concurrency": args.concurrency,
-                    "max_connections": args.max_connections,
-                    "keepalive": args.keepalive,
-                },
-                "judge_eval_scores": {
+                "metadata": metadata,
+                "evaluation_scores": {
                     "total_test_cases": len(test_cases),
                     "num_correct": num_correct,
                     "pass_rate": pass_rate,
                     "avg_score": avg_score,
                     "accept_threshold": args.accept_threshold,
+                    "max_attempts": args.max_attempts,
                 },
                 "generation_results": results,
             },
@@ -385,7 +369,7 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         "-m",
         "sglang.launch_server",
         "--model-path",
-        args.model_path,
+        args.judge_model_path,
         "--host",
         args.server_host,
         "--port",
