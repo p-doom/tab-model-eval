@@ -1,5 +1,5 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -11,7 +11,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > palindrome_checker.py
 def is_palindrome(text):
     text = text.lower().replace(" ", "")
@@ -47,7 +47,7 @@ EOF && cat -n palindrome_checker.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python palindrome_checker.py racecar
 ```
 
@@ -57,7 +57,7 @@ python palindrome_checker.py racecar
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python palindrome_checker.py hello
 ```
 
@@ -67,6 +67,6 @@ python palindrome_checker.py hello
 </stdout>
 
 # Assistant
-``` bash
+```bash
 echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
 ```

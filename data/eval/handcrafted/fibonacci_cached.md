@@ -1,5 +1,5 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -11,7 +11,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > fibonnacci.py && cat -n fibonnacci.py
 import argparse
 
@@ -50,7 +50,7 @@ EOF
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python fibonnacci.py --n 15
 ```
 
@@ -61,7 +61,7 @@ python fibonnacci.py --n 15
 The output is very slow. Can we make it faster?
 
 # Assistant
-``` bash
+```bash
 # add a cache decorator to the fibonnacci function
 sed -i '1s/^/from functools import cache\n/' fibonnacci.py && cat -n fibonnacci.py
 ```
@@ -87,7 +87,7 @@ sed -i '1s/^/from functools import cache\n/' fibonnacci.py && cat -n fibonnacci.
 </stdout>
 
 # Assistant
-``` bash
+```bash
 sed -i '4s/^/@cache\n/' fibonnacci.py && cat -n fibonnacci.py
 ```
 
@@ -113,7 +113,7 @@ sed -i '4s/^/@cache\n/' fibonnacci.py && cat -n fibonnacci.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python fibonnacci.py --n 15
 ```
 
@@ -124,6 +124,6 @@ python fibonnacci.py --n 15
 Better!
 
 # Assistant
-``` bash
+```bash
 echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
 ```

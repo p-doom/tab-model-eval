@@ -1,5 +1,5 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -11,7 +11,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > fibonnacci.py
 import argparse
 
@@ -50,7 +50,7 @@ EOF && cat -n fibonnacci.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python fibonnacci.py --n 15
 ```
 

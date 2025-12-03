@@ -226,8 +226,11 @@ async def run_eval(args: Args, base_url: str):
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
 
-    system_prompt = open(args.system_prompt_file, "r").read()
-    prompt_template = open(args.prompt_file, "r").read()
+    with open(args.system_prompt_file, "r") as f:
+        system_prompt = f.read()
+
+    with open(args.prompt_file, "r") as f:
+        prompt_template = f.read()
 
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
