@@ -163,6 +163,13 @@ async def generate_next_command(
                 await asyncio.sleep(delay)
                 delay *= 2
 
+        return {
+            "task_id": test_case["task_id"],
+            "error": "Max attempts reached",
+            "is_correct": 0,
+            "average_score": 0.0,
+        }
+
 
 async def run_eval(args: Args, base_url: str):
     test_cases = list(load_dataset(args.test_cases_file))

@@ -204,6 +204,13 @@ async def evaluate_generated_command(
                 await asyncio.sleep(delay)
                 delay *= 2
 
+        return {
+            "task_id": test_case["task_id"],
+            "error": "Max attempts reached",
+            "is_correct": 0,
+            "average_score": 0.0,
+        }
+
 
 async def run_eval(args: Args, base_url: str):
     loaded_data = load_dataset(args.generations_file)
