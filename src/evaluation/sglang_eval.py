@@ -57,8 +57,6 @@ class Args:
 # ----------------------------
 # Dataset helpers
 # ----------------------------
-
-
 def load_dataset(filepath):
     with open(filepath, "r") as f:
         return json.loads(f.read())
@@ -121,6 +119,8 @@ async def evaluate_generated_command(
     sem: asyncio.Semaphore,
     test_case: Dict[str, Any],
     args: Args,
+    system_prompt: str,
+    prompt_template: str,
 ) -> Dict[str, Any]:
     """
     Handles a single evaluation task with concurrency control and retries.
@@ -141,8 +141,6 @@ async def evaluate_generated_command(
 
         for attempt in range(args.max_attempts):
             try:
-                with open(args.prompt_file, "r") as pf:
-                    prompt_template = pf.read()
 
                 prompt = prompt_template.format(
                     # context=json.dumps(test_case["context"], indent=2),
@@ -153,7 +151,7 @@ async def evaluate_generated_command(
                 messages = [
                     {
                         "role": "system",
-                        "content": open(args.system_prompt_file, "r").read(),
+                        "content": system_prompt,
                     },
                     {"role": "user", "content": prompt},
                 ]
@@ -230,6 +228,7 @@ async def run_eval(args: Args, base_url: str):
 
     system_prompt = open(args.system_prompt_file, "r").read()
     prompt_template = open(args.prompt_file, "r").read()
+
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
         test_cases,
@@ -262,12 +261,17 @@ async def run_eval(args: Args, base_url: str):
     )
     client = AsyncOpenAI(
         base_url=base_url,
-        api_key="EMPTY",  # sglang OpenAI-compatible server usually ignores this
+        api_key="EMPTY",
         http_client=http,
     )
 
     sem = asyncio.Semaphore(args.concurrency)
-    tasks = [evaluate_generated_command(client, sem, tc, args) for tc in test_cases]
+    tasks = [
+        evaluate_generated_command(
+            client, sem, tc, args, system_prompt, prompt_template
+        )
+        for tc in test_cases
+    ]
 
     print(
         f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ..."
