@@ -23,13 +23,13 @@ class Args:
     wandb_name: str = "validation_set_eval"
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
-
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
-    prompt_file: str = "data/prompts/command_evaluation_prompt_no_context.txt"
     judge_name: str = "default"
+    judge_prompt_file: str = "data/prompts/command_evaluation_prompt.txt"
+    judge_prompt_file_with_context: str = ""
     accept_threshold: float = 0.8
 
     # Server-related (sglang)
@@ -38,6 +38,7 @@ class Args:
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
+    api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     mem_fraction_static: float = 0.95
 
     # HTTP / client config
@@ -77,6 +78,7 @@ def filter_tasks_by_context_length(
     max_context_length: int = 40960,
     problem_length: int = 40960,
     buffer_tokens: int = 512,  # Reserve space for response
+    include_context: bool = False,
 ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Filter out test cases whose context would exceed the model's context length.
@@ -88,7 +90,8 @@ def filter_tasks_by_context_length(
     for tc in test_cases:
         # Estimate tokens for system prompt + context
         messages = [{"role": "system", "content": system_prompt}]
-        # messages.extend(tc["context"])
+        if include_context:
+            messages.extend(tc["context"])
         messages.append({"role": "user", "content": prompt_template})
         estimated_tokens = estimate_token_count(messages)
 
@@ -120,6 +123,7 @@ async def evaluate_generated_command(
     args: Args,
     system_prompt: str,
     prompt_template: str,
+    include_context: bool,
 ) -> Dict[str, Any]:
     """
     Handles a single evaluation task with concurrency control and retries.
@@ -139,11 +143,13 @@ async def evaluate_generated_command(
         for attempt in range(args.max_attempts):
             try:
 
-                prompt = prompt_template.format(
-                    # context=json.dumps(test_case["context"], indent=2),
-                    expected=test_case["expected_command"],
-                    generated=test_case["generated_command"],
-                )
+                format_dict = {
+                    "expected": test_case["expected_command"],
+                    "generated": test_case["generated_command"],
+                }
+                if include_context:
+                    format_dict["context"] = json.dumps(test_case["context"], indent=2)
+                prompt = prompt_template.format(**format_dict)
 
                 messages = [
                     {
@@ -170,6 +176,7 @@ async def evaluate_generated_command(
 
                 return {
                     "task_id": test_case["task_id"],
+                    "context": test_case["context"],
                     "generated_command": test_case["generated_command"],
                     "expected_command": test_case["expected_command"],
                     "average_score": average_score,
@@ -226,7 +233,10 @@ async def run_eval(args: Args, base_url: str):
     with open(args.system_prompt_file, "r") as f:
         system_prompt = f.read()
 
-    with open(args.prompt_file, "r") as f:
+    include_context = bool(args.judge_prompt_file_with_context)
+    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
+
+    with open(judge_prompt_file, "r") as f:
         prompt_template = f.read()
 
     # Filter out tasks with context that's too long
@@ -237,6 +247,7 @@ async def run_eval(args: Args, base_url: str):
         max_context_length=args.context_length,
         problem_length=args.problem_length,
         buffer_tokens=512,
+        include_context=include_context,
     )
 
     print(f"\nFiltered dataset:")
@@ -261,13 +272,15 @@ async def run_eval(args: Args, base_url: str):
     )
     client = AsyncOpenAI(
         base_url=base_url,
-        api_key="EMPTY",
+        api_key=args.api_key,
         http_client=http,
     )
 
     sem = asyncio.Semaphore(args.concurrency)
     tasks = [
-        evaluate_generated_command(client, sem, tc, args, system_prompt, prompt_template)
+        evaluate_generated_command(
+            client, sem, tc, args, system_prompt, prompt_template, include_context
+        )
         for tc in test_cases
     ]
 

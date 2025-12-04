@@ -32,6 +32,7 @@ class Args:
     context_length: int = 40960
     problem_length: int = 40960
     mem_fraction_static: float = 0.95
+    api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
 
     # HTTP / client config
     concurrency: int = 64
@@ -54,7 +55,7 @@ def load_dataset(filepath):
     with open(filepath, "r") as f:
         for line in f:
             data.append(json.loads(line))
-        return data
+    return data
 
 
 def extract_first_bash_block(text: str) -> str:
@@ -201,7 +202,7 @@ async def run_eval(args: Args, base_url: str):
     )
     client = AsyncOpenAI(
         base_url=base_url,
-        api_key="EMPTY",  # sglang’s OpenAI-compatible server usually ignores this
+        api_key=args.api_key,
         http_client=http,
     )
 

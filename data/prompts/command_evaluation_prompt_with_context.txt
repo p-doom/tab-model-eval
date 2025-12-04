@@ -1,5 +1,8 @@
 You are evaluating bash commands in a conversational assistant context.
 
+Context (conversation history):
+{context}
+
 Expected Command (reference):
 {expected}
 
