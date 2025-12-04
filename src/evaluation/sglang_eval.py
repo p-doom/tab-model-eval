@@ -24,12 +24,8 @@ class Args:
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
 
-    generations_file: str = (
-        "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
-    )
-    evaluations_file: str = (
-        "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
-    )
+    generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
+    evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
     prompt_file: str = "data/prompts/command_evaluation_prompt_no_context.txt"
@@ -132,9 +128,7 @@ async def evaluate_generated_command(
         delay = 0.25
 
         if test_case.get("error", None) is not None:
-            print(
-                f"Returning failure object for task {test_case['task_id']} due to error"
-            )
+            print(f"Returning failure object for task {test_case['task_id']} due to error")
             return {
                 "task_id": test_case["task_id"],
                 "error": test_case["error"],
@@ -207,13 +201,6 @@ async def evaluate_generated_command(
                 await asyncio.sleep(delay)
                 delay *= 2
 
-        return {
-            "task_id": test_case["task_id"],
-            "error": "Max attempts reached",
-            "is_correct": 0,
-            "average_score": 0.0,
-        }
-
 
 async def run_eval(args: Args, base_url: str):
     loaded_data = load_dataset(args.generations_file)
@@ -280,15 +267,11 @@ async def run_eval(args: Args, base_url: str):
 
     sem = asyncio.Semaphore(args.concurrency)
     tasks = [
-        evaluate_generated_command(
-            client, sem, tc, args, system_prompt, prompt_template
-        )
+        evaluate_generated_command(client, sem, tc, args, system_prompt, prompt_template)
         for tc in test_cases
     ]
 
-    print(
-        f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ..."
-    )
+    print(f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ...")
     results: List[Dict[str, Any]] = []
 
     # progress bar over async tasks
@@ -373,9 +356,7 @@ async def wait_for_server(base_url: str, timeout: float = 120.0) -> None:
                     print("Server is up.")
                     return
                 else:
-                    print(
-                        f"Server not ready yet (status {resp.status_code}); retrying..."
-                    )
+                    print(f"Server not ready yet (status {resp.status_code}); retrying...")
             except Exception as e:
                 print(f"Server not ready yet ({e}); retrying...")
             await asyncio.sleep(10.0)

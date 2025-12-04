@@ -2,7 +2,6 @@ import json
 import os
 import re
 import tyro
-import os
 from dataclasses import dataclass
 
 
@@ -44,9 +43,7 @@ def create_incremental_test_cases(parsed_data, task_name):
     for i in range(1, len(parsed_data) - 1, 2):  # Ensure context ends with user content
         context = parsed_data[: i + 1]
         expected_response = (
-            parsed_data[i + 1]["content"]
-            if parsed_data[i + 1]["role"] == "assistant"
-            else ""
+            parsed_data[i + 1]["content"] if parsed_data[i + 1]["role"] == "assistant" else ""
         )
 
         test_case = {
@@ -78,9 +75,7 @@ if __name__ == "__main__":
         if file.endswith(".md"):
             task_name = file.split("/")[-1].split(".")[0]
             parsed_data = parse_md_file(os.path.join(args.input_dir, file))
-            incremental_test_cases = create_incremental_test_cases(
-                parsed_data, task_name
-            )
+            incremental_test_cases = create_incremental_test_cases(parsed_data, task_name)
             incremental_test_cases_total.extend(incremental_test_cases)
 
     write_jsonl(incremental_test_cases_total, args.output_file)

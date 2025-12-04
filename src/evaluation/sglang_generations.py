@@ -19,12 +19,8 @@ from tqdm.asyncio import tqdm_asyncio
 @dataclass
 class Args:
     # Eval-related
-    test_cases_file: str = (
-        "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
-    )
-    generations_file: str = (
-        "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
-    )
+    test_cases_file: str = "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
+    generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/minimal_v1.md"
     model_name: str = "default"
@@ -158,21 +154,12 @@ async def generate_next_command(
                         "response_text": "",
                         "context": test_case["context"],
                         "generated_command": "",
-                        "expected_command": test_case.get(
-                            "expected_final_response", ""
-                        ),
+                        "expected_command": test_case.get("expected_final_response", ""),
                         "exact_match": 0,
                         "error": str(e),
                     }
                 await asyncio.sleep(delay)
                 delay *= 2
-
-        return {
-            "task_id": test_case["task_id"],
-            "error": "Max attempts reached",
-            "is_correct": 0,
-            "average_score": 0.0,
-        }
 
 
 async def run_eval(args: Args, base_url: str):
@@ -220,15 +207,11 @@ async def run_eval(args: Args, base_url: str):
 
     sem = asyncio.Semaphore(args.concurrency)
     tasks = [
-        generate_next_command(
-            client, sem, system_prompt, tc, args.model_name, args.max_attempts
-        )
+        generate_next_command(client, sem, system_prompt, tc, args.model_name, args.max_attempts)
         for tc in test_cases
     ]
 
-    print(
-        f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ..."
-    )
+    print(f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ...")
     results: List[Dict[str, Any]] = []
     # progress bar over async tasks
     for coro in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
@@ -291,9 +274,7 @@ async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
                     print("Server is up.")
                     return
                 else:
-                    print(
-                        f"Server not ready yet (status {resp.status_code}); retrying..."
-                    )
+                    print(f"Server not ready yet (status {resp.status_code}); retrying...")
             except Exception as e:
                 # Connection error or similar
                 print(f"Server not ready yet ({e}); retrying...")

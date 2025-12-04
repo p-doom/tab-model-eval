@@ -54,6 +54,6 @@ if __name__ == "__main__":
     with open(args.input_file, "r") as f:
         for conversation_id, line in enumerate(f):
             if conversation_id % 100 == 0:
-                print(f"Processing line {conversation_id} of {len(f)}")
+                print(f"Processing line {conversation_id}")
             task_name = f"conversation_{conversation_id}/{args.task_name}"
             convert_to_incremental_jsonl(line, args.output_file, task_name)
