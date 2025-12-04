@@ -1,4 +1,4 @@
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 python src/input_pipeline/validation_to_testcases.py --input_file data/temp/validation.jsonl --output_file data/temp/validation_testcases.jsonl
 ```
@@ -16,7 +16,7 @@ NameError: name 'json' is not defined. Did you forget to import 'json'?
 </stdout>
 
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 cat -n src/input_pipeline/validation_to_testcases.py
 ```
@@ -83,7 +83,7 @@ cat -n src/input_pipeline/validation_to_testcases.py
     58              conversation_id += 1
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 sed -i '1i\import json' src/input_pipeline/validation_to_testcases.py
 ```
@@ -92,7 +92,7 @@ sed -i '1i\import json' src/input_pipeline/validation_to_testcases.py
 <stdout>
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 python src/input_pipeline/validation_to_testcases.py --input_file data/temp/validation.jsonl --output_file data/temp/validation_testcases.jsonl
 ```

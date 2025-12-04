@@ -1,4 +1,4 @@
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 git push
 ```
@@ -14,7 +14,7 @@ hint: 'git pull' before pushing again.
 hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 git pull
 ```
@@ -34,7 +34,7 @@ Fast-forward
  1 file changed, 1 insertion(+)
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 git push
 ```

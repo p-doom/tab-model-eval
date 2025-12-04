@@ -1,4 +1,4 @@
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 gi tpush
 ```
@@ -8,7 +8,7 @@ gi tpush
 bash: gi: command not found
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 git push
 ```

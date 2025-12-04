@@ -1,4 +1,4 @@
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 git commit -am "Added sampling scripts for diffusion and maskgit baselines"
 ```
@@ -16,7 +16,7 @@ All done! ✨ 🍰 ✨
 2 files reformatted.
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 git commit -am "Added sampling scripts for diffusion and maskgit baselines"
 ```
