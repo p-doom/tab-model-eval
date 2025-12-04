@@ -6,7 +6,6 @@ source .venv/bin/activate
 
 model_id="Qwen/Qwen3-Coder-30B-A3B-Instruct"
 
-# context_length=128000
 context_length=40960
 
 python3 -m sglang.launch_server \

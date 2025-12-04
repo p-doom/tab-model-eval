@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import re
 import sys
 import subprocess
 import wandb
@@ -343,6 +342,7 @@ async def run_eval(args: Args, base_url: str):
     print(f"Average Score: {avg_score:.2f}")
 
     await http.aclose()
+    wandb.finish()
 
 
 # ----------------------------
