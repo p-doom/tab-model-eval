@@ -19,8 +19,12 @@ from tqdm.asyncio import tqdm_asyncio
 @dataclass
 class Args:
     # Eval-related
-    input_file: str = "data/eval/hello_world_insert.jsonl"
-    output_file: str = "data/eval/generations/hello_world_insert_generations.json"
+    test_cases_file: str = (
+        "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
+    )
+    generations_file: str = (
+        "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
+    )
     limit: int = -1
     system_prompt_file: str = "data/prompts/minimal_v1.md"
     model_name: str = "default"
@@ -50,20 +54,10 @@ class Args:
 # Dataset helpers
 # ----------------------------
 def load_dataset(filepath):
-    # with open(filepath, "r") as f:
-    #     for line in f:
-    #         yield json.loads(line)
-
     data = []
     with open(filepath, "r") as f:
         for line in f:
             data.append(json.loads(line))
-        # data.sort(
-        #     key=lambda x: (
-        #         int(x["task_id"].split("/")[0].split("_")[1]),  # conversation_0 -> 0
-        #         int(x["task_id"].split("/")[-1]),  # validation_mi
-        #     )
-        # )
         return data
 
 
@@ -133,7 +127,6 @@ async def generate_next_command(
     formatted_messages = [{"role": "system", "content": system_prompt}]
     formatted_messages.extend(test_case["context"])
 
-    print(f"Generating next command for task {test_case['task_id']} ...")
     async with sem:
         delay = 0.25
         for attempt in range(max_attempts):
@@ -174,12 +167,21 @@ async def generate_next_command(
                 await asyncio.sleep(delay)
                 delay *= 2
 
+        return {
+            "task_id": test_case["task_id"],
+            "error": "Max attempts reached",
+            "is_correct": 0,
+            "average_score": 0.0,
+        }
+
 
 async def run_eval(args: Args, base_url: str):
-    test_cases = list(load_dataset(args.input_file))
+    test_cases = list(load_dataset(args.test_cases_file))
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
-    system_prompt = open(args.system_prompt_file, "r").read()
+
+    with open(args.system_prompt_file, "r") as f:
+        system_prompt = f.read()
 
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
@@ -196,8 +198,8 @@ async def run_eval(args: Args, base_url: str):
     print()
 
     # Clean output
-    if os.path.exists(args.output_file):
-        os.remove(args.output_file)
+    if os.path.exists(args.generations_file):
+        os.remove(args.generations_file)
 
     # Reuse a single HTTP/2 client with a large pool
     http = httpx.AsyncClient(
@@ -236,13 +238,24 @@ async def run_eval(args: Args, base_url: str):
     results.sort(key=lambda x: x["task_id"])
 
     # Write once
-    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
+    os.makedirs(os.path.dirname(args.generations_file), exist_ok=True)
     correct = sum(r.get("exact_match", 0) for r in results)
-    with open(args.output_file, "w") as f:
-        for r in results:
-            f.write(json.dumps(r) + "\n")
-
     pass_rate = 100.0 * correct / len(test_cases) if test_cases else 0.0
+    with open(args.generations_file, "w") as f:
+        json.dump(
+            {
+                "config_generations": args.__dict__,
+                "generation_scores": {
+                    "total_test_cases": len(test_cases),
+                    "num_exact_match": correct,
+                    "pass_rate": pass_rate,
+                },
+                "generation_results": results,
+            },
+            f,
+            indent=2,
+        )
+
     print("\n" + "=" * 50)
     print("--- Evaluation Complete ---")
     print("=" * 50)
