@@ -137,8 +137,8 @@ cat -n jasmine/models/dynamics.py
    130          rngs: nnx.Rngs,
    131          decode: bool,
    132      ):
-   133          self.model_dim = model_dim
-   134          self.ffn_dim = ffn_dim
+   133          self.model_dim = model_dimension
+   134          self.ffn_dim = ffn_dimension
    135          self.num_latents = num_latents
    136          self.latent_action_dim = latent_action_dim
    137          self.num_blocks = num_blocks
@@ -295,17 +295,16 @@ cat -n jasmine/models/dynamics.py
    288          )
    289          pred_latents_BTNL = outputs_BTNp2L[:, :, 2:]
    290          return pred_latents_BTNL, denoise_t_BT
+   291
 </stdout>
-
 
 # Assistant <NO_EVAL>
 ```bash
-cat -n jasmine/models/dynamics.py | sed -n '19,30p'
+cat -n jasmine/models/dynamics.py | sed -n '20,30p'
 ```
 
 # User
 <stdout>
-    19          V: vocabulary size (number of latents)
     20      """
     21
     22      def __init__(
@@ -319,35 +318,103 @@ cat -n jasmine/models/dynamics.py | sed -n '19,30p'
     30          dropout: float,
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '24,24c\\t\tmodel_dim: int,' jasmine/models/dynamics.py
+sed -i '209,208c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '198,218p'
 ```
 
 # User
 <stdout>
+   198          num_heads: int,
+   199          denoise_steps: int,
+   200          dropout: float,
+   201          param_dtype: jnp.dtype,
+   202          dtype: jnp.dtype,
+   203          use_flash_attention: bool,
+   204          rngs: nnx.Rngs,
+   205          decode: bool,
+   206      ):
+   207          self.model_dim = model_dimension
+   208          self.ffn_dim = ffn_dimension
+   209          self.ffn_dim = ffn_dim
+   210          self.latent_action_dim = latent_action_dim
+   211          self.num_blocks = num_blocks
+   212          self.num_heads = num_heads
+   213          self.dropout = dropout
+   214          self.param_dtype = param_dtype
+   215          self.dtype = dtype
+   216          self.use_flash_attention = use_flash_attention
+   217          self.denoise_steps = denoise_steps
+   218          self.decode = decode
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '25,25c\\t\tffn_dim: int,' jasmine/models/dynamics.py
+sed -i '25,24c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '14,34p'
 ```
 
 # User
 <stdout>
-</stdout>
-
-
-# Assistant <NO_EVAL>
-```bash
-cat -n jasmine/models/dynamics.py | sed -n '34,45p'
-```
-
-# User
-<stdout>
+    14      Dimension keys:
+    15          B: batch size
+    16          T: sequence length
+    17          N: number of patches per frame
+    18          L: latent dimension
+    19          V: vocabulary size (number of latents)
+    20      """
+    21
+    22      def __init__(
+    23          self,
+    24          model_dimension: int,
+    25          model_dim: int,
+    26          num_latents: int,
+    27          latent_action_dim: int,
+    28          num_blocks: int,
+    29          num_heads: int,
+    30          dropout: float,
+    31          mask_limit: float,
+    32          param_dtype: jnp.dtype,
+    33          dtype: jnp.dtype,
     34          use_flash_attention: bool,
+</stdout>
+
+# Assistant <NO_EVAL>
+```bash
+sed -i '26,25c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '15,35p'
+```
+
+# User
+<stdout>
+    15          B: batch size
+    16          T: sequence length
+    17          N: number of patches per frame
+    18          L: latent dimension
+    19          V: vocabulary size (number of latents)
+    20      """
+    21
+    22      def __init__(
+    23          self,
+    24          model_dimension: int,
+    25          model_dim: int,
+    26          ffn_dim: int,
+    27          latent_action_dim: int,
+    28          num_blocks: int,
+    29          num_heads: int,
+    30          dropout: float,
+    31          mask_limit: float,
+    32          param_dtype: jnp.dtype,
+    33          dtype: jnp.dtype,
+    34          use_flash_attention: bool,
+    35          rngs: nnx.Rngs,
+</stdout>
+
+# Assistant <NO_EVAL>
+```bash
+cat -n jasmine/models/dynamics.py | sed -n '35,45p'
+```
+
+# User
+<stdout>
     35          rngs: nnx.Rngs,
     36          decode: bool,
     37      ):
@@ -361,35 +428,73 @@ cat -n jasmine/models/dynamics.py | sed -n '34,45p'
     45          self.mask_limit = mask_limit
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '38,38c\\t\tself.model_dim = model_dim' jasmine/models/dynamics.py
+sed -i '39,38c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '28,48p'
 ```
 
 # User
 <stdout>
+    28          num_blocks: int,
+    29          num_heads: int,
+    30          dropout: float,
+    31          mask_limit: float,
+    32          param_dtype: jnp.dtype,
+    33          dtype: jnp.dtype,
+    34          use_flash_attention: bool,
+    35          rngs: nnx.Rngs,
+    36          decode: bool,
+    37      ):
+    38          self.model_dim = model_dimension
+    39          self.model_dim = model_dim
+    40          self.num_latents = num_latents
+    41          self.latent_action_dim = latent_action_dim
+    42          self.num_blocks = num_blocks
+    43          self.num_heads = num_heads
+    44          self.dropout = dropout
+    45          self.mask_limit = mask_limit
+    46          self.param_dtype = param_dtype
+    47          self.dtype = dtype
+    48          self.use_flash_attention = use_flash_attention
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '39,39c\\t\tself.ffn_dim = ffn_dim' jasmine/models/dynamics.py
+sed -i '40,39c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '29,49p'
 ```
 
 # User
 <stdout>
+    29          num_heads: int,
+    30          dropout: float,
+    31          mask_limit: float,
+    32          param_dtype: jnp.dtype,
+    33          dtype: jnp.dtype,
+    34          use_flash_attention: bool,
+    35          rngs: nnx.Rngs,
+    36          decode: bool,
+    37      ):
+    38          self.model_dim = model_dimension
+    39          self.model_dim = model_dim
+    40          self.ffn_dim = ffn_dim
+    41          self.latent_action_dim = latent_action_dim
+    42          self.num_blocks = num_blocks
+    43          self.num_heads = num_heads
+    44          self.dropout = dropout
+    45          self.mask_limit = mask_limit
+    46          self.param_dtype = param_dtype
+    47          self.dtype = dtype
+    48          self.use_flash_attention = use_flash_attention
+    49          self.decode = decode
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-cat -n jasmine/models/dynamics.py | sed -n '115,126p'
+cat -n jasmine/models/dynamics.py | sed -n '116,126p'
 ```
 
 # User
 <stdout>
-   115  class DynamicsCausal(nnx.Module):
    116      """Causal dynamics model"""
    117
    118      def __init__(
@@ -403,41 +508,79 @@ cat -n jasmine/models/dynamics.py | sed -n '115,126p'
    126          dropout: float,
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '120,120c\\t\tmodel_dim: int,' jasmine/models/dynamics.py
+sed -i '121,120c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '110,130p'
 ```
 
 # User
 <stdout>
+   110          logits_BTNp1V = self.transformer(vid_embed_BTNp1M)
+   111          logits_BTNV = logits_BTNp1V[:, :, 1:]
+   112          return logits_BTNV, mask
+   113
+   114
+   115  class DynamicsCausal(nnx.Module):
+   116      """Causal dynamics model"""
+   117
+   118      def __init__(
+   119          self,
+   120          model_dimension: int,
+   121          model_dim: int,
+   122          num_latents: int,
+   123          latent_action_dim: int,
+   124          num_blocks: int,
+   125          num_heads: int,
+   126          dropout: float,
+   127          param_dtype: jnp.dtype,
+   128          dtype: jnp.dtype,
+   129          use_flash_attention: bool,
+   130          rngs: nnx.Rngs,
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '121,121c\\t\tffn_dim: int,' jasmine/models/dynamics.py
+sed -i '122,121c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '111,131p'
 ```
 
 # User
 <stdout>
-</stdout>
-
-
-# Assistant <NO_EVAL>
-```bash
-cat -n jasmine/models/dynamics.py | sed -n '128,139p'
-```
-
-# User
-<stdout>
+   111          logits_BTNV = logits_BTNp1V[:, :, 1:]
+   112          return logits_BTNV, mask
+   113
+   114
+   115  class DynamicsCausal(nnx.Module):
+   116      """Causal dynamics model"""
+   117
+   118      def __init__(
+   119          self,
+   120          model_dimension: int,
+   121          model_dim: int,
+   122          ffn_dim: int,
+   123          latent_action_dim: int,
+   124          num_blocks: int,
+   125          num_heads: int,
+   126          dropout: float,
+   127          param_dtype: jnp.dtype,
    128          dtype: jnp.dtype,
    129          use_flash_attention: bool,
    130          rngs: nnx.Rngs,
    131          decode: bool,
+</stdout>
+
+# Assistant <NO_EVAL>
+```bash
+cat -n jasmine/models/dynamics.py | sed -n '129,139p'
+```
+
+# User
+<stdout>
+   129          use_flash_attention: bool,
+   130          rngs: nnx.Rngs,
+   131          decode: bool,
    132      ):
-   133                  self.model_dim = model_dim
-   134                  self.ffn_dim = ffn_dim
+   133          self.model_dim = model_dimension
+   134          self.ffn_dim = ffn_dimension
    135          self.num_latents = num_latents
    136          self.latent_action_dim = latent_action_dim
    137          self.num_blocks = num_blocks
@@ -445,36 +588,73 @@ cat -n jasmine/models/dynamics.py | sed -n '128,139p'
    139          self.dropout = dropout
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '133,133c\\t\tself.model_dim = model_dim' jasmine/models/dynamics.py
+sed -i '134,133c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '123,143p'
 ```
 
 # User
 <stdout>
+   123          latent_action_dim: int,
+   124          num_blocks: int,
+   125          num_heads: int,
+   126          dropout: float,
+   127          param_dtype: jnp.dtype,
+   128          dtype: jnp.dtype,
+   129          use_flash_attention: bool,
+   130          rngs: nnx.Rngs,
+   131          decode: bool,
+   132      ):
+   133          self.model_dim = model_dimension
+   134          self.model_dim = model_dim
+   135          self.num_latents = num_latents
+   136          self.latent_action_dim = latent_action_dim
+   137          self.num_blocks = num_blocks
+   138          self.num_heads = num_heads
+   139          self.dropout = dropout
+   140          self.param_dtype = param_dtype
+   141          self.dtype = dtype
+   142          self.use_flash_attention = use_flash_attention
+   143          self.decode = decode
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '134,134c\\t\tself.ffn_dim = ffn_dim' jasmine/models/dynamics.py
+sed -i '135,134c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '124,144p'
 ```
 
 # User
 <stdout>
+   124          num_blocks: int,
+   125          num_heads: int,
+   126          dropout: float,
+   127          param_dtype: jnp.dtype,
+   128          dtype: jnp.dtype,
+   129          use_flash_attention: bool,
+   130          rngs: nnx.Rngs,
+   131          decode: bool,
+   132      ):
+   133          self.model_dim = model_dimension
+   134          self.model_dim = model_dim
+   135          self.ffn_dim = ffn_dim
+   136          self.latent_action_dim = latent_action_dim
+   137          self.num_blocks = num_blocks
+   138          self.num_heads = num_heads
+   139          self.dropout = dropout
+   140          self.param_dtype = param_dtype
+   141          self.dtype = dtype
+   142          self.use_flash_attention = use_flash_attention
+   143          self.decode = decode
+   144          self.transformer = AxialTransformer(
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-cat -n jasmine/models/dynamics.py | sed -n '188,199p'
+cat -n jasmine/models/dynamics.py | sed -n '189,199p'
 ```
-
 
 # User
 <stdout>
-   188  class DynamicsDiffusion(nnx.Module):
    189      """Diffusion transformer dynamics model"""
    190
    191      def __init__(
@@ -488,68 +668,112 @@ cat -n jasmine/models/dynamics.py | sed -n '188,199p'
    199          denoise_steps: int,
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '193,193c\\t\tmodel_dim: int,' jasmine/models/dynamics.py
+sed -i '194,193c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '183,203p'
 ```
 
 # User
 <stdout>
+   183          logits_BTNp1V = self.transformer(vid_embed_BTNp1M)
+   184          logits_BTNV = logits_BTNp1V[:, :, :-1]
+   185          return logits_BTNV, jnp.ones_like(video_tokens_BTN)
+   186
+   187
+   188  class DynamicsDiffusion(nnx.Module):
+   189      """Diffusion transformer dynamics model"""
+   190
+   191      def __init__(
+   192          self,
+   193          model_dimension: int,
+   194          model_dim: int,
+   195          latent_patch_dim: int,
+   196          latent_action_dim: int,
+   197          num_blocks: int,
+   198          num_heads: int,
+   199          denoise_steps: int,
+   200          dropout: float,
+   201          param_dtype: jnp.dtype,
+   202          dtype: jnp.dtype,
+   203          use_flash_attention: bool,
 </stdout>
-
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '194,194c\\t\tffn_dim: int,' jasmine/models/dynamics.py
+sed -i '195,194c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '184,204p'
 ```
 
 # User
 <stdout>
+   184          logits_BTNV = logits_BTNp1V[:, :, :-1]
+   185          return logits_BTNV, jnp.ones_like(video_tokens_BTN)
+   186
+   187
+   188  class DynamicsDiffusion(nnx.Module):
+   189      """Diffusion transformer dynamics model"""
+   190
+   191      def __init__(
+   192          self,
+   193          model_dimension: int,
+   194          model_dim: int,
+   195          ffn_dim: int,
+   196          latent_action_dim: int,
+   197          num_blocks: int,
+   198          num_heads: int,
+   199          denoise_steps: int,
+   200          dropout: float,
+   201          param_dtype: jnp.dtype,
+   202          dtype: jnp.dtype,
+   203          use_flash_attention: bool,
+   204          rngs: nnx.Rngs,
 </stdout>
-
 
 # Assistant <EVAL>
 ```bash
-cat -n jasmine/models/dynamics.py | sed -n '202,213p'
+cat -n jasmine/models/dynamics.py | sed -n '203,213p'
 ```
 
 # User
 <stdout>
-   202          dtype: jnp.dtype,
    203          use_flash_attention: bool,
    204          rngs: nnx.Rngs,
    205          decode: bool,
    206      ):
    207          self.model_dim = model_dimension
    208          self.ffn_dim = ffn_dimension
-   209          self.latent_patch_dim = latent_patch_dim
+   209          self.ffn_dim = ffn_dim
    210          self.latent_action_dim = latent_action_dim
    211          self.num_blocks = num_blocks
    212          self.num_heads = num_heads
    213          self.dropout = dropout
 </stdout>
 
-
 # Assistant <NO_EVAL>
 ```bash
-sed -i '133,133c\\t\tself.model_dim = model_dim' jasmine/models/dynamics.py
+sed -i '208,207c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '197,217p'
 ```
 
 # User
 <stdout>
+   197          num_blocks: int,
+   198          num_heads: int,
+   199          denoise_steps: int,
+   200          dropout: float,
+   201          param_dtype: jnp.dtype,
+   202          dtype: jnp.dtype,
+   203          use_flash_attention: bool,
+   204          rngs: nnx.Rngs,
+   205          decode: bool,
+   206      ):
+   207          self.model_dim = model_dimension
+   208          self.model_dim = model_dim
+   209          self.ffn_dim = ffn_dim
+   210          self.latent_action_dim = latent_action_dim
+   211          self.num_blocks = num_blocks
+   212          self.num_heads = num_heads
+   213          self.dropout = dropout
+   214          self.param_dtype = param_dtype
+   215          self.dtype = dtype
+   216          self.use_flash_attention = use_flash_attention
+   217          self.denoise_steps = denoise_steps
 </stdout>
-
-
-# Assistant <NO_EVAL>
-```bash
-sed -i '134,134c\\t\tself.ffn_dim = ffn_dim' jasmine/models/dynamics.py
-```
-
-# User
-<stdout>
-</stdout>
-
-
-
-
