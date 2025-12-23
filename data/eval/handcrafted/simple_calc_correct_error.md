@@ -1,22 +1,20 @@
 
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
 # User
 <stdout>
-[alfred.nguyen@hai-login1.haicore.berlin:~] $ ls -la
 total 336
 drwxrwx--- 3 alfred.nguyen alfred.nguyen   318 Nov 13 18:05 .
 drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 -rw-rw---- 1 alfred.nguyen alfred.nguyen     0 Nov 13 18:05 calculator.py
-[alfred.nguyen@hai-login1.haicore.berlin:~] $ 
 </stdout>
 
 
 # Assistant
-``` bash
+```bash
 cat -n calculator.py
 ```
 
@@ -57,7 +55,7 @@ cat -n calculator.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py add 5 3
 ```
 
@@ -67,7 +65,7 @@ python calculator.py add 5 3
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py multiply 4 7
 ```
 
@@ -77,7 +75,7 @@ python calculator.py multiply 4 7
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py divide 5 2
 ```
 
@@ -87,7 +85,7 @@ python calculator.py divide 5 2
 </stdout>
 
 # Assistant
-``` bash
+```bash
 sed -i 's/^    return a \/\/ b/    return a \/ b/' calculator.py && cat -n calculator.py
 ```
 
@@ -128,7 +126,7 @@ sed -i 's/^    return a \/\/ b/    return a \/ b/' calculator.py && cat -n calcu
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py divide 5 2
 ```
 
@@ -138,6 +136,6 @@ python calculator.py divide 5 2
 </stdout>
 
 # Assistant
-``` bash
+```bash
 echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
 ```

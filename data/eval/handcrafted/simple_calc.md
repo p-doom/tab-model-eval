@@ -2,7 +2,7 @@
 Create a simple calculator program that can add, subtract, multiply, and divide two numbers.
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > calculator.py
 def add(a, b):
     return a + b
@@ -76,7 +76,7 @@ EOF && cat -n calculator.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py add 5 3
 ```
 
@@ -86,7 +86,7 @@ python calculator.py add 5 3
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py subtract 9 4
 ```
 
@@ -96,7 +96,7 @@ python calculator.py subtract 9 4
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py multiply 4 7
 ```
 
@@ -106,7 +106,7 @@ python calculator.py multiply 4 7
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py divide 5 2
 ```
 
@@ -116,6 +116,6 @@ python calculator.py divide 5 2
 </stdout>
 
 # Assistant
-``` bash
+```bash
 echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
 ```

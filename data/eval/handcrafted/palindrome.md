@@ -1,19 +1,17 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
 # User
 <stdout>
-[alfred.nguyen@hai-login1.haicore.berlin:~] $ ls -la
 total 336
 drwxrwx--- 3 alfred.nguyen alfred.nguyen   318 Nov 13 18:05 .
 drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
-[alfred.nguyen@hai-login1.haicore.berlin:~] $ 
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > palindrome_checker.py
 def is_palindrome(text):
     text = text.lower().replace(" ", "")
@@ -49,7 +47,7 @@ EOF && cat -n palindrome_checker.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python palindrome_checker.py racecar
 ```
 
@@ -59,7 +57,7 @@ python palindrome_checker.py racecar
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python palindrome_checker.py hello
 ```
 
@@ -69,6 +67,6 @@ python palindrome_checker.py hello
 </stdout>
 
 # Assistant
-``` bash
+```bash
 echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
 ```
