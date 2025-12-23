@@ -85,11 +85,21 @@ cat -n src/input_pipeline/validation_to_testcases.py
 
 # Assistant <EVAL>
 ```bash
-sed -i '1i\import json' src/input_pipeline/validation_to_testcases.py
+sed -i '1i\import json' src/input_pipeline/validation_to_testcases.py && cat -n src/input_pipeline/validation_to_testcases.py | sed -n '1,10p'
 ```
 
 # User
 <stdout>
+     1  import json
+     2  import tyro
+     3  import os
+     4  from dataclasses import dataclass
+     5
+     6
+     7  @dataclass
+     8  class Args:
+     9      input_file: str = "data/eval/val/validation.jsonl"
+    10      output_file: str = "data/eval/val/validation_testcases.jsonl"
 </stdout>
 
 # Assistant <EVAL>

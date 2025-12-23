@@ -19,8 +19,8 @@ from tqdm.asyncio import tqdm_asyncio
 @dataclass
 class Args:
     # Eval-related
-    input_file: str = "data/eval/hello_world_insert.jsonl"
-    output_file: str = "data/eval/generations/hello_world_insert_generations.json"
+    input_file: str = "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
+    output_file: str = "data/eval/generations/handcrafted_test_cases_generations.json"
     limit: int = -1
     system_prompt_file: str = "data/prompts/minimal_v1.md"
     model_name: str = "default"

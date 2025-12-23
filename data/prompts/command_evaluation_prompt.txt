@@ -1,8 +1,5 @@
 You are evaluating bash commands in a conversational assistant context.
 
-Context (conversation history):
-{context}
-
 Expected Command (reference):
 {expected}
 
@@ -43,4 +40,3 @@ Score Guidelines for Correctness:
 - 0.7-0.9: Command is mostly correct with minor issues
 - 0.4-0.6: Command is partially correct but has significant issues
 - 0.0-0.3: Command is incorrect, unsafe, or doesn't address the request
-

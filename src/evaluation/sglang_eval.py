@@ -25,8 +25,8 @@ class Args:
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
 
-    input_file: str = "data/eval/hello_world_insert_generations.json"
-    output_file: str = "data/eval/hello_world_insert_evaluations.jsonl"
+    input_file: str = "data/eval/generations/handcrafted_test_cases_generations.json"
+    output_file: str = "data/eval/generations/handcrafted_test_cases_evaluation.json"
     limit: int = -1
     system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
     prompt_file: str = "data/prompts/command_evaluation_prompt_no_context.txt"
