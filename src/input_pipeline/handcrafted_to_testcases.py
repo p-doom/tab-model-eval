@@ -15,23 +15,40 @@ def parse_md_file(input_file):
     with open(input_file, "r") as file:
         content = file.read()
 
-    sections = re.split(r"# (User|Assistant)", content)
-    sections = [s.strip() for s in sections if s.strip()]
+    # Use regex to find all headers with optional eval tags
+    # Pattern matches: # User or # Assistant <EVAL> or # Assistant <NO_EVAL>
+    pattern = r"# (User|Assistant)(?: <(EVAL|NO_EVAL)>)?\n"
 
     parsed_data = []
-    current_dialogue = None
 
-    for index, section in enumerate(sections):
-        if section.startswith("User") or section.startswith("Assistant"):
-            if current_dialogue is not None:
-                parsed_data.append(current_dialogue)
-            current_dialogue = {
-                "role": section.lower(),
-                "content": sections[index + 1].strip(),
+    # Find all matches
+    for match in re.finditer(pattern, content):
+        # Get the role and eval_tag from the match
+        role = match.group(1).lower()
+        eval_tag = match.group(2)  # Will be None if not present
+
+        # Find the content between this match and the next match (or end of file)
+        start_pos = match.end()
+        next_match = None
+        for next_match_iter in re.finditer(pattern, content):
+            if next_match_iter.start() > match.start():
+                next_match = next_match_iter
+                break
+
+        if next_match:
+            end_pos = next_match.start()
+        else:
+            end_pos = len(content)
+
+        dialogue_content = content[start_pos:end_pos].strip()
+
+        parsed_data.append(
+            {
+                "role": role,
+                "content": dialogue_content,
+                "eval_tag": eval_tag,  # None for User, "EVAL" or "NO_EVAL" for Assistant
             }
-
-    if current_dialogue is not None:
-        parsed_data.append(current_dialogue)
+        )
 
     return parsed_data
 
@@ -41,18 +58,24 @@ def create_incremental_test_cases(parsed_data, task_name):
 
     task_number = 0
     for i in range(1, len(parsed_data) - 1, 2):  # Ensure context ends with user content
-        context = parsed_data[: i + 1]
-        expected_response = (
-            parsed_data[i + 1]["content"] if parsed_data[i + 1]["role"] == "assistant" else ""
-        )
+        # Only create test cases for assistant turns marked with <EVAL>
+        if i + 1 < len(parsed_data):
+            assistant_turn = parsed_data[i + 1]
+            if assistant_turn["role"] == "assistant":
+                eval_tag = assistant_turn.get("eval_tag")
+                if eval_tag != "EVAL":
+                    continue
 
-        test_case = {
-            "task_id": f"{task_name}/{task_number}",
-            "context": context,
-            "expected_final_response": expected_response,
-        }
-        test_cases.append(test_case)
-        task_number += 1
+                context = parsed_data[: i + 1]
+                expected_response = assistant_turn["content"]
+
+                test_case = {
+                    "task_id": f"{task_name}/{task_number}",
+                    "context": context,
+                    "expected_final_response": expected_response,
+                }
+                test_cases.append(test_case)
+                task_number += 1
 
     return test_cases
 

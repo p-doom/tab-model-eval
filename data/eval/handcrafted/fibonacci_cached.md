@@ -58,7 +58,6 @@ python fibonnacci.py --n 15
 <stdout>
 55
 </stdout>
-The output is very slow. Can we make it faster?
 
 # Assistant
 ```bash
@@ -121,9 +120,3 @@ python fibonnacci.py --n 15
 <stdout>
 55
 </stdout>
-Better!
-
-# Assistant
-```bash
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```
