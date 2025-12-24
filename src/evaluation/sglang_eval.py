@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import re
 import sys
 import subprocess
 import wandb
@@ -24,21 +23,22 @@ class Args:
     wandb_name: str = "validation_set_eval"
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
-
-    input_file: str = "data/eval/generations/handcrafted_test_cases_generations.json"
-    output_file: str = "data/eval/generations/handcrafted_test_cases_evaluation.json"
+    generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
+    evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
-    prompt_file: str = "data/prompts/command_evaluation_prompt_no_context.txt"
     judge_name: str = "default"
+    judge_prompt_file: str = "data/prompts/command_evaluation_prompt.txt"
+    judge_prompt_file_with_context: str = ""
     accept_threshold: float = 0.8
 
     # Server-related (sglang)
-    model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
+    api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     mem_fraction_static: float = 0.95
 
     # HTTP / client config
@@ -57,24 +57,9 @@ class Args:
 # ----------------------------
 # Dataset helpers
 # ----------------------------
-
-
 def load_dataset(filepath):
-    # with open(filepath, "r") as f:
-    #     for line in f:
-    #         yield json.loads(line)
-
-    data = []
     with open(filepath, "r") as f:
-        for line in f:
-            data.append(json.loads(line))
-        # data.sort(
-        #     key=lambda x: (
-        #         int(x["task_id"].split("/")[0].split("_")[1]),  # conversation_0 -> 0
-        #         int(x["task_id"].split("/")[-1]),  # validation_mi
-        #     )
-        # )
-        return data
+        return json.loads(f.read())
 
 
 def estimate_token_count(messages: List[Dict[str, str]]) -> int:
@@ -93,6 +78,7 @@ def filter_tasks_by_context_length(
     max_context_length: int = 40960,
     problem_length: int = 40960,
     buffer_tokens: int = 512,  # Reserve space for response
+    include_context: bool = False,
 ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     """
     Filter out test cases whose context would exceed the model's context length.
@@ -104,7 +90,8 @@ def filter_tasks_by_context_length(
     for tc in test_cases:
         # Estimate tokens for system prompt + context
         messages = [{"role": "system", "content": system_prompt}]
-        # messages.extend(tc["context"])
+        if include_context:
+            messages.extend(tc["context"])
         messages.append({"role": "user", "content": prompt_template})
         estimated_tokens = estimate_token_count(messages)
 
@@ -134,6 +121,9 @@ async def evaluate_generated_command(
     sem: asyncio.Semaphore,
     test_case: Dict[str, Any],
     args: Args,
+    system_prompt: str,
+    prompt_template: str,
+    include_context: bool,
 ) -> Dict[str, Any]:
     """
     Handles a single evaluation task with concurrency control and retries.
@@ -142,9 +132,7 @@ async def evaluate_generated_command(
         delay = 0.25
 
         if test_case.get("error", None) is not None:
-            print(
-                f"Returning failure object for task {test_case['task_id']} due to error"
-            )
+            print(f"Returning failure object for task {test_case['task_id']} due to error")
             return {
                 "task_id": test_case["task_id"],
                 "error": test_case["error"],
@@ -154,19 +142,19 @@ async def evaluate_generated_command(
 
         for attempt in range(args.max_attempts):
             try:
-                with open(args.prompt_file, "r") as pf:
-                    prompt_template = pf.read()
 
-                prompt = prompt_template.format(
-                    # context=json.dumps(test_case["context"], indent=2),
-                    expected=test_case["expected_command"],
-                    generated=test_case["generated_command"],
-                )
+                format_dict = {
+                    "expected": test_case["expected_command"],
+                    "generated": test_case["generated_command"],
+                }
+                if include_context:
+                    format_dict["context"] = json.dumps(test_case["context"], indent=2)
+                prompt = prompt_template.format(**format_dict)
 
                 messages = [
                     {
                         "role": "system",
-                        "content": open(args.system_prompt_file, "r").read(),
+                        "content": system_prompt,
                     },
                     {"role": "user", "content": prompt},
                 ]
@@ -188,6 +176,7 @@ async def evaluate_generated_command(
 
                 return {
                     "task_id": test_case["task_id"],
+                    "context": test_case["context"],
                     "generated_command": test_case["generated_command"],
                     "expected_command": test_case["expected_command"],
                     "average_score": average_score,
@@ -221,15 +210,35 @@ async def evaluate_generated_command(
 
 
 async def run_eval(args: Args, base_url: str):
-    test_cases = list(load_dataset(args.input_file))
+    loaded_data = load_dataset(args.generations_file)
+    test_cases = loaded_data["generation_results"]
 
-    wandb.init(project=args.wandb_project, name=args.wandb_name, tags=args.wandb_tags)
+    config_generations = loaded_data["config_generations"]
+    config_evaluations = args.__dict__
+    metadata = {
+        "config_generations": config_generations,
+        "config_evaluations": config_evaluations,
+    }
+
+    wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        tags=args.wandb_tags,
+        config=metadata,
+    )
 
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
 
-    system_prompt = open(args.system_prompt_file, "r").read()
-    prompt_template = open(args.prompt_file, "r").read()
+    with open(args.system_prompt_file, "r") as f:
+        system_prompt = f.read()
+
+    include_context = bool(args.judge_prompt_file_with_context)
+    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
+
+    with open(judge_prompt_file, "r") as f:
+        prompt_template = f.read()
+
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
         test_cases,
@@ -238,6 +247,7 @@ async def run_eval(args: Args, base_url: str):
         max_context_length=args.context_length,
         problem_length=args.problem_length,
         buffer_tokens=512,
+        include_context=include_context,
     )
 
     print(f"\nFiltered dataset:")
@@ -246,8 +256,8 @@ async def run_eval(args: Args, base_url: str):
     print()
 
     # Clean output
-    if os.path.exists(args.output_file):
-        os.remove(args.output_file)
+    if os.path.exists(args.evaluations_file):
+        os.remove(args.evaluations_file)
 
     # Reuse a single HTTP/2 client with a large pool
     http = httpx.AsyncClient(
@@ -262,16 +272,19 @@ async def run_eval(args: Args, base_url: str):
     )
     client = AsyncOpenAI(
         base_url=base_url,
-        api_key="EMPTY",  # sglang OpenAI-compatible server usually ignores this
+        api_key=args.api_key,
         http_client=http,
     )
 
     sem = asyncio.Semaphore(args.concurrency)
-    tasks = [evaluate_generated_command(client, sem, tc, args) for tc in test_cases]
+    tasks = [
+        evaluate_generated_command(
+            client, sem, tc, args, system_prompt, prompt_template, include_context
+        )
+        for tc in test_cases
+    ]
 
-    print(
-        f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ..."
-    )
+    print(f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ...")
     results: List[Dict[str, Any]] = []
 
     # progress bar over async tasks
@@ -287,43 +300,32 @@ async def run_eval(args: Args, base_url: str):
     pass_rate = 100.0 * num_correct / len(test_cases) if test_cases else 0.0
     avg_score = total_score_sum / len(test_cases) if test_cases else 0.0
 
+    os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
+
     wandb.log(
         {
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
             f"{args.wandb_eval_type}/num_correct": num_correct,
+            f"{args.wandb_eval_type}/num_exact_match": loaded_data["generation_scores"][
+                "num_exact_match"
+            ],
             f"{args.wandb_eval_type}/pass_rate": pass_rate,
             f"{args.wandb_eval_type}/avg_score": avg_score,
             f"{args.wandb_eval_type}/accept_threshold": args.accept_threshold,
         }
     )
 
-    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
-    with open(args.output_file, "w") as f:
+    with open(args.evaluations_file, "w") as f:
         json.dump(
             {
-                "metadata": {
-                    "model_path": args.model_path,
-                    "input_file": args.input_file,
-                    "output_file": args.output_file,
-                    "limit": args.limit,
-                    "system_prompt_file": args.system_prompt_file,
-                    "prompt_file": args.prompt_file,
-                    "judge_name": args.judge_name,
-                    "context_length": args.context_length,
-                    "problem_length": args.problem_length,
-                    "accept_threshold": args.accept_threshold,
-                    "max_attempts": args.max_attempts,
-                    "timeout": args.timeout,
-                    "concurrency": args.concurrency,
-                    "max_connections": args.max_connections,
-                    "keepalive": args.keepalive,
-                },
-                "judge_eval_scores": {
+                "metadata": metadata,
+                "evaluation_scores": {
                     "total_test_cases": len(test_cases),
                     "num_correct": num_correct,
                     "pass_rate": pass_rate,
                     "avg_score": avg_score,
                     "accept_threshold": args.accept_threshold,
+                    "max_attempts": args.max_attempts,
                 },
                 "generation_results": results,
             },
@@ -340,6 +342,7 @@ async def run_eval(args: Args, base_url: str):
     print(f"Average Score: {avg_score:.2f}")
 
     await http.aclose()
+    wandb.finish()
 
 
 # ----------------------------
@@ -366,9 +369,7 @@ async def wait_for_server(base_url: str, timeout: float = 120.0) -> None:
                     print("Server is up.")
                     return
                 else:
-                    print(
-                        f"Server not ready yet (status {resp.status_code}); retrying..."
-                    )
+                    print(f"Server not ready yet (status {resp.status_code}); retrying...")
             except Exception as e:
                 print(f"Server not ready yet ({e}); retrying...")
             await asyncio.sleep(10.0)
@@ -385,7 +386,7 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         "-m",
         "sglang.launch_server",
         "--model-path",
-        args.model_path,
+        args.judge_model_path,
         "--host",
         args.server_host,
         "--port",

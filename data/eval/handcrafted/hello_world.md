@@ -1,5 +1,5 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -11,7 +11,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat <<'EOF' > hello_world.py
 print("Hello, World!")
 EOF && cat -n hello_world.py

@@ -1,5 +1,5 @@
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -12,7 +12,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 </stdout>
 
 # Assistant
-``` bash
+```bash
 cat -n hello_world.py
 ```
 

@@ -51,9 +51,9 @@ if __name__ == "__main__":
         os.remove(args.output_file)
 
     # iterate over jsonl file and convert to incremental jsonl
-    conversation_id = 0
     with open(args.input_file, "r") as f:
-        for line in f:
+        for conversation_id, line in enumerate(f):
+            if conversation_id % 100 == 0:
+                print(f"Processing line {conversation_id}")
             task_name = f"conversation_{conversation_id}/{args.task_name}"
             convert_to_incremental_jsonl(line, args.output_file, task_name)
-            conversation_id += 1

@@ -1,6 +1,6 @@
 
 # Assistant
-``` bash
+```bash
 ls -la
 ```
 
@@ -14,7 +14,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 
 
 # Assistant
-``` bash
+```bash
 cat -n calculator.py
 ```
 
@@ -55,7 +55,7 @@ cat -n calculator.py
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py add 5 3
 ```
 
@@ -65,7 +65,7 @@ python calculator.py add 5 3
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py multiply 4 7
 ```
 
@@ -75,7 +75,7 @@ python calculator.py multiply 4 7
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py divide 5 2
 ```
 
@@ -85,7 +85,7 @@ python calculator.py divide 5 2
 </stdout>
 
 # Assistant
-``` bash
+```bash
 sed -i 's/^    return a \/\/ b/    return a \/ b/' calculator.py && cat -n calculator.py
 ```
 
@@ -126,7 +126,7 @@ sed -i 's/^    return a \/\/ b/    return a \/ b/' calculator.py && cat -n calcu
 </stdout>
 
 # Assistant
-``` bash
+```bash
 python calculator.py divide 5 2
 ```
 
