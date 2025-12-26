@@ -26,10 +26,10 @@ class Args:
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
-    system_prompt_file: str = "data/prompts/judge_system_prompt_v1.md"
+    system_prompt_file: str = "data/prompts/judge_system_prompt_v2.md"
     judge_name: str = "default"
-    judge_prompt_file: str = "data/prompts/judge_prompt_v1.md"
-    judge_prompt_file_with_context: str = ""
+    judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
+    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
 
     # Server-related (sglang)
     judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
