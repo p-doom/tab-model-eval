@@ -31,6 +31,8 @@ class Args:
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
+    num_samples: int = 2
+    temperature: float = 0.7
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     tp_size: int = 1
@@ -121,6 +123,8 @@ async def generate_next_command(
     test_case: Dict[str, Any],
     model: str,
     max_attempts: int,
+    temperature: float,
+    num_samples: int,
 ) -> Dict[str, Any]:
     formatted_messages = [{"role": "system", "content": system_prompt}]
     formatted_messages.extend(test_case["context"])
@@ -132,21 +136,38 @@ async def generate_next_command(
                 resp = await client.chat.completions.create(
                     model=model,
                     messages=formatted_messages,
-                    temperature=0.0,
+                    temperature=temperature,
+                    n=num_samples,
                     stop=["ASSISTANT:", "USER:"],
                 )
-                response_text = resp.choices[0].message.content or ""
-                generated = extract_first_bash_block(response_text)
+
                 expected = test_case.get("expected_final_response", "")
-                exact_match = int(generated == expected)
+                samples = []
+                for choice in resp.choices:
+                    response_text = choice.message.content or ""
+                    generated = extract_first_bash_block(response_text)
+                    exact_match = int(generated == expected)
+                    samples.append({
+                        "response_text": response_text,
+                        "generated_command": generated,
+                        "exact_match": exact_match,
+                    })
+                
+                num_exact_matches = sum(s["exact_match"] for s in samples)
+                exact_match_avg_at_n = num_exact_matches / len(samples)
+                exact_match_pass_at_n = num_exact_matches > 0
+                
                 return {
                     "task_id": test_case["task_id"],
-                    "response_text": response_text,
                     "context": test_case["context"],
-                    "generated_command": generated,
                     "expected_command": expected,
-                    "exact_match": exact_match,
+                    "samples": samples,
+                    "num_samples": len(samples),
+                    "num_exact_matches": num_exact_matches,
+                    "exact_match_avg_at_n": exact_match_avg_at_n,
+                    "exact_match_pass_at_n": exact_match_pass_at_n,
                 }
+
             except Exception as e:
                 print(f"Error on task {test_case['task_id']}: {e}")
                 if attempt == max_attempts - 1:
@@ -157,7 +178,7 @@ async def generate_next_command(
                         "context": test_case["context"],
                         "generated_command": "",
                         "expected_command": test_case.get("expected_final_response", ""),
-                        "exact_match": 0,
+                        "num_exact_matches": 0,
                         "error": str(e),
                     }
                 await asyncio.sleep(delay)
@@ -209,7 +230,7 @@ async def run_eval(args: Args, base_url: str):
 
     sem = asyncio.Semaphore(args.concurrency)
     tasks = [
-        generate_next_command(client, sem, system_prompt, tc, args.model_name, args.max_attempts)
+        generate_next_command(client, sem, system_prompt, tc, args.model_name, args.max_attempts, args.temperature, args.num_samples)
         for tc in test_cases
     ]
 
@@ -224,16 +245,17 @@ async def run_eval(args: Args, base_url: str):
 
     # Write once
     os.makedirs(os.path.dirname(args.generations_file), exist_ok=True)
-    correct = sum(r.get("exact_match", 0) for r in results)
-    pass_rate = 100.0 * correct / len(test_cases) if test_cases else 0.0
+    total_exact_match_avg_at_n = sum(r.get("exact_match_avg_at_n", 0) for r in results) / len(results) 
+    total_exact_match_pass_at_n = sum(r.get("exact_match_pass_at_n", 0) for r in results)
+
     with open(args.generations_file, "w") as f:
         json.dump(
             {
                 "config_generations": args.__dict__,
                 "generation_scores": {
                     "total_test_cases": len(test_cases),
-                    "num_exact_match": correct,
-                    "pass_rate": pass_rate,
+                    "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
+                    "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                 },
                 "generation_results": results,
             },
@@ -245,8 +267,10 @@ async def run_eval(args: Args, base_url: str):
     print("--- Evaluation Complete ---")
     print("=" * 50)
     print(f"Total Test Cases: {len(test_cases)}")
-    print(f"Correct (exact match): {correct}")
-    print(f"Pass Rate: {pass_rate:.2f}%")
+    print(f"Number of Samples per Task: {args.num_samples}")
+    print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
+    print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Generations output file: {args.generations_file}")
 
     await http.aclose()
 

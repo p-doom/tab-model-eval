@@ -38,6 +38,7 @@ class Args:
     context_length: int = 40960
     problem_length: int = 40960
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
+    temperature: float = 0.7
     mem_fraction_static: float = 0.95
     tp_size: int = 1
 
@@ -140,66 +141,92 @@ async def evaluate_generated_command(
                 "average_score": 0.0,
             }
 
-        for attempt in range(args.max_attempts):
-            try:
+        samples = test_case.get("samples", [])
+        if not samples:
+            print(f"Returning failure object for task {test_case['task_id']} due to no samples")
+            return {
+                "task_id": test_case["task_id"],
+                "error": "No samples",
+                "is_correct": 0,
+                "average_score": 0.0,
+            }
 
-                format_dict = {
-                    "expected": test_case["expected_command"],
-                    "generated": test_case["generated_command"],
-                }
-                if include_context:
-                    format_dict["context"] = json.dumps(test_case["context"], indent=2)
-                prompt = prompt_template.format(**format_dict)
-
-                messages = [
-                    {
-                        "role": "system",
-                        "content": system_prompt,
-                    },
-                    {"role": "user", "content": prompt},
-                ]
-
-                resp = await client.chat.completions.create(
-                    model=args.judge_name,
-                    messages=messages,
-                    temperature=0.0,
-                    response_format={"type": "json_object"},
-                )
-                result = json.loads(resp.choices[0].message.content)
-
-                equivalent = result.get("equivalent", 0)
-
-                return {
-                    "task_id": test_case["task_id"],
-                    "context": test_case["context"],
-                    "generated_command": test_case["generated_command"],
-                    "expected_command": test_case["expected_command"],
-                    "evaluation_results": result,
-                    "equivalent": equivalent,
-                }
-
-            except BadRequestError as e:
-                print(
-                    f"Returning failure object for task {test_case['task_id']} due to BadRequestError: {e}"
-                )
-                return {
-                    "task_id": test_case["task_id"],
-                    "error": str(e),
-                    "equivalent": 0,
-                }
-
-            except Exception as e:
-                print(f"Error on task {test_case['task_id']}: {e}")
-                if attempt == args.max_attempts - 1:
-                    print(f"Returning failure object for task {test_case['task_id']}")
-                    return {
+        sample_results = []
+        for sample in samples: 
+            for attempt in range(args.max_attempts):
+                try:
+                    format_dict = {
+                        "expected": test_case["expected_command"],
+                        "generated": sample["generated_command"],
+                    }
+                    if include_context:
+                        format_dict["context"] = json.dumps(test_case["context"], indent=2)
+                    prompt = prompt_template.format(**format_dict)
+    
+                    messages = [
+                        {
+                            "role": "system",
+                            "content": system_prompt,
+                        },
+                        {"role": "user", "content": prompt},
+                    ]
+    
+                    resp = await client.chat.completions.create(
+                        model=args.judge_name,
+                        messages=messages,
+                        temperature=args.temperature,
+                        response_format={"type": "json_object"},
+                    )
+                    result = json.loads(resp.choices[0].message.content)
+    
+                    equivalent = result.get("equivalent", 0)
+    
+                    sample_results.append({
+                        "generated_command": sample["generated_command"],
+                        "evaluation_results": result,
+                        "equivalent": equivalent,
+                    })
+                    break
+    
+                except BadRequestError as e:
+                    print(
+                        f"Returning failure object for task {test_case['task_id']} due to BadRequestError: {e}"
+                    )
+                    sample_results.append({
                         "task_id": test_case["task_id"],
                         "error": str(e),
                         "equivalent": 0,
-                    }
-                await asyncio.sleep(delay)
-                delay *= 2
+                    })
+                    break
+    
+                except Exception as e:
+                    print(f"Error on task {test_case['task_id']}: {e}")
+                    if attempt == args.max_attempts - 1:
+                        print(f"Returning failure object for task {test_case['task_id']}")
+                        sample_results.append({
+                            "task_id": test_case["task_id"],
+                            "error": str(e),
+                            "equivalent": 0,
+                        })
+                    await asyncio.sleep(delay)
+                    delay *= 2
 
+
+        # Compute avg@n and pass@n
+        num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
+        judge_avg_at_n = num_judge_matches / len(sample_results)
+        judge_pass_at_n = num_judge_matches > 0
+
+        return {
+            "task_id": test_case["task_id"],
+            "context": test_case["context"],
+            "expected_command": test_case["expected_command"],
+            "sample_evaluations": sample_results,
+            "num_samples": len(sample_results),
+            "num_judge_matches": num_judge_matches,
+            "judge_avg_at_n": judge_avg_at_n,
+            "judge_pass_at_n": judge_pass_at_n,
+        }
 
 async def run_eval(args: Args, base_url: str):
     loaded_data = load_dataset(args.generations_file)
@@ -286,19 +313,20 @@ async def run_eval(args: Args, base_url: str):
     # sort the results by task_id
     results.sort(key=lambda x: x["task_id"])
 
-    num_equivalent = sum(r.get("equivalent", 0) for r in results)
-    pass_rate = 100.0 * num_equivalent / len(test_cases) if test_cases else 0.0
-
     os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
+    total_judge_avg_at_n = sum(r.get("judge_avg_at_n", 0) for r in results) / len(results)
+    total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
 
+    total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
+    total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
     wandb.log(
         {
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
-            f"{args.wandb_eval_type}/num_equivalent": num_equivalent,
-            f"{args.wandb_eval_type}/num_exact_match": loaded_data["generation_scores"][
-                "num_exact_match"
-            ],
-            f"{args.wandb_eval_type}/pass_rate": pass_rate,
+            f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"]["num_samples"],
+            f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
+            f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
+            f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
+            f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
         }
     )
 
@@ -308,9 +336,11 @@ async def run_eval(args: Args, base_url: str):
                 "metadata": metadata,
                 "evaluation_scores": {
                     "total_test_cases": len(test_cases),
-                    "num_equivalent": num_equivalent,
-                    "num_exact_match": loaded_data["generation_scores"]["num_exact_match"],
-                    "pass_rate": pass_rate,
+                    "num_samples_per_task": loaded_data["config_generations"]["num_samples"],
+                    "total_judge_avg_at_n": total_judge_avg_at_n,
+                    "total_judge_pass_at_n": total_judge_pass_at_n,
+                    "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
+                    "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                     "max_attempts": args.max_attempts,
                 },
                 "generation_results": results,
@@ -323,7 +353,11 @@ async def run_eval(args: Args, base_url: str):
     print("--- Evaluation Complete ---")
     print("=" * 50)
     print(f"Total Test Cases: {len(test_cases)}")
-    print(f"Pass Rate: {pass_rate:.2f}%")
+    print(f"Total Judge Pass At N: {total_judge_pass_at_n}")
+    print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
+    print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
+    print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Evaluations output file: {args.evaluations_file}")
 
     await http.aclose()
     wandb.finish()
