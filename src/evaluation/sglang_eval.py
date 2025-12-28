@@ -185,6 +185,7 @@ async def evaluate_generated_command(
                         "generated_command": sample["generated_command"],
                         "evaluation_results": result,
                         "equivalent": equivalent,
+                        "exact_match": sample["exact_match"],
                     })
                     break
     
@@ -196,6 +197,7 @@ async def evaluate_generated_command(
                         "task_id": test_case["task_id"],
                         "error": str(e),
                         "equivalent": 0,
+                        "exact_match": 0,
                     })
                     break
     
@@ -216,6 +218,7 @@ async def evaluate_generated_command(
         num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
         judge_avg_at_n = num_judge_matches / len(sample_results)
         judge_pass_at_n = int(num_judge_matches > 0)
+        num_exact_matches = test_case.get("num_exact_matches", 0)
 
         return {
             "task_id": test_case["task_id"],
@@ -226,6 +229,7 @@ async def evaluate_generated_command(
             "num_judge_matches": num_judge_matches,
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
+            "num_exact_matches": num_exact_matches,
         }
 
 async def run_eval(args: Args, base_url: str):
