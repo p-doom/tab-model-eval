@@ -147,16 +147,18 @@ async def generate_next_command(
                     response_text = choice.message.content or ""
                     generated = extract_first_bash_block(response_text)
                     exact_match = int(generated == expected)
-                    samples.append({
-                        "response_text": response_text,
-                        "generated_command": generated,
-                        "exact_match": exact_match,
-                    })
-                
+                    samples.append(
+                        {
+                            "response_text": response_text,
+                            "generated_command": generated,
+                            "exact_match": exact_match,
+                        }
+                    )
+
                 num_exact_matches = sum(s["exact_match"] for s in samples)
                 exact_match_avg_at_n = num_exact_matches / len(samples)
                 exact_match_pass_at_n = int(num_exact_matches > 0)
-                
+
                 return {
                     "task_id": test_case["task_id"],
                     "context": test_case["context"],
@@ -230,7 +232,16 @@ async def run_eval(args: Args, base_url: str):
 
     sem = asyncio.Semaphore(args.concurrency)
     tasks = [
-        generate_next_command(client, sem, system_prompt, tc, args.model_name, args.max_attempts, args.temperature, args.num_samples)
+        generate_next_command(
+            client,
+            sem,
+            system_prompt,
+            tc,
+            args.model_name,
+            args.max_attempts,
+            args.temperature,
+            args.num_samples,
+        )
         for tc in test_cases
     ]
 
@@ -245,7 +256,9 @@ async def run_eval(args: Args, base_url: str):
 
     # Write once
     os.makedirs(os.path.dirname(args.generations_file), exist_ok=True)
-    total_exact_match_avg_at_n = sum(r.get("exact_match_avg_at_n", 0) for r in results) / len(results) 
+    total_exact_match_avg_at_n = sum(r.get("exact_match_avg_at_n", 0) for r in results) / len(
+        results
+    )
     total_exact_match_pass_at_n = sum(r.get("exact_match_pass_at_n", 0) for r in results)
 
     with open(args.generations_file, "w") as f:
