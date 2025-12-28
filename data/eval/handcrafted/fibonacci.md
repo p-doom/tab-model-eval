@@ -58,8 +58,3 @@ python fibonnacci.py --n 15
 <stdout>
 55
 </stdout>
-
-# Assistant
-```
-echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT
-```
