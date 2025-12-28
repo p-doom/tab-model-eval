@@ -33,6 +33,7 @@ class Args:
     problem_length: int = 40960
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
+    tp_size: int = 1
 
     # HTTP / client config
     concurrency: int = 64
@@ -302,6 +303,8 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         str(args.context_length),
         "--mem-fraction-static",
         str(args.mem_fraction_static),
+        "--tp-size",
+        str(args.tp_size),
     ]
 
     if args.extra_server_args:
