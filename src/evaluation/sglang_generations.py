@@ -155,7 +155,7 @@ async def generate_next_command(
                 
                 num_exact_matches = sum(s["exact_match"] for s in samples)
                 exact_match_avg_at_n = num_exact_matches / len(samples)
-                exact_match_pass_at_n = num_exact_matches > 0
+                exact_match_pass_at_n = int(num_exact_matches > 0)
                 
                 return {
                     "task_id": test_case["task_id"],
