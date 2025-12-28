@@ -215,7 +215,7 @@ async def evaluate_generated_command(
         # Compute avg@n and pass@n
         num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
         judge_avg_at_n = num_judge_matches / len(sample_results)
-        judge_pass_at_n = num_judge_matches > 0
+        judge_pass_at_n = int(num_judge_matches > 0)
 
         return {
             "task_id": test_case["task_id"],
