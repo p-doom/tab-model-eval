@@ -1,6 +1,6 @@
 # Assistant <NO_EVAL>
 ```bash
-gi tpush
+git push
 ```
 
 # User

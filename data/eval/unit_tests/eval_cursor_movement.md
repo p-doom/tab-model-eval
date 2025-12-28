@@ -296,6 +296,7 @@ cat -n jasmine/models/dynamics.py
    289          pred_latents_BTNL = outputs_BTNp2L[:, :, 2:]
    290          return pred_latents_BTNL, denoise_t_BT
    291
+   292
 </stdout>
 
 # Assistant <NO_EVAL>
@@ -320,7 +321,7 @@ cat -n jasmine/models/dynamics.py | sed -n '20,30p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '209,208c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '198,218p'
+sed -i '208,208c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '198,218p'
 ```
 
 # User
@@ -335,8 +336,8 @@ sed -i '209,208c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && c
    205          decode: bool,
    206      ):
    207          self.model_dim = model_dimension
-   208          self.ffn_dim = ffn_dimension
-   209          self.ffn_dim = ffn_dim
+   208          self.ffn_dim = ffn_dim
+   209          self.latent_patch_dim = latent_patch_dim
    210          self.latent_action_dim = latent_action_dim
    211          self.num_blocks = num_blocks
    212          self.num_heads = num_heads
@@ -350,7 +351,7 @@ sed -i '209,208c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && c
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '25,24c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '14,34p'
+sed -i '24,24c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '14,34p'
 ```
 
 # User
@@ -365,8 +366,8 @@ sed -i '25,24c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jas
     21
     22      def __init__(
     23          self,
-    24          model_dimension: int,
-    25          model_dim: int,
+    24          model_dim: int,
+    25          ffn_dimension: int,
     26          num_latents: int,
     27          latent_action_dim: int,
     28          num_blocks: int,
@@ -380,7 +381,7 @@ sed -i '25,24c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jas
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '26,25c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '15,35p'
+sed -i '25,25c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '15,35p'
 ```
 
 # User
@@ -394,9 +395,9 @@ sed -i '26,25c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmi
     21
     22      def __init__(
     23          self,
-    24          model_dimension: int,
-    25          model_dim: int,
-    26          ffn_dim: int,
+    24          model_dim: int,
+    25          ffn_dim: int,
+    26          num_latents: int,
     27          latent_action_dim: int,
     28          num_blocks: int,
     29          num_heads: int,
@@ -430,7 +431,7 @@ cat -n jasmine/models/dynamics.py | sed -n '35,45p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '39,38c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '28,48p'
+sed -i '38,38c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '28,48p'
 ```
 
 # User
@@ -445,8 +446,8 @@ sed -i '39,38c\        self.model_dim = model_dim' jasmine/models/dynamics.py &&
     35          rngs: nnx.Rngs,
     36          decode: bool,
     37      ):
-    38          self.model_dim = model_dimension
-    39          self.model_dim = model_dim
+    38          self.model_dim = model_dim
+    39          self.ffn_dim = ffn_dimension
     40          self.num_latents = num_latents
     41          self.latent_action_dim = latent_action_dim
     42          self.num_blocks = num_blocks
@@ -460,7 +461,7 @@ sed -i '39,38c\        self.model_dim = model_dim' jasmine/models/dynamics.py &&
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '40,39c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '29,49p'
+sed -i '39,39c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '29,49p'
 ```
 
 # User
@@ -474,9 +475,9 @@ sed -i '40,39c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat
     35          rngs: nnx.Rngs,
     36          decode: bool,
     37      ):
-    38          self.model_dim = model_dimension
-    39          self.model_dim = model_dim
-    40          self.ffn_dim = ffn_dim
+    38          self.model_dim = model_dim
+    39          self.ffn_dim = ffn_dim
+    40          self.num_latents = num_latents
     41          self.latent_action_dim = latent_action_dim
     42          self.num_blocks = num_blocks
     43          self.num_heads = num_heads
@@ -510,7 +511,7 @@ cat -n jasmine/models/dynamics.py | sed -n '116,126p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '121,120c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '110,130p'
+sed -i '120,120c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '110,130p'
 ```
 
 # User
@@ -525,8 +526,8 @@ sed -i '121,120c\        model_dim: int,' jasmine/models/dynamics.py && cat -n j
    117
    118      def __init__(
    119          self,
-   120          model_dimension: int,
-   121          model_dim: int,
+   120          model_dim: int,
+   121          ffn_dimension: int,
    122          num_latents: int,
    123          latent_action_dim: int,
    124          num_blocks: int,
@@ -540,7 +541,7 @@ sed -i '121,120c\        model_dim: int,' jasmine/models/dynamics.py && cat -n j
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '122,121c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '111,131p'
+sed -i '121,121c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '111,131p'
 ```
 
 # User
@@ -554,9 +555,9 @@ sed -i '122,121c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jas
    117
    118      def __init__(
    119          self,
-   120          model_dimension: int,
-   121          model_dim: int,
-   122          ffn_dim: int,
+   120          model_dim: int,
+   121          ffn_dim: int,
+   122          num_latents: int,
    123          latent_action_dim: int,
    124          num_blocks: int,
    125          num_heads: int,
@@ -590,7 +591,7 @@ cat -n jasmine/models/dynamics.py | sed -n '129,139p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '134,133c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '123,143p'
+sed -i '133,133c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '123,143p'
 ```
 
 # User
@@ -605,8 +606,8 @@ sed -i '134,133c\        self.model_dim = model_dim' jasmine/models/dynamics.py 
    130          rngs: nnx.Rngs,
    131          decode: bool,
    132      ):
-   133          self.model_dim = model_dimension
-   134          self.model_dim = model_dim
+   133          self.model_dim = model_dim
+   134          self.ffn_dim = ffn_dimension
    135          self.num_latents = num_latents
    136          self.latent_action_dim = latent_action_dim
    137          self.num_blocks = num_blocks
@@ -620,7 +621,7 @@ sed -i '134,133c\        self.model_dim = model_dim' jasmine/models/dynamics.py 
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '135,134c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '124,144p'
+sed -i '134,134c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '124,144p'
 ```
 
 # User
@@ -634,9 +635,9 @@ sed -i '135,134c\        self.ffn_dim = ffn_dim' jasmine/models/dynamics.py && c
    130          rngs: nnx.Rngs,
    131          decode: bool,
    132      ):
-   133          self.model_dim = model_dimension
-   134          self.model_dim = model_dim
-   135          self.ffn_dim = ffn_dim
+   133          self.model_dim = model_dim
+   134          self.ffn_dim = ffn_dim
+   135          self.num_latents = num_latents
    136          self.latent_action_dim = latent_action_dim
    137          self.num_blocks = num_blocks
    138          self.num_heads = num_heads
@@ -670,7 +671,7 @@ cat -n jasmine/models/dynamics.py | sed -n '189,199p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '194,193c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '183,203p'
+sed -i '193,193c\        model_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '183,203p'
 ```
 
 # User
@@ -685,8 +686,8 @@ sed -i '194,193c\        model_dim: int,' jasmine/models/dynamics.py && cat -n j
    190
    191      def __init__(
    192          self,
-   193          model_dimension: int,
-   194          model_dim: int,
+   193          model_dim: int,
+   194          ffn_dimension: int,
    195          latent_patch_dim: int,
    196          latent_action_dim: int,
    197          num_blocks: int,
@@ -700,7 +701,7 @@ sed -i '194,193c\        model_dim: int,' jasmine/models/dynamics.py && cat -n j
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '195,194c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '184,204p'
+sed -i '194,194c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '184,204p'
 ```
 
 # User
@@ -714,9 +715,9 @@ sed -i '195,194c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jas
    190
    191      def __init__(
    192          self,
-   193          model_dimension: int,
-   194          model_dim: int,
-   195          ffn_dim: int,
+   193          model_dim: int,
+   194          ffn_dim: int,
+   195          latent_patch_dim: int,
    196          latent_action_dim: int,
    197          num_blocks: int,
    198          num_heads: int,
@@ -728,7 +729,7 @@ sed -i '195,194c\        ffn_dim: int,' jasmine/models/dynamics.py && cat -n jas
    204          rngs: nnx.Rngs,
 </stdout>
 
-# Assistant <EVAL>
+# Assistant <NO_EVAL>
 ```bash
 cat -n jasmine/models/dynamics.py | sed -n '203,213p'
 ```
@@ -740,8 +741,8 @@ cat -n jasmine/models/dynamics.py | sed -n '203,213p'
    205          decode: bool,
    206      ):
    207          self.model_dim = model_dimension
-   208          self.ffn_dim = ffn_dimension
-   209          self.ffn_dim = ffn_dim
+   208          self.ffn_dim = ffn_dim
+   209          self.latent_patch_dim = latent_patch_dim
    210          self.latent_action_dim = latent_action_dim
    211          self.num_blocks = num_blocks
    212          self.num_heads = num_heads
@@ -750,7 +751,7 @@ cat -n jasmine/models/dynamics.py | sed -n '203,213p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '208,207c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '197,217p'
+sed -i '207,207c\        self.model_dim = model_dim' jasmine/models/dynamics.py && cat -n jasmine/models/dynamics.py | sed -n '197,217p'
 ```
 
 # User
@@ -765,9 +766,9 @@ sed -i '208,207c\        self.model_dim = model_dim' jasmine/models/dynamics.py 
    204          rngs: nnx.Rngs,
    205          decode: bool,
    206      ):
-   207          self.model_dim = model_dimension
-   208          self.model_dim = model_dim
-   209          self.ffn_dim = ffn_dim
+   207          self.model_dim = model_dim
+   208          self.ffn_dim = ffn_dim
+   209          self.latent_patch_dim = latent_patch_dim
    210          self.latent_action_dim = latent_action_dim
    211          self.num_blocks = num_blocks
    212          self.num_heads = num_heads
