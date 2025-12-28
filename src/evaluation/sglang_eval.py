@@ -26,11 +26,10 @@ class Args:
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
-    system_prompt_file: str = "data/prompts/system_prompt_eval_judger.md"
+    system_prompt_file: str = "data/prompts/judge_system_prompt_v2.md"
     judge_name: str = "default"
-    judge_prompt_file: str = "data/prompts/command_evaluation_prompt.txt"
-    judge_prompt_file_with_context: str = ""
-    accept_threshold: float = 0.8
+    judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
+    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
 
     # Server-related (sglang)
     judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
@@ -168,21 +167,15 @@ async def evaluate_generated_command(
                 )
                 result = json.loads(resp.choices[0].message.content)
 
-                semantic_eq = result.get("semantic_equivalence", {})
-                correctness = result.get("correctness", {})
-                average_score = (
-                    semantic_eq.get("score", 0.0) + correctness.get("score", 0.0)
-                ) / 2.0
-                is_correct = 1 if average_score >= args.accept_threshold else 0
+                equivalent = result.get("equivalent", 0)
 
                 return {
                     "task_id": test_case["task_id"],
                     "context": test_case["context"],
                     "generated_command": test_case["generated_command"],
                     "expected_command": test_case["expected_command"],
-                    "average_score": average_score,
                     "evaluation_results": result,
-                    "is_correct": is_correct,
+                    "equivalent": equivalent,
                 }
 
             except BadRequestError as e:
@@ -192,8 +185,7 @@ async def evaluate_generated_command(
                 return {
                     "task_id": test_case["task_id"],
                     "error": str(e),
-                    "is_correct": 0,
-                    "average_score": 0.0,
+                    "equivalent": 0,
                 }
 
             except Exception as e:
@@ -203,8 +195,7 @@ async def evaluate_generated_command(
                     return {
                         "task_id": test_case["task_id"],
                         "error": str(e),
-                        "is_correct": 0,
-                        "average_score": 0.0,
+                        "equivalent": 0,
                     }
                 await asyncio.sleep(delay)
                 delay *= 2
@@ -295,24 +286,19 @@ async def run_eval(args: Args, base_url: str):
     # sort the results by task_id
     results.sort(key=lambda x: x["task_id"])
 
-    num_correct = sum(r.get("is_correct", 0) for r in results)
-    total_score_sum = sum(r.get("average_score", 0.0) for r in results)
-
-    pass_rate = 100.0 * num_correct / len(test_cases) if test_cases else 0.0
-    avg_score = total_score_sum / len(test_cases) if test_cases else 0.0
+    num_equivalent = sum(r.get("equivalent", 0) for r in results)
+    pass_rate = 100.0 * num_equivalent / len(test_cases) if test_cases else 0.0
 
     os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
 
     wandb.log(
         {
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
-            f"{args.wandb_eval_type}/num_correct": num_correct,
+            f"{args.wandb_eval_type}/num_equivalent": num_equivalent,
             f"{args.wandb_eval_type}/num_exact_match": loaded_data["generation_scores"][
                 "num_exact_match"
             ],
             f"{args.wandb_eval_type}/pass_rate": pass_rate,
-            f"{args.wandb_eval_type}/avg_score": avg_score,
-            f"{args.wandb_eval_type}/accept_threshold": args.accept_threshold,
         }
     )
 
@@ -322,10 +308,9 @@ async def run_eval(args: Args, base_url: str):
                 "metadata": metadata,
                 "evaluation_scores": {
                     "total_test_cases": len(test_cases),
-                    "num_correct": num_correct,
+                    "num_equivalent": num_equivalent,
+                    "num_exact_match": loaded_data["generation_scores"]["num_exact_match"],
                     "pass_rate": pass_rate,
-                    "avg_score": avg_score,
-                    "accept_threshold": args.accept_threshold,
                     "max_attempts": args.max_attempts,
                 },
                 "generation_results": results,
@@ -338,9 +323,7 @@ async def run_eval(args: Args, base_url: str):
     print("--- Evaluation Complete ---")
     print("=" * 50)
     print(f"Total Test Cases: {len(test_cases)}")
-    print(f"Correct (threshold >= {args.accept_threshold}): {num_correct}")
     print(f"Pass Rate: {pass_rate:.2f}%")
-    print(f"Average Score: {avg_score:.2f}")
 
     await http.aclose()
     wandb.finish()
