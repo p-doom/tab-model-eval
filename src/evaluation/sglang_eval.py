@@ -38,9 +38,16 @@ class Args:
     context_length: int = 40960
     problem_length: int = 40960
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
-    temperature: float = 0.7
     mem_fraction_static: float = 0.95
     tp_size: int = 1
+
+    # Client-related
+    temperature: float = 0.7
+    top_p: float = 0.8
+    presence_penalty: float = 1.5
+    top_k: int = 20
+    min_p: float = 0.0
+    enable_thinking: bool = True
 
     # HTTP / client config
     concurrency: int = 64
@@ -175,15 +182,22 @@ async def evaluate_generated_command(
                         model=args.judge_name,
                         messages=messages,
                         temperature=args.temperature,
+                        top_p=args.top_p,
+                        presence_penalty=args.presence_penalty,
                         response_format={"type": "json_object"},
+                        extra_body={
+                            "top_k": args.top_k,
+                        },
                     )
-                    result = json.loads(resp.choices[0].message.content)
 
+                    thinking_trace = getattr(resp.choices[0].message, "reasoning_content", "")
+                    result = json.loads(resp.choices[0].message.content)
                     equivalent = result.get("equivalent", 0)
 
                     sample_results.append(
                         {
                             "generated_command": sample["generated_command"],
+                            "thinking_trace": thinking_trace,
                             "evaluation_results": result,
                             "equivalent": equivalent,
                             "exact_match": sample["exact_match"],
@@ -329,6 +343,16 @@ async def run_eval(args: Args, base_url: str):
 
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
+
+    # table = {}
+    # for t in results:
+    #     table[t["task_id"]] = t["judge_pass_at_n"]
+    # # save as json
+    # output_name = args.evaluations_file.split("/")[-1].split(".")[0]
+    # output_file = f"{output_name}_table.json"
+    # with open(output_file, "w") as f:
+    #     json.dump(table, f)
+
     wandb.log(
         {
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),

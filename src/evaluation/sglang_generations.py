@@ -31,11 +31,18 @@ class Args:
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
-    num_samples: int = 2
-    temperature: float = 0.7
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     tp_size: int = 1
+    lora_paths: Optional[List[str]] = None
+
+    # Model-related
+    temperature: float = 0.7
+    top_p: float = 0.8
+    presence_penalty: float = 1.5
+    top_k: int = 20
+    min_p: float = 0.0
+    num_samples: int = 5
 
     # HTTP / client config
     concurrency: int = 64
@@ -121,24 +128,25 @@ async def generate_next_command(
     sem: asyncio.Semaphore,
     system_prompt: str,
     test_case: Dict[str, Any],
-    model: str,
-    max_attempts: int,
-    temperature: float,
-    num_samples: int,
+    args: Args,
 ) -> Dict[str, Any]:
     formatted_messages = [{"role": "system", "content": system_prompt}]
     formatted_messages.extend(test_case["context"])
 
     async with sem:
         delay = 0.25
-        for attempt in range(max_attempts):
+        for attempt in range(args.max_attempts):
             try:
                 resp = await client.chat.completions.create(
-                    model=model,
+                    model=args.model_name,
                     messages=formatted_messages,
-                    temperature=temperature,
-                    n=num_samples,
-                    stop=["ASSISTANT:", "USER:"],
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    presence_penalty=args.presence_penalty,
+                    n=args.num_samples,
+                    extra_body={
+                        "top_k": args.top_k,
+                    },
                 )
 
                 expected = test_case.get("expected_final_response", "")
@@ -172,7 +180,7 @@ async def generate_next_command(
 
             except Exception as e:
                 print(f"Error on task {test_case['task_id']}: {e}")
-                if attempt == max_attempts - 1:
+                if attempt == args.max_attempts - 1:
                     print(f"Returning failure object for task {test_case['task_id']}")
                     return {
                         "task_id": test_case["task_id"],
@@ -231,19 +239,7 @@ async def run_eval(args: Args, base_url: str):
     )
 
     sem = asyncio.Semaphore(args.concurrency)
-    tasks = [
-        generate_next_command(
-            client,
-            sem,
-            system_prompt,
-            tc,
-            args.model_name,
-            args.max_attempts,
-            args.temperature,
-            args.num_samples,
-        )
-        for tc in test_cases
-    ]
+    tasks = [generate_next_command(client, sem, system_prompt, tc, args) for tc in test_cases]
 
     print(f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ...")
     results: List[Dict[str, Any]] = []
@@ -343,6 +339,10 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         "--tp-size",
         str(args.tp_size),
     ]
+
+    if args.lora_paths:
+        cmd.append("--lora-paths")
+        cmd.extend(args.lora_paths)
 
     if args.extra_server_args:
         cmd.extend(args.extra_server_args)
