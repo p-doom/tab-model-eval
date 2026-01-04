@@ -367,7 +367,7 @@ async def run_eval(args: Args, base_url: str):
 
     wandb.log(
         {
-            f"eval_step": args.eval_step,
+            f"{args.wandb_eval_type}/eval_step": args.eval_step,
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
             f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
                 "num_samples"
