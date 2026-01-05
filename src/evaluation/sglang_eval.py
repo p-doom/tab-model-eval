@@ -162,6 +162,9 @@ async def evaluate_generated_command(
         for sample in samples:
             for attempt in range(args.max_attempts):
                 try:
+                    if sample["generated_command"] == "":
+                        raise ValueError("Empty generated command")
+
                     format_dict = {
                         "expected": test_case["expected_command"],
                         "generated": sample["generated_command"],

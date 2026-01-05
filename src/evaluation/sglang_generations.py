@@ -23,6 +23,7 @@ class Args:
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     limit: int = -1
     system_prompt_file: str = "data/prompts/minimal_v1.md"
+    viewport_radius: int = 10
     model_name: str = "default"
 
     # Server-related (sglang)
@@ -96,9 +97,12 @@ def filter_tasks_by_context_length(
     valid_cases = []
     skipped_cases = []
 
+    viewport_lines = args.viewport_radius * 2 + 1
+
     for tc in test_cases:
         # Estimate tokens for system prompt + context
-        messages = [{"role": "system", "content": system_prompt}]
+        content = system_prompt.format(viewport_lines=viewport_lines)
+        messages = [{"role": "system", "content": content}]
         messages.extend(tc["context"])
         estimated_tokens = estimate_token_count(messages)
 
