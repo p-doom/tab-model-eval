@@ -190,6 +190,7 @@ async def evaluate_generated_command(
                         response_format={"type": "json_object"},
                         extra_body={
                             "top_k": args.top_k,
+                            "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                         },
                     )
 
