@@ -24,6 +24,7 @@ class Args:
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
     wandb_id: str | None = None
+    wandb_group: str = "debug"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
@@ -269,7 +270,7 @@ async def run_eval(args: Args, base_url: str):
         "project": args.wandb_project,
         "name": args.wandb_name,
         "tags": args.wandb_tags,
-        "group": "debug",
+        "group": args.wandb_group,
         "config": metadata,
     }
 
@@ -356,18 +357,9 @@ async def run_eval(args: Args, base_url: str):
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
-    # table = {}
-    # for t in results:
-    #     table[t["task_id"]] = t["judge_pass_at_n"]
-    # # save as json
-    # output_name = args.evaluations_file.split("/")[-1].split(".")[0]
-    # output_file = f"{output_name}_table.json"
-    # with open(output_file, "w") as f:
-    #     json.dump(table, f)
-
     wandb.log(
         {
-            f"{args.wandb_eval_type}/eval_step": args.eval_step,
+            f"eval_step": args.eval_step, # global eval_step since it is the step number of the checkpoint
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
             f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
                 "num_samples"
