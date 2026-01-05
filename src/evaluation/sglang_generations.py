@@ -22,7 +22,7 @@ class Args:
     test_cases_file: str = "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     limit: int = -1
-    system_prompt_file: str = "data/prompts/system_prompt_v2.md"
+    system_prompt_file: str = "data/prompts/generation_system_prompt_v2.md"
     viewport_radius: int = 10
     model_name: str = "default"
 
