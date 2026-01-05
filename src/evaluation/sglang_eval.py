@@ -315,7 +315,6 @@ async def run_eval(args: Args, base_url: str):
     # Initialize logger (local or wandb)
     logger = None
     if args.use_local_logger:
-        # Use local logger for offline mode
         run_id = args.wandb_id or args.wandb_name
         logger = LocalLogger(
             log_dir=args.local_log_dir,
@@ -326,28 +325,19 @@ async def run_eval(args: Args, base_url: str):
             tags=args.wandb_tags,
         )
     else:
-        # Use wandb for online mode
         wandb_init_kwargs = {
             "project": args.wandb_project,
             "name": args.wandb_name,
             "tags": args.wandb_tags,
-            "group": "debug",
+            "group": args.wandb_group,
             "config": metadata,
         }
 
         if args.wandb_id:
-            # For offline mode: ensure we always write to the same run directory
-            # by setting WANDB_DIR to a consistent location based on run ID
-            wandb_dir = os.path.join(args.wandb_log_dir or os.getcwd(), "eval_logs", args.wandb_id)
-            os.makedirs(wandb_dir, exist_ok=True)
-            os.environ["WANDB_DIR"] = wandb_dir
-            os.environ["WANDB_RESUME"] = "allow"
-            
             wandb_init_kwargs.update(
                 {
                     "id": args.wandb_id,
                     "resume": "allow",
-                    "dir": wandb_dir,
                 }
             )
         wandb.init(**wandb_init_kwargs)
