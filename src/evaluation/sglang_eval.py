@@ -23,6 +23,8 @@ class Args:
     wandb_name: str = "validation_set_eval"
     wandb_eval_type: str = "next_action_validation_set"
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
+    wandb_id: str | None = None
+    wandb_group: str = "debug"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
@@ -30,6 +32,7 @@ class Args:
     judge_name: str = "default"
     judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
     judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
+    eval_step: int = 0
 
     # Server-related (sglang)
     judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
@@ -187,6 +190,7 @@ async def evaluate_generated_command(
                         response_format={"type": "json_object"},
                         extra_body={
                             "top_k": args.top_k,
+                            "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                         },
                     )
 
@@ -263,12 +267,22 @@ async def run_eval(args: Args, base_url: str):
         "config_evaluations": config_evaluations,
     }
 
-    wandb.init(
-        project=args.wandb_project,
-        name=args.wandb_name,
-        tags=args.wandb_tags,
-        config=metadata,
-    )
+    wandb_init_kwargs = {
+        "project": args.wandb_project,
+        "name": args.wandb_name,
+        "tags": args.wandb_tags,
+        "group": args.wandb_group,
+        "config": metadata,
+    }
+
+    if args.wandb_id:
+        wandb_init_kwargs.update(
+            {
+                "id": args.wandb_id,
+                "resume": "allow",
+            }
+        )
+    wandb.init(**wandb_init_kwargs)
 
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
@@ -344,17 +358,9 @@ async def run_eval(args: Args, base_url: str):
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
-    # table = {}
-    # for t in results:
-    #     table[t["task_id"]] = t["judge_pass_at_n"]
-    # # save as json
-    # output_name = args.evaluations_file.split("/")[-1].split(".")[0]
-    # output_file = f"{output_name}_table.json"
-    # with open(output_file, "w") as f:
-    #     json.dump(table, f)
-
     wandb.log(
         {
+            f"eval_step": args.eval_step, # global eval_step since it is the step number of the checkpoint
             f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
             f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
                 "num_samples"
