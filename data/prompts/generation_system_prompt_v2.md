@@ -57,5 +57,4 @@ Where VSTART and VEND specify a small viewport around the edited region.
 
 Do NOT emit commands like "3s/print/print()/g" or any other "s/old/new/" style sed substitution; instead, always rewrite the affected lines using one of the line-based forms above.
 
-When you are NOT editing files (e.g., running tests, git commands, tools, etc.), you may emit arbitrary bash commands."#
-    )
+When you are NOT editing files (e.g., running tests, git commands, tools, etc.), you may emit arbitrary bash commands.
