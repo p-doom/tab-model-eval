@@ -150,6 +150,7 @@ async def generate_next_command(
                     n=args.num_samples,
                     extra_body={
                         "top_k": args.top_k,
+                        "chat_template_kwargs": {"enable_thinking": False},
                     },
                 )
 
