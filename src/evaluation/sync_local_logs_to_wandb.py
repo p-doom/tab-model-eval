@@ -84,7 +84,6 @@ def sync_single_run(log_dir: str, dry_run: bool = False) -> bool:
         run = wandb.init(
             project=metadata["project"],
             name=metadata["run_name"],
-            id=metadata["run_id"],
             config=metadata.get("config", {}),
             tags=metadata.get("tags", []),
             resume="allow",  # Resume if exists, create if not
