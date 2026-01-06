@@ -26,6 +26,8 @@ class Args:
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
     wandb_id: str | None = None
     wandb_group: str = "debug"
+    wandb_id: str | None = None
+    wandb_group: str = "debug"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
@@ -243,6 +245,7 @@ async def evaluate_generated_command(
                         response_format={"type": "json_object"},
                         extra_body={
                             "top_k": args.top_k,
+                            "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                         },
                     )
 
