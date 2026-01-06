@@ -1,4 +1,4 @@
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 ls -la
 ```
@@ -11,7 +11,7 @@ drwxr-xr-x 9 alfred.nguyen alfred.nguyen   171 Nov 12 15:29 ..
 -rw-rw---- 1 alfred.nguyen alfred.nguyen     0 Nov 13 18:05 hello_world.py
 </stdout>
 
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 cat -n hello_world.py
 ```
@@ -21,7 +21,7 @@ cat -n hello_world.py
      1  print("")
 </stdout>
 
-# Assistant
+# Assistant <EVAL>
 ```bash
 sed -i 's/^print("")/print("Hello, World!")/' hello_world.py && cat -n hello_world.py
 ```
@@ -31,7 +31,7 @@ sed -i 's/^print("")/print("Hello, World!")/' hello_world.py && cat -n hello_wor
      1  print("Hello, World!")
 </stdout>
 
-# Assistant
+# Assistant <NO_EVAL>
 ```bash
 python hello_world.py
 ```
