@@ -536,9 +536,6 @@ async def run_batch_eval(args: Args, base_url: str):
         if args.wandb_id:
             wandb_dir = os.path.join(os.getcwd(), "eval_logs", args.wandb_id)
             os.makedirs(wandb_dir, exist_ok=True)
-            os.environ["WANDB_DIR"] = wandb_dir
-            os.environ["WANDB_RESUME"] = "allow"
-            
             wandb_init_kwargs.update(
                 {
                     "id": args.wandb_id,
