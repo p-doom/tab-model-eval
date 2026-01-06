@@ -431,7 +431,7 @@ async def run_single_eval(
     }
     
     # Log metrics using appropriate logger
-    if args.use_local_logger:
+    if args.use_local_logger and logger is not None:
         logger.log(metrics_to_log)
     else:
         wandb.log(metrics_to_log)
