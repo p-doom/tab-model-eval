@@ -43,7 +43,6 @@ class Args:
     judge_name: str = "default"
     judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
     judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
-    eval_step: int = 0
 
     # Local logging for offline mode
     use_local_logger: bool = False
