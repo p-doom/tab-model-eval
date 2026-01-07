@@ -39,10 +39,10 @@ class Args:
     eval_steps: str = ""  # Comma-separated list of eval steps (integers)
 
     limit: int = -1
-    system_prompt_file: str = "data/prompts/judge_system_prompt_v2.md"
+    system_prompt_file: str = "data/prompts/judge_system_prompt_v3.md"
     judge_name: str = "default"
-    judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
-    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
+    judge_prompt_file: str = "data/prompts/judge_prompt_v3.md"
+    judge_prompt_file_with_context: str = ""
 
     # Local logging for offline mode
     use_local_logger: bool = False
@@ -304,6 +304,7 @@ async def evaluate_generated_command(
 
                     sample_results.append(
                         {
+                            "messages": messages,
                             "generated_command": sample["generated_command"],
                             "thinking_trace": thinking_trace,
                             "evaluation_results": result,

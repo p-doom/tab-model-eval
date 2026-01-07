@@ -22,7 +22,7 @@ class Args:
     test_cases_file: str = "data/eval/handcrafted_test_cases/handcrafted_test_cases.jsonl"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     limit: int = -1
-    system_prompt_file: str = "data/prompts/minimal_v1.md"
+    system_prompt_file: str = "data/prompts/generation_system_prompt_v2.md"
     viewport_radius: int = 10
     model_name: str = "default"
 
@@ -135,8 +135,9 @@ async def generate_next_command(
     test_case: Dict[str, Any],
     args: Args,
 ) -> Dict[str, Any]:
-    formatted_messages = [{"role": "system", "content": system_prompt}]
-    formatted_messages.extend(test_case["context"])
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(test_case["context"])
 
     async with sem:
         delay = 0.25
@@ -144,7 +145,7 @@ async def generate_next_command(
             try:
                 resp = await client.chat.completions.create(
                     model=args.model_name,
-                    messages=formatted_messages,
+                    messages=messages,
                     temperature=args.temperature,
                     top_p=args.top_p,
                     presence_penalty=args.presence_penalty,
@@ -176,6 +177,7 @@ async def generate_next_command(
 
                 return {
                     "task_id": test_case["task_id"],
+                    "messages": messages,
                     "context": test_case["context"],
                     "expected_command": expected,
                     "samples": samples,
@@ -210,10 +212,13 @@ async def run_eval(args: Args, base_url: str):
     with open(args.system_prompt_file, "r") as f:
         system_prompt = f.read()
 
+    viewport_lines = 2 * args.viewport_radius + 1
+    system_prompt = system_prompt.format(viewport_lines=viewport_lines)
+
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
-        test_cases,
-        system_prompt,
+        test_cases=test_cases,
+        system_prompt=system_prompt,
         max_context_length=args.context_length,
         problem_length=args.problem_length,
         buffer_tokens=512,
@@ -246,7 +251,16 @@ async def run_eval(args: Args, base_url: str):
     )
 
     sem = asyncio.Semaphore(args.concurrency)
-    tasks = [generate_next_command(client, sem, system_prompt, tc, args) for tc in test_cases]
+    tasks = [
+        generate_next_command(
+            client=client,
+            sem=sem,
+            system_prompt=system_prompt,
+            test_case=test_case,
+            args=args,
+        )
+        for test_case in test_cases
+    ]
 
     print(f"Running {len(test_cases)} test cases with concurrency={args.concurrency} ...")
     results: List[Dict[str, Any]] = []
@@ -273,6 +287,7 @@ async def run_eval(args: Args, base_url: str):
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                 },
+                "system_prompt": system_prompt,
                 "generation_results": results,
             },
             f,
