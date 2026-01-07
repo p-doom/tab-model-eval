@@ -98,12 +98,9 @@ def filter_tasks_by_context_length(
     valid_cases = []
     skipped_cases = []
 
-    viewport_lines = args.viewport_radius * 2 + 1
-
     for tc in test_cases:
         # Estimate tokens for system prompt + context
-        content = system_prompt.format(viewport_lines=viewport_lines)
-        messages = [{"role": "system", "content": content}]
+        messages = [{"role": "system", "content": system_prompt}]
         messages.extend(tc["context"])
         estimated_tokens = estimate_token_count(messages)
 
