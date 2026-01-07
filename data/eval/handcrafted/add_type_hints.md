@@ -1,6 +1,6 @@
 # Assistant <NO_EVAL>
 ```bash
-mypy src/utils/math.py
+mypy --strict src/utils/math.py
 ```
 
 # User
