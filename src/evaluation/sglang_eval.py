@@ -345,6 +345,7 @@ async def evaluate_generated_command(
                             "equivalent": 0,
                         }
                     )
+                    break
 
                 except Exception as e:
                     print(f"Error on task {test_case['task_id']}: {e}")
@@ -575,9 +576,7 @@ async def run_batch_eval(args: Args, base_url: str):
         system_prompt = f.read()
 
     judge_prompt_file = (
-        args.judge_prompt_file_with_context
-        if args.include_context
-        else args.judge_prompt_file
+        args.judge_prompt_file_with_context if args.include_context else args.judge_prompt_file
     )
 
     with open(judge_prompt_file, "r") as f:
