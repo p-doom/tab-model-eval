@@ -32,14 +32,21 @@ class Args:
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
-    num_samples: int = 2
-    temperature: float = 0.7
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     tp_size: int = 1
+    lora_paths: Optional[List[str]] = None
+
+    # Model-related
+    temperature: float = 0.7
+    top_p: float = 0.8
+    presence_penalty: float = 0.0
+    top_k: int = 20
+    num_samples: int = 5
+    max_new_tokens: int = 5000
 
     # HTTP / client config
-    concurrency: int = 64
+    concurrency: int = 16
     max_connections: int = 256
     keepalive: int = 60
     max_attempts: int = 6
@@ -136,8 +143,14 @@ async def generate_next_command(
                     model=args.model_name,
                     messages=messages,
                     temperature=args.temperature,
+                    top_p=args.top_p,
+                    presence_penalty=args.presence_penalty,
                     n=args.num_samples,
-                    stop=["ASSISTANT:", "USER:"],
+                    max_tokens=args.max_new_tokens,
+                    extra_body={
+                        "top_k": args.top_k,
+                        "chat_template_kwargs": {"enable_thinking": False},
+                    },
                 )
 
                 expected = test_case.get("expected_final_response", "")
@@ -344,6 +357,10 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         "--tp-size",
         str(args.tp_size),
     ]
+
+    if args.lora_paths:
+        cmd.append("--lora-paths")
+        cmd.extend(args.lora_paths)
 
     if args.extra_server_args:
         cmd.extend(args.extra_server_args)

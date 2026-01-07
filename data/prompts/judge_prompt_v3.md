@@ -17,6 +17,7 @@ Determine if the **Generated Command** achieves the same outcome as the **Expect
 - Missing or extra flags that change behavior
 - Different operations entirely
 - Malformed or incomplete commands
+- Empty commands
 - Order differences only when order semantically matters (e.g., command pipelines, ordered data insertions)
 
 ## Commands
