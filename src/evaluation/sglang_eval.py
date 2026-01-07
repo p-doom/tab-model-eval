@@ -267,7 +267,10 @@ async def evaluate_generated_command(
             for attempt in range(args.max_attempts):
                 try:
                     if sample["generated_command"] == "":
-                        raise ValueError("Empty generated command")
+                        print(
+                            f"Returning failure object for task {test_case['task_id']} due to empty generated command"
+                        )
+                        raise ValueError(f"Empty generated command for task {test_case['task_id']}")
 
                     format_dict = {
                         "expected": test_case["expected_command"],
@@ -327,6 +330,18 @@ async def evaluate_generated_command(
                         }
                     )
                     break
+
+                except ValueError as e:
+                    print(
+                        f"Returning failure object for task {test_case['task_id']} due to ValueError: {e}"
+                    )
+                    sample_results.append(
+                        {
+                            "task_id": test_case["task_id"],
+                            "error": str(e),
+                            "equivalent": 0,
+                        }
+                    )
 
                 except Exception as e:
                     print(f"Error on task {test_case['task_id']}: {e}")
