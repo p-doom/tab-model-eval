@@ -26,14 +26,23 @@ class Args:
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
     wandb_id: str | None = None
     wandb_group: str = "debug"
-    generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
-    evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
+
+    # Single-file mode (backward compatible)
+    generations_file: str = ""
+    evaluations_file: str = ""
+    eval_step: int = 0
+
+    # Batch mode: comma-separated lists of files and steps
+    # When these are provided, they take precedence over single-file args
+    generations_files: str = ""  # Comma-separated list of generation files
+    evaluations_files: str = ""  # Comma-separated list of evaluation output files
+    eval_steps: str = ""  # Comma-separated list of eval steps (integers)
+
     limit: int = -1
     system_prompt_file: str = "data/prompts/judge_system_prompt_v2.md"
     judge_name: str = "default"
     judge_prompt_file: str = "data/prompts/judge_prompt_v2.md"
     judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
-    eval_step: int = 0
 
     # Local logging for offline mode
     use_local_logger: bool = False
@@ -45,7 +54,7 @@ class Args:
     server_port: int = 30000
     context_length: int = 40960
     problem_length: int = 40960
-    api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
+    api_key: str = "EMPTY"  # sglang's OpenAI-compatible server ignores this value
     mem_fraction_static: float = 0.95
     tp_size: int = 1
 
@@ -69,13 +78,49 @@ class Args:
     # Extra args passed to `sglang.launch_server` if needed
     extra_server_args: Optional[List[str]] = None
 
+    def get_eval_jobs(self) -> List[tuple[str, str, int]]:
+        """
+        Returns a list of (generations_file, evaluations_file, eval_step) tuples.
+        If batch mode args are provided, uses those. Otherwise falls back to single-file mode.
+        """
+        if self.generations_files and self.evaluations_files and self.eval_steps:
+            # Batch mode
+            gen_files = [f.strip() for f in self.generations_files.split(",") if f.strip()]
+            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strip()]
+            steps = [int(s.strip()) for s in self.eval_steps.split(",") if s.strip()]
+
+            if not (len(gen_files) == len(eval_files) == len(steps)):
+                raise ValueError(
+                    f"Batch mode requires equal-length lists for generations_files ({len(gen_files)}), "
+                    f"evaluations_files ({len(eval_files)}), and eval_steps ({len(steps)})"
+                )
+
+            return list(zip(gen_files, eval_files, steps))
+        elif self.generations_file and self.evaluations_file:
+            # Single-file mode (backward compatible)
+            return [(self.generations_file, self.evaluations_file, self.eval_step)]
+        else:
+            raise ValueError(
+                "Either provide single-file args (generations_file, evaluations_file) "
+                "or batch args (generations_files, evaluations_files, eval_steps)"
+            )
+
+
 # ----------------------------
-# Local logger, since wandb offline can't resume runs 
+# Local logger, since wandb offline can't resume runs
 # ----------------------------
 class LocalLogger:
     """A simple local logger that saves metrics to JSON files for later sync to wandb."""
-    
-    def __init__(self, log_dir: str, run_id: str, run_name: str, project: str, config: dict = None, tags: list = None):
+
+    def __init__(
+        self,
+        log_dir: str,
+        run_id: str,
+        run_name: str,
+        project: str,
+        config: dict = None,
+        tags: list = None,
+    ):
         self.log_dir = os.path.join(log_dir, run_id)
         os.makedirs(self.log_dir, exist_ok=True)
         self.run_id = run_id
@@ -84,35 +129,38 @@ class LocalLogger:
         self.config = config or {}
         self.tags = tags or []
         self.metrics_file = os.path.join(self.log_dir, "metrics.jsonl")
-        
+
         # Save run metadata
         metadata_file = os.path.join(self.log_dir, "metadata.json")
         if os.path.exists(metadata_file):
             # Avoid overwriting existing metadata for the same run_id
-            print(f"Metadata file already exists for run_id={run_id} at {metadata_file}. "
-                  f"Existing metadata will be reused.")
+            print(
+                f"Metadata file already exists for run_id={run_id} at {metadata_file}. "
+                f"Existing metadata will be reused."
+            )
         else:
             with open(metadata_file, "w") as f:
-                json.dump({
-                    "run_id": run_id,
-                    "run_name": run_name,
-                    "project": project,
-                    "config": config,
-                    "tags": tags,
-                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S")
-                }, f, indent=2) 
+                json.dump(
+                    {
+                        "run_id": run_id,
+                        "run_name": run_name,
+                        "project": project,
+                        "config": config,
+                        "tags": tags,
+                        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                    },
+                    f,
+                    indent=2,
+                )
         print(f"LocalLogger initialized. Logs will be saved to: {self.log_dir}")
-    
+
     def log(self, metrics: dict):
         """Append metrics to the JSONL file."""
-        metrics_with_timestamp = {
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
-            **metrics
-        }
+        metrics_with_timestamp = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"), **metrics}
         with open(self.metrics_file, "a") as f:
             f.write(json.dumps(metrics_with_timestamp) + "\n")
         print(f"Logged metrics to {self.metrics_file}: eval_step={metrics.get('eval_step', 'N/A')}")
-    
+
     def finish(self):
         """Called when logging is complete."""
         print(f"LocalLogger finished. All logs saved to: {self.log_dir}")
@@ -312,8 +360,30 @@ async def evaluate_generated_command(
         }
 
 
-async def run_eval(args: Args, base_url: str):
-    loaded_data = load_dataset(args.generations_file)
+async def run_single_eval(
+    args: Args,
+    generations_file: str,
+    evaluations_file: str,
+    eval_step: int,
+    client: AsyncOpenAI,
+    sem: asyncio.Semaphore,
+    system_prompt: str,
+    prompt_template: str,
+    include_context: bool,
+    logger: Optional[LocalLogger] = None,
+) -> Dict[str, Any]:
+    """
+    Evaluate a single generations file and write results to evaluations file.
+    Uses shared client and semaphore for efficiency in batch mode.
+    Returns the evaluation scores dictionary.
+    """
+    print(f"\n{'='*60}")
+    print(f"Evaluating: {generations_file}")
+    print(f"Output: {evaluations_file}")
+    print(f"Step: {eval_step}")
+    print(f"{'='*60}")
+
+    loaded_data = load_dataset(generations_file)
     test_cases = loaded_data["generation_results"]
 
     config_generations = loaded_data["config_generations"]
@@ -353,18 +423,8 @@ async def run_eval(args: Args, base_url: str):
             )
         wandb.init(**wandb_init_kwargs)
 
-
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
-
-    with open(args.system_prompt_file, "r") as f:
-        system_prompt = f.read()
-
-    include_context = bool(args.judge_prompt_file_with_context)
-    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
-
-    with open(judge_prompt_file, "r") as f:
-        prompt_template = f.read()
 
     # Filter out tasks with context that's too long
     test_cases, skipped_cases = filter_tasks_by_context_length(
@@ -383,27 +443,9 @@ async def run_eval(args: Args, base_url: str):
     print()
 
     # Clean output
-    if os.path.exists(args.evaluations_file):
-        os.remove(args.evaluations_file)
+    if os.path.exists(evaluations_file):
+        os.remove(evaluations_file)
 
-    # Reuse a single HTTP/2 client with a large pool
-    http = httpx.AsyncClient(
-        http2=True,
-        timeout=httpx.Timeout(args.timeout, connect=10.0, read=args.timeout),
-        limits=httpx.Limits(
-            max_connections=args.max_connections,
-            max_keepalive_connections=args.max_connections,
-            keepalive_expiry=args.keepalive,
-        ),
-        headers={"Connection": "keep-alive"},
-    )
-    client = AsyncOpenAI(
-        base_url=base_url,
-        api_key=args.api_key,
-        http_client=http,
-    )
-
-    sem = asyncio.Semaphore(args.concurrency)
     tasks = [
         evaluate_generated_command(
             client, sem, tc, args, system_prompt, prompt_template, include_context
@@ -421,7 +463,7 @@ async def run_eval(args: Args, base_url: str):
     # sort the results by task_id
     results.sort(key=lambda x: x["task_id"])
 
-    os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
+    os.makedirs(os.path.dirname(evaluations_file), exist_ok=True)
     total_judge_avg_at_n = sum(r.get("judge_avg_at_n", 0) for r in results) / len(results)
     total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
 
@@ -430,7 +472,7 @@ async def run_eval(args: Args, base_url: str):
 
     # Prepare metrics to log
     metrics_to_log = {
-        "eval_step": args.eval_step,
+        "eval_step": eval_step,
         f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
         f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
             "num_samples"
@@ -440,14 +482,14 @@ async def run_eval(args: Args, base_url: str):
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
     }
-    
+
     # Log metrics using appropriate logger
-    if args.use_local_logger:
+    if args.use_local_logger and logger is not None:
         logger.log(metrics_to_log)
     else:
         wandb.log(metrics_to_log)
 
-    with open(args.evaluations_file, "w") as f:
+    with open(evaluations_file, "w") as f:
         json.dump(
             {
                 "metadata": metadata,
@@ -467,22 +509,142 @@ async def run_eval(args: Args, base_url: str):
         )
 
     print("\n" + "=" * 50)
-    print("--- Evaluation Complete ---")
+    print(f"--- Evaluation Complete (step {eval_step}) ---")
     print("=" * 50)
     print(f"Total Test Cases: {len(test_cases)}")
     print(f"Total Judge Pass At N: {total_judge_pass_at_n}")
     print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
-    print(f"Evaluations output file: {args.evaluations_file}")
+    print(f"Evaluations output file: {evaluations_file}")
+
+    return {
+        "eval_step": eval_step,
+        "generations_file": generations_file,
+        "evaluations_file": evaluations_file,
+        "total_test_cases": len(test_cases),
+        "total_judge_avg_at_n": total_judge_avg_at_n,
+        "total_judge_pass_at_n": total_judge_pass_at_n,
+        "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
+        "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+    }
+
+
+async def run_batch_eval(args: Args, base_url: str):
+    """
+    Run evaluation on multiple generation files with a single model load.
+    This avoids the overhead of loading/unloading the judge model for each checkpoint.
+    """
+    eval_jobs = args.get_eval_jobs()
+
+    print(f"\n{'#'*60}")
+    print(f"# BATCH EVALUATION MODE")
+    print(f"# Processing {len(eval_jobs)} evaluation job(s)")
+    print(f"{'#'*60}\n")
+
+    for i, (gen_file, eval_file, step) in enumerate(eval_jobs):
+        print(f"  [{i+1}/{len(eval_jobs)}] Step {step}: {gen_file}")
+    print()
+
+    # Load prompts once (shared across all evaluations)
+    with open(args.system_prompt_file, "r") as f:
+        system_prompt = f.read()
+
+    include_context = bool(args.judge_prompt_file_with_context)
+    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
+
+    with open(judge_prompt_file, "r") as f:
+        prompt_template = f.read()
+
+    # Initialize logger (local or wandb) - shared across all evaluations
+    logger = None
+    if args.use_local_logger:
+        run_id = args.wandb_id or args.wandb_name
+        logger = LocalLogger(
+            log_dir=args.local_log_dir,
+            run_id=run_id,
+            run_name=args.wandb_name,
+            project=args.wandb_project,
+            config={"batch_mode": True, "num_jobs": len(eval_jobs)},
+            tags=args.wandb_tags,
+        )
+    else:
+        wandb_init_kwargs = {
+            "project": args.wandb_project,
+            "name": args.wandb_name,
+            "tags": args.wandb_tags,
+            "group": args.wandb_group,
+            "config": {"batch_mode": True, "num_jobs": len(eval_jobs)},
+        }
+
+        if args.wandb_id:
+            wandb_dir = os.path.join(os.getcwd(), "eval_logs", args.wandb_id)
+            os.makedirs(wandb_dir, exist_ok=True)
+            wandb_init_kwargs.update(
+                {
+                    "id": args.wandb_id,
+                    "resume": "allow",
+                    "dir": wandb_dir,
+                }
+            )
+        wandb.init(**wandb_init_kwargs)
+
+    # Reuse a single HTTP/2 client with a large pool (shared across all evaluations)
+    http = httpx.AsyncClient(
+        http2=True,
+        timeout=httpx.Timeout(args.timeout, connect=10.0, read=args.timeout),
+        limits=httpx.Limits(
+            max_connections=args.max_connections,
+            max_keepalive_connections=args.max_connections,
+            keepalive_expiry=args.keepalive,
+        ),
+        headers={"Connection": "keep-alive"},
+    )
+    client = AsyncOpenAI(
+        base_url=base_url,
+        api_key=args.api_key,
+        http_client=http,
+    )
+    sem = asyncio.Semaphore(args.concurrency)
+
+    # Process each evaluation job sequentially
+    all_results = []
+    for i, (gen_file, eval_file, step) in enumerate(eval_jobs):
+        print(f"\n[{i+1}/{len(eval_jobs)}] Processing step {step}...")
+
+        result = await run_single_eval(
+            args=args,
+            generations_file=gen_file,
+            evaluations_file=eval_file,
+            eval_step=step,
+            client=client,
+            sem=sem,
+            system_prompt=system_prompt,
+            prompt_template=prompt_template,
+            include_context=include_context,
+            logger=logger,
+        )
+        all_results.append(result)
 
     await http.aclose()
-    
+
     # Finish logging
     if args.use_local_logger:
         logger.finish()
     else:
         wandb.finish()
+
+    # Print summary
+    print("\n" + "#" * 60)
+    print("# BATCH EVALUATION SUMMARY")
+    print("#" * 60)
+    for r in all_results:
+        print(
+            f"  Step {r['eval_step']:>5}: Judge Avg@N = {r['total_judge_avg_at_n']*100:5.2f}%, "
+            f"Pass@N = {r['total_judge_pass_at_n']}, "
+            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%"
+        )
+    print("#" * 60)
 
 
 # ----------------------------
@@ -491,7 +653,7 @@ async def run_eval(args: Args, base_url: str):
 async def wait_for_server(base_url: str, timeout: float = 600.0) -> None:
     """
     Poll the server's OpenAI-compatible endpoint until it responds or timeout.
-    We’ll try a lightweight call to /models.
+    We'll try a lightweight call to /models.
     """
     print(f"Waiting for server at {base_url} ...")
     deadline = asyncio.get_event_loop().time() + timeout
@@ -568,7 +730,7 @@ async def amain(args: Args):
             server_proc = launch_sglang_server(args)
             await wait_for_server(f"http://{args.server_host}:{args.server_port}")
 
-        await run_eval(args, base_url=base_url)
+        await run_batch_eval(args, base_url=base_url)
 
     finally:
         if server_proc is not None:
