@@ -80,7 +80,7 @@ def sync_single_run(log_dir: str, dry_run: bool = False) -> bool:
             return True
 
         # Initialize wandb run
-        run = wandb.init(
+        wandb.init(
             project=metadata["project"],
             name=metadata["run_name"],
             id=metadata["run_id"],
