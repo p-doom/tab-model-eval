@@ -245,12 +245,13 @@ async def evaluate_generated_command(
         delay = 0.25
 
         if test_case.get("error", None) is not None:
-            print(f"Returning failure object for task {test_case['task_id']} due to error")
+            print(f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}")
             return {
                 "task_id": test_case["task_id"],
                 "error": test_case["error"],
-                "is_correct": 0,
-                "average_score": 0.0,
+                "judge_avg_at_n": 0.0,
+                "judge_pass_at_n": 0,
+                "had_error": True,
             }
 
         samples = test_case.get("samples", [])
@@ -259,8 +260,9 @@ async def evaluate_generated_command(
             return {
                 "task_id": test_case["task_id"],
                 "error": "No samples",
-                "is_correct": 0,
-                "average_score": 0.0,
+                "judge_avg_at_n": 0.0,
+                "judge_pass_at_n": 0,
+                "had_error": True,
             }
 
         sample_results = []
@@ -374,6 +376,7 @@ async def evaluate_generated_command(
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
             "num_exact_matches": num_exact_matches,
+            "had_error": any("error" in s for s in sample_results),
         }
 
 
@@ -483,6 +486,7 @@ async def run_single_eval(
     os.makedirs(os.path.dirname(evaluations_file), exist_ok=True)
     total_judge_avg_at_n = sum(r.get("judge_avg_at_n", 0) for r in results) / len(results)
     total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
+    num_errors = sum(1 for r in results if r.get("had_error", False))
 
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
@@ -498,6 +502,7 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
     # Log metrics using appropriate logger
@@ -518,6 +523,7 @@ async def run_single_eval(
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                     "max_attempts": args.max_attempts,
+                    "num_errors": num_errors,
                 },
                 "generation_results": results,
             },
@@ -529,6 +535,7 @@ async def run_single_eval(
     print(f"--- Evaluation Complete (step {eval_step}) ---")
     print("=" * 50)
     print(f"Total Test Cases: {len(test_cases)}")
+    print(f"Total Errors: {num_errors}")
     print(f"Total Judge Pass At N: {total_judge_pass_at_n}")
     print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
