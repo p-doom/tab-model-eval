@@ -567,7 +567,11 @@ async def run_batch_eval(args: Args, base_url: str):
     with open(args.system_prompt_file, "r") as f:
         system_prompt = f.read()
 
-    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
+    judge_prompt_file = (
+        args.judge_prompt_file_with_context
+        if args.include_context
+        else args.judge_prompt_file
+    )
 
     with open(judge_prompt_file, "r") as f:
         prompt_template = f.read()
