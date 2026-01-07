@@ -46,7 +46,7 @@ class Args:
     num_samples: int = 5
 
     # HTTP / client config
-    concurrency: int = 64
+    concurrency: int = 16
     max_connections: int = 256
     keepalive: int = 60
     max_attempts: int = 6
