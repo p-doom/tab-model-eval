@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import subprocess
+import time
 import wandb
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional
@@ -34,6 +35,10 @@ class Args:
     judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v2_with_context.md"
     eval_step: int = 0
 
+    # Local logging for offline mode
+    use_local_logger: bool = False
+    local_log_dir: str = "data/eval/local_logs"
+
     # Server-related (sglang)
     judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
     server_host: str = "0.0.0.0"
@@ -53,7 +58,7 @@ class Args:
     enable_thinking: bool = True
 
     # HTTP / client config
-    concurrency: int = 64
+    concurrency: int = 16
     max_connections: int = 256
     keepalive: int = 60
     max_attempts: int = 6
@@ -63,6 +68,54 @@ class Args:
     launch_server: bool = True
     # Extra args passed to `sglang.launch_server` if needed
     extra_server_args: Optional[List[str]] = None
+
+# ----------------------------
+# Local logger, since wandb offline can't resume runs 
+# ----------------------------
+class LocalLogger:
+    """A simple local logger that saves metrics to JSON files for later sync to wandb."""
+    
+    def __init__(self, log_dir: str, run_id: str, run_name: str, project: str, config: dict = None, tags: list = None):
+        self.log_dir = os.path.join(log_dir, run_id)
+        os.makedirs(self.log_dir, exist_ok=True)
+        self.run_id = run_id
+        self.run_name = run_name
+        self.project = project
+        self.config = config or {}
+        self.tags = tags or []
+        self.metrics_file = os.path.join(self.log_dir, "metrics.jsonl")
+        
+        # Save run metadata
+        metadata_file = os.path.join(self.log_dir, "metadata.json")
+        if os.path.exists(metadata_file):
+            # Avoid overwriting existing metadata for the same run_id
+            print(f"Metadata file already exists for run_id={run_id} at {metadata_file}. "
+                  f"Existing metadata will be reused.")
+        else:
+            with open(metadata_file, "w") as f:
+                json.dump({
+                    "run_id": run_id,
+                    "run_name": run_name,
+                    "project": project,
+                    "config": config,
+                    "tags": tags,
+                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S")
+                }, f, indent=2) 
+        print(f"LocalLogger initialized. Logs will be saved to: {self.log_dir}")
+    
+    def log(self, metrics: dict):
+        """Append metrics to the JSONL file."""
+        metrics_with_timestamp = {
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            **metrics
+        }
+        with open(self.metrics_file, "a") as f:
+            f.write(json.dumps(metrics_with_timestamp) + "\n")
+        print(f"Logged metrics to {self.metrics_file}: eval_step={metrics.get('eval_step', 'N/A')}")
+    
+    def finish(self):
+        """Called when logging is complete."""
+        print(f"LocalLogger finished. All logs saved to: {self.log_dir}")
 
 
 # ----------------------------
@@ -267,22 +320,36 @@ async def run_eval(args: Args, base_url: str):
         "config_evaluations": config_evaluations,
     }
 
-    wandb_init_kwargs = {
-        "project": args.wandb_project,
-        "name": args.wandb_name,
-        "tags": args.wandb_tags,
-        "group": args.wandb_group,
-        "config": metadata,
-    }
-
-    if args.wandb_id:
-        wandb_init_kwargs.update(
-            {
-                "id": args.wandb_id,
-                "resume": "allow",
-            }
+    # Initialize logger (local or wandb)
+    logger = None
+    if args.use_local_logger:
+        run_id = args.wandb_id or args.wandb_name
+        logger = LocalLogger(
+            log_dir=args.local_log_dir,
+            run_id=run_id,
+            run_name=args.wandb_name,
+            project=args.wandb_project,
+            config=metadata,
+            tags=args.wandb_tags,
         )
-    wandb.init(**wandb_init_kwargs)
+    else:
+        wandb_init_kwargs = {
+            "project": args.wandb_project,
+            "name": args.wandb_name,
+            "tags": args.wandb_tags,
+            "group": args.wandb_group,
+            "config": metadata,
+        }
+
+        if args.wandb_id:
+            wandb_init_kwargs.update(
+                {
+                    "id": args.wandb_id,
+                    "resume": "allow",
+                }
+            )
+        wandb.init(**wandb_init_kwargs)
+
 
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
@@ -358,19 +425,24 @@ async def run_eval(args: Args, base_url: str):
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
-    wandb.log(
-        {
-            f"eval_step": args.eval_step, # global eval_step since it is the step number of the checkpoint
-            f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
-            f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
-                "num_samples"
-            ],
-            f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
-            f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
-            f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
-            f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
-        }
-    )
+    # Prepare metrics to log
+    metrics_to_log = {
+        "eval_step": args.eval_step,
+        f"{args.wandb_eval_type}/total_test_cases": len(test_cases),
+        f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
+            "num_samples"
+        ],
+        f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
+        f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
+        f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
+        f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+    }
+    
+    # Log metrics using appropriate logger
+    if args.use_local_logger:
+        logger.log(metrics_to_log)
+    else:
+        wandb.log(metrics_to_log)
 
     with open(args.evaluations_file, "w") as f:
         json.dump(
@@ -402,13 +474,18 @@ async def run_eval(args: Args, base_url: str):
     print(f"Evaluations output file: {args.evaluations_file}")
 
     await http.aclose()
-    wandb.finish()
+    
+    # Finish logging
+    if args.use_local_logger:
+        logger.finish()
+    else:
+        wandb.finish()
 
 
 # ----------------------------
 # Server launch + waiting
 # ----------------------------
-async def wait_for_server(base_url: str, timeout: float = 120.0) -> None:
+async def wait_for_server(base_url: str, timeout: float = 600.0) -> None:
     """
     Poll the server's OpenAI-compatible endpoint until it responds or timeout.
     We’ll try a lightweight call to /models.
