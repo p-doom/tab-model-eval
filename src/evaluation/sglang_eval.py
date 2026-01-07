@@ -342,6 +342,7 @@ async def evaluate_generated_command(
                             "equivalent": 0,
                         }
                     )
+                    break
 
                 except Exception as e:
                     print(f"Error on task {test_case['task_id']}: {e}")
