@@ -70,7 +70,7 @@ class Args:
     extra_server_args: Optional[List[str]] = None
 
 # ----------------------------
-# Local logger, since wandb offline cant resume runs 
+# Local logger, since wandb offline can't resume runs 
 # ----------------------------
 class LocalLogger:
     """A simple local logger that saves metrics to JSON files for later sync to wandb."""
