@@ -42,7 +42,6 @@ class Args:
     top_p: float = 0.8
     presence_penalty: float = 0.0
     top_k: int = 20
-    min_p: float = 0.0
     num_samples: int = 5
     max_new_tokens: int = 5000
 
