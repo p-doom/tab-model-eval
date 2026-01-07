@@ -64,6 +64,7 @@ class Args:
     top_p: float = 0.8
     presence_penalty: float = 1.5
     top_k: int = 20
+    num_samples: int = 10
     min_p: float = 0.0
     enable_thinking: bool = True
 
@@ -245,7 +246,9 @@ async def evaluate_generated_command(
         delay = 0.25
 
         if test_case.get("error", None) is not None:
-            print(f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}")
+            print(
+                f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}"
+            )
             return {
                 "task_id": test_case["task_id"],
                 "error": test_case["error"],
@@ -297,6 +300,7 @@ async def evaluate_generated_command(
                         temperature=args.temperature,
                         top_p=args.top_p,
                         presence_penalty=args.presence_penalty,
+                        n=args.num_samples,
                         response_format={"type": "json_object"},
                         extra_body={
                             "top_k": args.top_k,
@@ -304,20 +308,21 @@ async def evaluate_generated_command(
                         },
                     )
 
-                    thinking_trace = getattr(resp.choices[0].message, "reasoning_content", "")
-                    result = json.loads(resp.choices[0].message.content)
-                    equivalent = result.get("equivalent", 0)
+                    for choice in resp.choices:
+                        thinking_trace = getattr(choice.message, "reasoning_content", "")
+                        result = json.loads(choice.message.content)
+                        equivalent = result.get("equivalent", 0)
 
-                    sample_results.append(
-                        {
-                            "messages": messages,
-                            "generated_command": sample["generated_command"],
-                            "thinking_trace": thinking_trace,
-                            "evaluation_results": result,
-                            "equivalent": equivalent,
-                            "exact_match": sample["exact_match"],
-                        }
-                    )
+                        sample_results.append(
+                            {
+                                "messages": messages,
+                                "generated_command": sample["generated_command"],
+                                "thinking_trace": thinking_trace,
+                                "evaluation_results": result,
+                                "equivalent": equivalent,
+                                "exact_match": sample["exact_match"],
+                            }
+                        )
                     break
 
                 except BadRequestError as e:
@@ -499,6 +504,7 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
             "num_samples"
         ],
+        f"{args.wandb_eval_type}/num_judge_samples_per_rollout": args.num_samples,
         f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
@@ -519,6 +525,7 @@ async def run_single_eval(
                 "evaluation_scores": {
                     "total_test_cases": len(test_cases),
                     "num_samples_per_task": loaded_data["config_generations"]["num_samples"],
+                    "num_judge_samples_per_rollout": args.num_samples,
                     "total_judge_avg_at_n": total_judge_avg_at_n,
                     "total_judge_pass_at_n": total_judge_pass_at_n,
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
