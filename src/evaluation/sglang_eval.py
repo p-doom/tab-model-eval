@@ -107,57 +107,6 @@ class Args:
             )
 
 
-class LocalLogger:
-    """A simple local logger that saves metrics to JSON files for later sync to wandb."""
-
-    def __init__(
-        self,
-        log_dir: str,
-        run_id: str,
-        run_name: str,
-        project: str,
-        config: dict = None,
-        tags: list = None,
-    ):
-        self.log_dir = os.path.join(log_dir, run_id)
-        os.makedirs(self.log_dir, exist_ok=True)
-        self.run_id = run_id
-        self.run_name = run_name
-        self.project = project
-        self.config = config or {}
-        self.tags = tags or []
-        self.metrics_file = os.path.join(self.log_dir, "metrics.jsonl")
-
-        # Save run metadata
-        metadata_file = os.path.join(self.log_dir, "metadata.json")
-        with open(metadata_file, "w") as f:
-            json.dump(
-                {
-                    "run_id": run_id,
-                    "run_name": run_name,
-                    "project": project,
-                    "config": config,
-                    "tags": tags,
-                    "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                },
-                f,
-                indent=2,
-            )
-
-        print(f"LocalLogger initialized. Logs will be saved to: {self.log_dir}")
-
-    def log(self, metrics: dict):
-        """Append metrics to the JSONL file."""
-        metrics_with_timestamp = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"), **metrics}
-        with open(self.metrics_file, "a") as f:
-            f.write(json.dumps(metrics_with_timestamp) + "\n")
-        print(f"Logged metrics to {self.metrics_file}: eval_step={metrics.get('eval_step', 'N/A')}")
-
-    def finish(self):
-        """Called when logging is complete."""
-        print(f"LocalLogger finished. All logs saved to: {self.log_dir}")
-
-
 # ----------------------------
 # Dataset helpers
 # ----------------------------
