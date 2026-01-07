@@ -42,7 +42,8 @@ class Args:
     system_prompt_file: str = "data/prompts/judge_system_prompt_v3.md"
     judge_name: str = "default"
     judge_prompt_file: str = "data/prompts/judge_prompt_v3.md"
-    judge_prompt_file_with_context: str = ""
+    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v3_with_context.md"
+    include_context: bool = True
 
     # Local logging for offline mode
     use_local_logger: bool = False
@@ -566,8 +567,11 @@ async def run_batch_eval(args: Args, base_url: str):
     with open(args.system_prompt_file, "r") as f:
         system_prompt = f.read()
 
-    include_context = bool(args.judge_prompt_file_with_context)
-    judge_prompt_file = args.judge_prompt_file_with_context or args.judge_prompt_file
+    judge_prompt_file = (
+        args.judge_prompt_file_with_context
+        if args.include_context
+        else args.judge_prompt_file
+    )
 
     with open(judge_prompt_file, "r") as f:
         prompt_template = f.read()
@@ -637,7 +641,7 @@ async def run_batch_eval(args: Args, base_url: str):
             sem=sem,
             system_prompt=system_prompt,
             prompt_template=prompt_template,
-            include_context=include_context,
+            include_context=args.include_context,
             logger=logger,
         )
         all_results.append(result)
