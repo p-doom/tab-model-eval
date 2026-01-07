@@ -36,8 +36,8 @@ Determine if the **Generated Command** achieves the same outcome as the **Expect
 Compare the commands and respond with this exact JSON:
 
 {{
-  "equivalent": <1 or 0>,
-  "reason": "<brief explanation>"
+  "reason": "<brief reasoning>",
+  "equivalent": <1 or 0>
 }}
 
 Where:
