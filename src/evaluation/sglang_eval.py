@@ -26,8 +26,6 @@ class Args:
     wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
     wandb_id: str | None = None
     wandb_group: str = "debug"
-    wandb_id: str | None = None
-    wandb_group: str = "debug"
     generations_file: str = "data/eval/handcrafted_test_cases/handcrafted_generations.jsonl"
     evaluations_file: str = "data/eval/handcrafted_test_cases/handcrafted_evaluations.jsonl"
     limit: int = -1
