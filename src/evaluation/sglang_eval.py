@@ -572,20 +572,6 @@ async def run_batch_eval(args: Args, base_url: str):
     with open(judge_prompt_file, "r") as f:
         prompt_template = f.read()
 
-    # Ensure the model reasons before making the decision by swapping JSON fields in instructions.
-    # We do this here to enforce the behavior regardless of the state of the .md files on disk.
-    if '"equivalent":' in prompt_template and '"reason":' in prompt_template:
-        # If 'equivalent' appears before 'reason', swap them
-        if prompt_template.find('"equivalent":') < prompt_template.find('"reason":'):
-            # Replace common variations of the JSON block
-            prompt_template = prompt_template.replace(
-                '"equivalent": <1 or 0>,\n  "reason": "<brief explanation>"',
-                '"reason": "<brief reasoning>",\n  "equivalent": <1 or 0>',
-            ).replace(
-                '"equivalent": <1 or 0>,\n  "reason": "<detailed explanation>"',
-                '"reason": "<brief reasoning>",\n  "equivalent": <1 or 0>',
-            )
-
     # Initialize logger (local or wandb) - shared across all evaluations
     logger = None
     if args.use_local_logger:
