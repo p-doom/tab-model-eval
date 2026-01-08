@@ -254,6 +254,8 @@ async def evaluate_generated_command(
                 "error": test_case["error"],
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_format_compliant": 0,
+                "format_compliance_rate": 0.0,
                 "had_error": True,
             }
 
@@ -265,18 +267,32 @@ async def evaluate_generated_command(
                 "error": "No samples",
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_format_compliant": 0,
+                "format_compliance_rate": 0.0,
                 "had_error": True,
             }
 
         sample_results = []
+        num_format_compliant = 0
         for sample in samples:
+            is_format_compliant = sample["generated_command"] != ""
+            if not is_format_compliant:
+                print(
+                    f"Returning failure object for task {test_case['task_id']} due to empty generated command (format non-compliant)"
+                )
+                sample_results.append(
+                    {
+                        "task_id": test_case["task_id"],
+                        "error": f"Empty generated command for task {test_case['task_id']}",
+                        "equivalent": 0,
+                        "format_compliant": 0,
+                    }
+                )
+                continue
+
+            num_format_compliant += 1
             for attempt in range(args.max_attempts):
                 try:
-                    if sample["generated_command"] == "":
-                        print(
-                            f"Returning failure object for task {test_case['task_id']} due to empty generated command"
-                        )
-                        raise ValueError(f"Empty generated command for task {test_case['task_id']}")
 
                     format_dict = {
                         "expected": test_case["expected_command"],
@@ -321,6 +337,7 @@ async def evaluate_generated_command(
                                 "evaluation_results": result,
                                 "equivalent": equivalent,
                                 "exact_match": sample["exact_match"],
+                                "format_compliant": 1,
                             }
                         )
                     break
@@ -335,19 +352,7 @@ async def evaluate_generated_command(
                             "error": str(e),
                             "equivalent": 0,
                             "exact_match": 0,
-                        }
-                    )
-                    break
-
-                except ValueError as e:
-                    print(
-                        f"Returning failure object for task {test_case['task_id']} due to ValueError: {e}"
-                    )
-                    sample_results.append(
-                        {
-                            "task_id": test_case["task_id"],
-                            "error": str(e),
-                            "equivalent": 0,
+                            "format_compliant": 1,
                         }
                     )
                     break
@@ -361,6 +366,7 @@ async def evaluate_generated_command(
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
+                                "format_compliant": 1,
                             }
                         )
                     await asyncio.sleep(delay)
@@ -372,6 +378,9 @@ async def evaluate_generated_command(
         judge_pass_at_n = int(num_judge_matches > 0)
         num_exact_matches = test_case.get("num_exact_matches", 0)
 
+        # Compute format compliance rate for this task
+        format_compliance_rate = num_format_compliant / len(samples) if samples else 0.0
+
         return {
             "task_id": test_case["task_id"],
             "context": test_case["context"],
@@ -382,6 +391,8 @@ async def evaluate_generated_command(
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
             "num_exact_matches": num_exact_matches,
+            "num_format_compliant": num_format_compliant,
+            "format_compliance_rate": format_compliance_rate,
             "had_error": any("error" in s for s in sample_results),
         }
 
@@ -494,6 +505,12 @@ async def run_single_eval(
     total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
     num_errors = sum(1 for r in results if r.get("had_error", False))
 
+    # Calculate format compliance rate: average across all tasks
+    total_format_compliance_rate = sum(r.get("format_compliance_rate", 0) for r in results) / len(
+        results
+    )
+    total_format_compliant = sum(r.get("num_format_compliant", 0) for r in results)
+
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
@@ -509,6 +526,8 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        f"{args.wandb_eval_type}/total_format_compliance_rate": total_format_compliance_rate,
+        f"{args.wandb_eval_type}/total_format_compliant": total_format_compliant,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
@@ -530,6 +549,8 @@ async def run_single_eval(
                     "total_judge_pass_at_n": total_judge_pass_at_n,
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+                    "total_format_compliance_rate": total_format_compliance_rate,
+                    "total_format_compliant": total_format_compliant,
                     "max_attempts": args.max_attempts,
                     "num_errors": num_errors,
                 },
@@ -548,6 +569,8 @@ async def run_single_eval(
     print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Format Compliance Rate: {total_format_compliance_rate * 100:.2f}%")
+    print(f"Total Format Compliant Samples: {total_format_compliant}")
     print(f"Evaluations output file: {evaluations_file}")
 
     return {
@@ -559,6 +582,7 @@ async def run_single_eval(
         "total_judge_pass_at_n": total_judge_pass_at_n,
         "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        "total_format_compliance_rate": total_format_compliance_rate,
     }
 
 
@@ -675,7 +699,8 @@ async def run_batch_eval(args: Args, base_url: str):
         print(
             f"  Step {r['eval_step']:>5}: Judge Avg@N = {r['total_judge_avg_at_n']*100:5.2f}%, "
             f"Pass@N = {r['total_judge_pass_at_n']}, "
-            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%"
+            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%, "
+            f"Format Compliance = {r['total_format_compliance_rate']*100:5.2f}%"
         )
     print("#" * 60)
 
