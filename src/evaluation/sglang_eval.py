@@ -254,6 +254,8 @@ async def evaluate_generated_command(
                 "error": test_case["error"],
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_generated_command_empty": 0,
+                "empty_command_rate": 0.0,
                 "had_error": True,
             }
 
@@ -265,19 +267,32 @@ async def evaluate_generated_command(
                 "error": "No samples",
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_generated_command_empty": 0,
+                "empty_command_rate": 0.0,
                 "had_error": True,
             }
 
         sample_results = []
         num_generation_samples = len(samples)
+        num_generated_command_empty = 0
         for sample_idx, sample in enumerate(samples):
+            is_generated_command_empty = sample["generated_command"] == ""
+            if is_generated_command_empty:
+                print(
+                    f"Returning failure object for task {test_case['task_id']} due to empty generated command"
+                )
+                sample_results.append(
+                    {
+                        "task_id": test_case["task_id"],
+                        "error": f"Empty generated command for task {test_case['task_id']}",
+                        "equivalent": 0,
+                        "generated_command_empty": 1,
+                    }
+                )
+                num_generated_command_empty += 1
+                continue
             for attempt in range(args.max_attempts):
                 try:
-                    if sample["generated_command"] == "":
-                        print(
-                            f"Returning failure object for task {test_case['task_id']} due to empty generated command"
-                        )
-                        raise ValueError(f"Empty generated command for task {test_case['task_id']}")
 
                     format_dict = {
                         "expected": test_case["expected_command"],
@@ -324,6 +339,7 @@ async def evaluate_generated_command(
                                 "evaluation_results": result,
                                 "equivalent": equivalent,
                                 "exact_match": sample["exact_match"],
+                                "generated_command_empty": 0,
                             }
                         )
                     break
@@ -340,6 +356,7 @@ async def evaluate_generated_command(
                             "error": str(e),
                             "equivalent": 0,
                             "exact_match": 0,
+                            "generated_command_empty": 0,
                         }
                     )
                     break
@@ -355,6 +372,8 @@ async def evaluate_generated_command(
                             "task_id": test_case["task_id"],
                             "error": str(e),
                             "equivalent": 0,
+                            "exact_match": 0,
+                            "generated_command_empty": 0,
                         }
                     )
                     break
@@ -370,6 +389,8 @@ async def evaluate_generated_command(
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
+                                "exact_match": 0,
+                                "generated_command_empty": 0,
                             }
                         )
                     await asyncio.sleep(delay)
@@ -383,6 +404,9 @@ async def evaluate_generated_command(
         judge_pass_at_n = int(num_judge_matches > 0)
         num_exact_matches = test_case.get("num_exact_matches", 0)
 
+        # Compute empty command rate for this task
+        empty_command_rate = num_generated_command_empty / len(samples) if samples else 0.0
+
         return {
             "task_id": test_case["task_id"],
             "context": test_case["context"],
@@ -395,6 +419,8 @@ async def evaluate_generated_command(
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
             "num_exact_matches": num_exact_matches,
+            "num_generated_command_empty": num_generated_command_empty,
+            "empty_command_rate": empty_command_rate,
             "had_error": any("error" in s for s in sample_results),
         }
 
@@ -507,6 +533,10 @@ async def run_single_eval(
     total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
     num_errors = sum(1 for r in results if r.get("had_error", False))
 
+    # Calculate empty command rate: average across all tasks
+    total_empty_command_rate = sum(r.get("empty_command_rate", 0) for r in results) / len(results)
+    total_generated_command_empty = sum(r.get("num_generated_command_empty", 0) for r in results)
+
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
@@ -522,6 +552,8 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        f"{args.wandb_eval_type}/total_empty_command_rate": total_empty_command_rate,
+        f"{args.wandb_eval_type}/total_generated_command_empty": total_generated_command_empty,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
@@ -543,6 +575,8 @@ async def run_single_eval(
                     "total_judge_pass_at_n": total_judge_pass_at_n,
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+                    "total_empty_command_rate": total_empty_command_rate,
+                    "total_generated_command_empty": total_generated_command_empty,
                     "max_attempts": args.max_attempts,
                     "num_errors": num_errors,
                 },
@@ -561,6 +595,8 @@ async def run_single_eval(
     print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Empty Command Rate: {total_empty_command_rate * 100:.2f}%")
+    print(f"Total Empty Commands: {total_generated_command_empty}")
     print(f"Evaluations output file: {evaluations_file}")
 
     return {
@@ -572,6 +608,7 @@ async def run_single_eval(
         "total_judge_pass_at_n": total_judge_pass_at_n,
         "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        "total_empty_command_rate": total_empty_command_rate,
     }
 
 
@@ -688,7 +725,8 @@ async def run_batch_eval(args: Args, base_url: str):
         print(
             f"  Step {r['eval_step']:>5}: Judge Avg@N = {r['total_judge_avg_at_n']*100:5.2f}%, "
             f"Pass@N = {r['total_judge_pass_at_n']}, "
-            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%"
+            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%, "
+            f"Empty Command Rate = {r['total_empty_command_rate']*100:5.2f}%"
         )
     print("#" * 60)
 
