@@ -366,6 +366,7 @@ async def evaluate_generated_command(
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
+                                "exact_match": 0,
                                 "format_compliant": 1,
                             }
                         )
