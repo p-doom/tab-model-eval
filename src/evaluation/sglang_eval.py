@@ -64,7 +64,7 @@ class Args:
     top_p: float = 0.8
     presence_penalty: float = 1.5
     top_k: int = 20
-    num_samples: int = 10
+    num_samples: int = 1
     min_p: float = 0.0
     enable_thinking: bool = True
 
@@ -273,8 +273,9 @@ async def evaluate_generated_command(
             }
 
         sample_results = []
+        num_generation_samples = len(samples)
         num_generated_command_empty = 0
-        for sample in samples:
+        for sample_idx, sample in enumerate(samples):
             is_generated_command_empty = sample["generated_command"] == ""
             if is_generated_command_empty:
                 print(
@@ -323,13 +324,15 @@ async def evaluate_generated_command(
                         },
                     )
 
-                    for choice in resp.choices:
+                    for choice_idx, choice in enumerate(resp.choices):
                         thinking_trace = getattr(choice.message, "reasoning_content", "")
                         result = json.loads(choice.message.content)
                         equivalent = result.get("equivalent", 0)
 
                         sample_results.append(
                             {
+                                "sample_idx": sample_idx,
+                                "choice_idx": choice_idx,
                                 "messages": messages,
                                 "generated_command": sample["generated_command"],
                                 "thinking_trace": thinking_trace,
@@ -347,6 +350,25 @@ async def evaluate_generated_command(
                     )
                     sample_results.append(
                         {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
+                            "task_id": test_case["task_id"],
+                            "error": str(e),
+                            "equivalent": 0,
+                            "exact_match": 0,
+                            "generated_command_empty": 0,
+                        }
+                    )
+                    break
+
+                except ValueError as e:
+                    print(
+                        f"Returning failure object for task {test_case['task_id']} due to ValueError: {e}"
+                    )
+                    sample_results.append(
+                        {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
                             "task_id": test_case["task_id"],
                             "error": str(e),
                             "equivalent": 0,
@@ -362,6 +384,8 @@ async def evaluate_generated_command(
                         print(f"Returning failure object for task {test_case['task_id']}")
                         sample_results.append(
                             {
+                                "sample_idx": sample_idx,
+                                "choice_idx": None,
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
@@ -373,6 +397,8 @@ async def evaluate_generated_command(
                     delay *= 2
 
         # Compute avg@n and pass@n
+        # num_judge_matches counts total equivalences across all judge samples for all generation samples
+        # judge_avg_at_n is the fraction of all judge evaluations that found equivalence
         num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
         judge_avg_at_n = num_judge_matches / len(sample_results)
         judge_pass_at_n = int(num_judge_matches > 0)
@@ -386,7 +412,9 @@ async def evaluate_generated_command(
             "context": test_case["context"],
             "expected_command": test_case["expected_command"],
             "sample_evaluations": sample_results,
-            "num_samples": len(sample_results),
+            "num_generation_samples": num_generation_samples,
+            "num_judge_samples_per_generation": args.num_samples,
+            "num_total_evaluations": len(sample_results),
             "num_judge_matches": num_judge_matches,
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
