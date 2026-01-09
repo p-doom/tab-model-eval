@@ -66,7 +66,6 @@ class Args:
     presence_penalty: float = 1.5
     top_k: int = 20
     num_samples: int = 1
-    num_samples: int = 1
     min_p: float = 0.0
     enable_thinking: bool = True
 
