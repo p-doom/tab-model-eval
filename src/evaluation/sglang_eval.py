@@ -66,6 +66,7 @@ class Args:
     presence_penalty: float = 1.5
     top_k: int = 20
     num_samples: int = 1
+    num_samples: int = 1
     min_p: float = 0.0
     enable_thinking: bool = True
 
@@ -445,6 +446,10 @@ async def evaluate_generated_command(
                         thinking_trace = getattr(choice.message, "reasoning_content", "")
                         result = json.loads(choice.message.content)
                         equivalent = result.get("equivalent", 0)
+                    for choice_idx, choice in enumerate(resp.choices):
+                        thinking_trace = getattr(choice.message, "reasoning_content", "")
+                        result = json.loads(choice.message.content)
+                        equivalent = result.get("equivalent", 0)
 
                         sample_results.append(
                             {
@@ -471,6 +476,8 @@ async def evaluate_generated_command(
                         {
                             "sample_idx": sample_idx,
                             "choice_idx": None,
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
                             "task_id": test_case["task_id"],
                             "error": str(e),
                             "equivalent": 0,
@@ -488,6 +495,8 @@ async def evaluate_generated_command(
                     )
                     sample_results.append(
                         {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
                             "sample_idx": sample_idx,
                             "choice_idx": None,
                             "task_id": test_case["task_id"],
@@ -509,6 +518,8 @@ async def evaluate_generated_command(
                             {
                                 "sample_idx": sample_idx,
                                 "choice_idx": None,
+                                "sample_idx": sample_idx,
+                                "choice_idx": None,
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
@@ -522,6 +533,8 @@ async def evaluate_generated_command(
                     delay *= 2
 
         # Compute avg@n and pass@n
+        # num_judge_matches counts total equivalences across all judge samples for all generation samples
+        # judge_avg_at_n is the fraction of all judge evaluations that found equivalence
         # num_judge_matches counts total equivalences across all judge samples for all generation samples
         # judge_avg_at_n is the fraction of all judge evaluations that found equivalence
         num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
@@ -540,6 +553,9 @@ async def evaluate_generated_command(
             "context": test_case["context"],
             "expected_command": expected_command,
             "sample_evaluations": sample_results,
+            "num_generation_samples": num_generation_samples,
+            "num_judge_samples_per_generation": args.num_samples,
+            "num_total_evaluations": len(sample_results),
             "num_generation_samples": num_generation_samples,
             "num_judge_samples_per_generation": args.num_samples,
             "num_total_evaluations": len(sample_results),
@@ -684,6 +700,7 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
             "num_samples"
         ],
+        f"{args.wandb_eval_type}/num_judge_samples_per_rollout": args.num_samples,
         f"{args.wandb_eval_type}/num_judge_samples_per_rollout": args.num_samples,
         f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
