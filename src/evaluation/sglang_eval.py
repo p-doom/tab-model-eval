@@ -64,6 +64,7 @@ class Args:
     top_p: float = 0.8
     presence_penalty: float = 1.5
     top_k: int = 20
+    num_samples: int = 1
     min_p: float = 0.0
     enable_thinking: bool = True
 
@@ -245,12 +246,16 @@ async def evaluate_generated_command(
         delay = 0.25
 
         if test_case.get("error", None) is not None:
-            print(f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}")
+            print(
+                f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}"
+            )
             return {
                 "task_id": test_case["task_id"],
                 "error": test_case["error"],
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_generated_command_empty": 0,
+                "empty_command_rate": 0.0,
                 "had_error": True,
             }
 
@@ -262,18 +267,32 @@ async def evaluate_generated_command(
                 "error": "No samples",
                 "judge_avg_at_n": 0.0,
                 "judge_pass_at_n": 0,
+                "num_generated_command_empty": 0,
+                "empty_command_rate": 0.0,
                 "had_error": True,
             }
 
         sample_results = []
-        for sample in samples:
+        num_generation_samples = len(samples)
+        num_generated_command_empty = 0
+        for sample_idx, sample in enumerate(samples):
+            is_generated_command_empty = sample["generated_command"] == ""
+            if is_generated_command_empty:
+                print(
+                    f"Returning failure object for task {test_case['task_id']} due to empty generated command"
+                )
+                sample_results.append(
+                    {
+                        "task_id": test_case["task_id"],
+                        "error": f"Empty generated command for task {test_case['task_id']}",
+                        "equivalent": 0,
+                        "generated_command_empty": 1,
+                    }
+                )
+                num_generated_command_empty += 1
+                continue
             for attempt in range(args.max_attempts):
                 try:
-                    if sample["generated_command"] == "":
-                        print(
-                            f"Returning failure object for task {test_case['task_id']} due to empty generated command"
-                        )
-                        raise ValueError(f"Empty generated command for task {test_case['task_id']}")
 
                     format_dict = {
                         "expected": test_case["expected_command"],
@@ -297,6 +316,7 @@ async def evaluate_generated_command(
                         temperature=args.temperature,
                         top_p=args.top_p,
                         presence_penalty=args.presence_penalty,
+                        n=args.num_samples,
                         response_format={"type": "json_object"},
                         extra_body={
                             "top_k": args.top_k,
@@ -304,20 +324,24 @@ async def evaluate_generated_command(
                         },
                     )
 
-                    thinking_trace = getattr(resp.choices[0].message, "reasoning_content", "")
-                    result = json.loads(resp.choices[0].message.content)
-                    equivalent = result.get("equivalent", 0)
+                    for choice_idx, choice in enumerate(resp.choices):
+                        thinking_trace = getattr(choice.message, "reasoning_content", "")
+                        result = json.loads(choice.message.content)
+                        equivalent = result.get("equivalent", 0)
 
-                    sample_results.append(
-                        {
-                            "messages": messages,
-                            "generated_command": sample["generated_command"],
-                            "thinking_trace": thinking_trace,
-                            "evaluation_results": result,
-                            "equivalent": equivalent,
-                            "exact_match": sample["exact_match"],
-                        }
-                    )
+                        sample_results.append(
+                            {
+                                "sample_idx": sample_idx,
+                                "choice_idx": choice_idx,
+                                "messages": messages,
+                                "generated_command": sample["generated_command"],
+                                "thinking_trace": thinking_trace,
+                                "evaluation_results": result,
+                                "equivalent": equivalent,
+                                "exact_match": sample["exact_match"],
+                                "generated_command_empty": 0,
+                            }
+                        )
                     break
 
                 except BadRequestError as e:
@@ -326,10 +350,13 @@ async def evaluate_generated_command(
                     )
                     sample_results.append(
                         {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
                             "task_id": test_case["task_id"],
                             "error": str(e),
                             "equivalent": 0,
                             "exact_match": 0,
+                            "generated_command_empty": 0,
                         }
                     )
                     break
@@ -340,9 +367,13 @@ async def evaluate_generated_command(
                     )
                     sample_results.append(
                         {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
                             "task_id": test_case["task_id"],
                             "error": str(e),
                             "equivalent": 0,
+                            "exact_match": 0,
+                            "generated_command_empty": 0,
                         }
                     )
                     break
@@ -353,30 +384,43 @@ async def evaluate_generated_command(
                         print(f"Returning failure object for task {test_case['task_id']}")
                         sample_results.append(
                             {
+                                "sample_idx": sample_idx,
+                                "choice_idx": None,
                                 "task_id": test_case["task_id"],
                                 "error": str(e),
                                 "equivalent": 0,
+                                "exact_match": 0,
+                                "generated_command_empty": 0,
                             }
                         )
                     await asyncio.sleep(delay)
                     delay *= 2
 
         # Compute avg@n and pass@n
+        # num_judge_matches counts total equivalences across all judge samples for all generation samples
+        # judge_avg_at_n is the fraction of all judge evaluations that found equivalence
         num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
         judge_avg_at_n = num_judge_matches / len(sample_results)
         judge_pass_at_n = int(num_judge_matches > 0)
         num_exact_matches = test_case.get("num_exact_matches", 0)
+
+        # Compute empty command rate for this task
+        empty_command_rate = num_generated_command_empty / len(samples) if samples else 0.0
 
         return {
             "task_id": test_case["task_id"],
             "context": test_case["context"],
             "expected_command": test_case["expected_command"],
             "sample_evaluations": sample_results,
-            "num_samples": len(sample_results),
+            "num_generation_samples": num_generation_samples,
+            "num_judge_samples_per_generation": args.num_samples,
+            "num_total_evaluations": len(sample_results),
             "num_judge_matches": num_judge_matches,
             "judge_avg_at_n": judge_avg_at_n,
             "judge_pass_at_n": judge_pass_at_n,
             "num_exact_matches": num_exact_matches,
+            "num_generated_command_empty": num_generated_command_empty,
+            "empty_command_rate": empty_command_rate,
             "had_error": any("error" in s for s in sample_results),
         }
 
@@ -489,6 +533,10 @@ async def run_single_eval(
     total_judge_pass_at_n = sum(r.get("judge_pass_at_n", 0) for r in results)
     num_errors = sum(1 for r in results if r.get("had_error", False))
 
+    # Calculate empty command rate: average across all tasks
+    total_empty_command_rate = sum(r.get("empty_command_rate", 0) for r in results) / len(results)
+    total_generated_command_empty = sum(r.get("num_generated_command_empty", 0) for r in results)
+
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
@@ -499,10 +547,13 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/num_samples_per_task": loaded_data["config_generations"][
             "num_samples"
         ],
+        f"{args.wandb_eval_type}/num_judge_samples_per_rollout": args.num_samples,
         f"{args.wandb_eval_type}/total_judge_avg_at_n": total_judge_avg_at_n,
         f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
         f"{args.wandb_eval_type}/total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        f"{args.wandb_eval_type}/total_empty_command_rate": total_empty_command_rate,
+        f"{args.wandb_eval_type}/total_generated_command_empty": total_generated_command_empty,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
@@ -519,10 +570,13 @@ async def run_single_eval(
                 "evaluation_scores": {
                     "total_test_cases": len(test_cases),
                     "num_samples_per_task": loaded_data["config_generations"]["num_samples"],
+                    "num_judge_samples_per_rollout": args.num_samples,
                     "total_judge_avg_at_n": total_judge_avg_at_n,
                     "total_judge_pass_at_n": total_judge_pass_at_n,
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+                    "total_empty_command_rate": total_empty_command_rate,
+                    "total_generated_command_empty": total_generated_command_empty,
                     "max_attempts": args.max_attempts,
                     "num_errors": num_errors,
                 },
@@ -541,6 +595,8 @@ async def run_single_eval(
     print(f"Total Judge Avg At N: {total_judge_avg_at_n * 100:.2f}%")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Empty Command Rate: {total_empty_command_rate * 100:.2f}%")
+    print(f"Total Empty Commands: {total_generated_command_empty}")
     print(f"Evaluations output file: {evaluations_file}")
 
     return {
@@ -552,6 +608,7 @@ async def run_single_eval(
         "total_judge_pass_at_n": total_judge_pass_at_n,
         "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
+        "total_empty_command_rate": total_empty_command_rate,
     }
 
 
@@ -668,7 +725,8 @@ async def run_batch_eval(args: Args, base_url: str):
         print(
             f"  Step {r['eval_step']:>5}: Judge Avg@N = {r['total_judge_avg_at_n']*100:5.2f}%, "
             f"Pass@N = {r['total_judge_pass_at_n']}, "
-            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%"
+            f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%, "
+            f"Empty Command Rate = {r['total_empty_command_rate']*100:5.2f}%"
         )
     print("#" * 60)
 
