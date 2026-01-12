@@ -329,6 +329,21 @@ async def evaluate_single_sample(
         results = []
         expected_command = test_case["expected_command"]
 
+        # Check if generated command is exact match with expected command
+        if sample["exact_match"] == 1:
+            print(f"Exact match found for task {test_case['task_id']}")
+            return [
+                {
+                    "sample_idx": sample_idx,
+                    "generated_command": sample["generated_command"],
+                    "equivalent": 1,
+                    "exact_match": sample["exact_match"],
+                    "generated_command_empty": 0,
+                    "format_valid": True,
+                    "format_reason": "same_as_expected",
+                }
+            ]
+
         # Check command format validity (only applies strict checks if expected is a sed edit)
         format_valid, format_reason = check_command_format(
             sample["generated_command"], expected_command
