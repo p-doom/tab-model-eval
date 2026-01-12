@@ -1,12 +1,13 @@
 import asyncio
 import json
 import os
+import re
 import sys
 import subprocess
 import time
 import wandb
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 import httpx
 import tyro
@@ -62,10 +63,9 @@ class Args:
     # Client-related
     temperature: float = 0.7
     top_p: float = 0.8
-    presence_penalty: float = 1.5
+    presence_penalty: float = 0.0
     top_k: int = 20
     num_samples: int = 1
-    min_p: float = 0.0
     enable_thinking: bool = True
 
     # HTTP / client config
@@ -228,8 +228,217 @@ def filter_tasks_by_context_length(
 
 
 # ----------------------------
+# Command format validation
+# ----------------------------
+def check_command_format(command: str, expected_command: str) -> Tuple[bool, str]:
+    r"""
+    Validates that a command follows the required edit format.
+
+    Only applies edit-specific validation when expected_command is a sed edit command.
+
+    Returns (is_valid, reason):
+    - If expected is not a sed edit: always valid, returns (True, "non_edit_task")
+    - If expected is a sed edit, the generated command must:
+      - Use one of the 4 allowed sed patterns (not s/old/new/ substitution)
+      - Not use file redirection (>, >>, tee) to modify files
+
+    Valid sed patterns:
+      1. Replace block: sed -i 'START,ENDc\...'
+      2. Delete block: sed -i 'START,ENDd'
+      3. Insert before: sed -i 'STARTi\...'
+      4. Append to end: sed -i '$a\...'
+    """
+    if "sed -i" not in expected_command:
+        return (True, "non_edit_task")
+
+    # Check for file redirection patterns (>, >>, tee) - these are not allowed for edits
+    # Match patterns like: echo "x" > file.py, cat content >> file.txt, tee file.py
+    file_redirection_pattern = r"(^|[;&|])\s*(echo|cat|printf)\s+.*\s*>{1,2}\s*\S+"
+    if re.search(file_redirection_pattern, command):
+        return (False, "invalid_file_redirection")
+
+    # Check for tee command writing to files
+    tee_pattern = r"(^|[;&|])\s*tee\s+"
+    if re.search(tee_pattern, command):
+        return (False, "invalid_tee_redirection")
+
+    # Check for heredoc patterns: cat << EOF > file
+    heredoc_pattern = r"<<\s*\w+.*>"
+    if re.search(heredoc_pattern, command):
+        return (False, "invalid_heredoc_redirection")
+
+    # If generated command doesn't use sed -i at all, it's invalid for an edit task
+    if "sed -i" not in command:
+        return (False, "missing_sed_edit")
+
+    # Check for forbidden s/old/new/ substitution pattern
+    # This pattern matches things like: sed -i '3s/old/new/g' or sed -i "s/foo/bar/"
+    substitution_pattern = r"sed\s+-i\s+['\"][^'\"]*\d*s/"
+    if re.search(substitution_pattern, command):
+        return (False, "invalid_sed_substitution")
+
+    # Allowed edit patterns:
+    # 1. Replace block: sed -i 'START,ENDc\...' (e.g., sed -i '5,10c\new content')
+    # 2. Delete block: sed -i 'START,ENDd' (e.g., sed -i '5,10d')
+    # 3. Insert before: sed -i 'STARTi\...' (e.g., sed -i '5i\new line')
+    # 4. Append to end: sed -i '$a\...' (e.g., sed -i '$a\new line')
+
+    # Pattern for replace block: 'NUMBER,NUMBERc\'
+    replace_pattern = r"sed\s+-i\s+['\"](\d+),(\d+)c\\"
+
+    # Pattern for delete block: 'NUMBER,NUMBERd'
+    delete_pattern = r"sed\s+-i\s+['\"](\d+),(\d+)d['\"]"
+
+    # Pattern for insert before: 'NUMBERi\'
+    insert_pattern = r"sed\s+-i\s+['\"](\d+)i\\"
+
+    # Pattern for append to end: '$a\'
+    append_pattern = r"sed\s+-i\s+['\"]\$a\\"
+
+    if (
+        re.search(replace_pattern, command)
+        or re.search(delete_pattern, command)
+        or re.search(insert_pattern, command)
+        or re.search(append_pattern, command)
+    ):
+        return (True, "valid_edit_command")
+
+    return (False, "invalid_format")
+
+
+# ----------------------------
 # Eval logic
 # ----------------------------
+async def evaluate_single_sample(
+    client: AsyncOpenAI,
+    sem: asyncio.Semaphore,
+    test_case: Dict[str, Any],
+    sample: Dict[str, Any],
+    sample_idx: int,
+    args: Args,
+    system_prompt: str,
+    prompt_template: str,
+    include_context: bool,
+) -> List[Dict[str, Any]]:
+    """
+    Evaluate a single sample with concurrency control and retries.
+    Returns a list of evaluation results (one per judge sample).
+    """
+    async with sem:
+        delay = 0.25
+        results = []
+        expected_command = test_case["expected_command"]
+
+        # Handle empty generated command
+        if sample["generated_command"] == "":
+            return [
+                {
+                    "sample_idx": sample_idx,
+                    "choice_idx": None,
+                    "task_id": test_case["task_id"],
+                    "error": f"Empty generated command for task {test_case['task_id']}",
+                    "equivalent": 0,
+                    "generated_command_empty": 1,
+                    "format_valid": False,
+                    "format_reason": "empty_generated_command",
+                }
+            ]
+
+        # Check command format validity (only applies strict checks if expected is a sed edit)
+        format_valid, format_reason = check_command_format(
+            sample["generated_command"], expected_command
+        )
+
+        # If format check failed, skip the judge and mark as non-equivalent
+        if not format_valid:
+            return [
+                {
+                    "sample_idx": sample_idx,
+                    "choice_idx": None,
+                    "generated_command": sample["generated_command"],
+                    "equivalent": 0,
+                    "exact_match": sample.get("exact_match", 0),
+                    "generated_command_empty": 0,
+                    "format_valid": format_valid,
+                    "format_reason": format_reason,
+                }
+            ]
+
+        for attempt in range(args.max_attempts):
+            try:
+                format_dict = {
+                    "expected": expected_command,
+                    "generated": sample["generated_command"],
+                }
+                if include_context:
+                    format_dict["context"] = json.dumps(test_case["context"], indent=2)
+                prompt = prompt_template.format(**format_dict)
+
+                messages = [
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {"role": "user", "content": prompt},
+                ]
+
+                resp = await client.chat.completions.create(
+                    model=args.judge_name,
+                    messages=messages,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    presence_penalty=args.presence_penalty,
+                    n=args.num_samples,
+                    response_format={"type": "json_object"},
+                    extra_body={
+                        "top_k": args.top_k,
+                        "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
+                    },
+                )
+
+                for choice_idx, choice in enumerate(resp.choices):
+                    thinking_trace = getattr(choice.message, "reasoning_content", "")
+                    result = json.loads(choice.message.content)
+                    equivalent = result.get("equivalent", 0)
+
+                    results.append(
+                        {
+                            "sample_idx": sample_idx,
+                            "choice_idx": choice_idx,
+                            "messages": messages,
+                            "generated_command": sample["generated_command"],
+                            "thinking_trace": thinking_trace,
+                            "evaluation_results": result,
+                            "equivalent": equivalent,
+                            "exact_match": sample["exact_match"],
+                            "generated_command_empty": 0,
+                            "format_valid": format_valid,
+                            "format_reason": format_reason,
+                        }
+                    )
+                return results
+
+            except Exception as e:
+                print(f"Error on task {test_case['task_id']}: {e}")
+                if attempt == args.max_attempts - 1:
+                    return [
+                        {
+                            "sample_idx": sample_idx,
+                            "choice_idx": None,
+                            "task_id": test_case["task_id"],
+                            "error": str(e),
+                            "equivalent": 0,
+                            "generated_command_empty": 0,
+                            "format_valid": format_valid,
+                            "format_reason": format_reason,
+                        }
+                    ]
+                await asyncio.sleep(delay)
+                delay *= 2
+
+        return results
+
+
 async def evaluate_generated_command(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
@@ -240,189 +449,116 @@ async def evaluate_generated_command(
     include_context: bool,
 ) -> Dict[str, Any]:
     """
-    Handles a single evaluation task with concurrency control and retries.
+    Handles evaluation of all samples for a test case with parallelized sample evaluation.
     """
-    async with sem:
-        delay = 0.25
-
-        if test_case.get("error", None) is not None:
-            print(
-                f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}"
-            )
-            return {
-                "task_id": test_case["task_id"],
-                "error": test_case["error"],
-                "judge_avg_at_n": 0.0,
-                "judge_pass_at_n": 0,
-                "num_generated_command_empty": 0,
-                "empty_command_rate": 0.0,
-                "had_error": True,
-            }
-
-        samples = test_case.get("samples", [])
-        if not samples:
-            print(f"Returning failure object for task {test_case['task_id']} due to no samples")
-            return {
-                "task_id": test_case["task_id"],
-                "error": "No samples",
-                "judge_avg_at_n": 0.0,
-                "judge_pass_at_n": 0,
-                "num_generated_command_empty": 0,
-                "empty_command_rate": 0.0,
-                "had_error": True,
-            }
-
-        sample_results = []
-        num_generation_samples = len(samples)
-        num_generated_command_empty = 0
-        for sample_idx, sample in enumerate(samples):
-            is_generated_command_empty = sample["generated_command"] == ""
-            if is_generated_command_empty:
-                print(
-                    f"Returning failure object for task {test_case['task_id']} due to empty generated command"
-                )
-                sample_results.append(
-                    {
-                        "task_id": test_case["task_id"],
-                        "error": f"Empty generated command for task {test_case['task_id']}",
-                        "equivalent": 0,
-                        "generated_command_empty": 1,
-                    }
-                )
-                num_generated_command_empty += 1
-                continue
-            for attempt in range(args.max_attempts):
-                try:
-
-                    format_dict = {
-                        "expected": test_case["expected_command"],
-                        "generated": sample["generated_command"],
-                    }
-                    if include_context:
-                        format_dict["context"] = json.dumps(test_case["context"], indent=2)
-                    prompt = prompt_template.format(**format_dict)
-
-                    messages = [
-                        {
-                            "role": "system",
-                            "content": system_prompt,
-                        },
-                        {"role": "user", "content": prompt},
-                    ]
-
-                    resp = await client.chat.completions.create(
-                        model=args.judge_name,
-                        messages=messages,
-                        temperature=args.temperature,
-                        top_p=args.top_p,
-                        presence_penalty=args.presence_penalty,
-                        n=args.num_samples,
-                        response_format={"type": "json_object"},
-                        extra_body={
-                            "top_k": args.top_k,
-                            "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
-                        },
-                    )
-
-                    for choice_idx, choice in enumerate(resp.choices):
-                        thinking_trace = getattr(choice.message, "reasoning_content", "")
-                        result = json.loads(choice.message.content)
-                        equivalent = result.get("equivalent", 0)
-
-                        sample_results.append(
-                            {
-                                "sample_idx": sample_idx,
-                                "choice_idx": choice_idx,
-                                "messages": messages,
-                                "generated_command": sample["generated_command"],
-                                "thinking_trace": thinking_trace,
-                                "evaluation_results": result,
-                                "equivalent": equivalent,
-                                "exact_match": sample["exact_match"],
-                                "generated_command_empty": 0,
-                            }
-                        )
-                    break
-
-                except BadRequestError as e:
-                    print(
-                        f"Returning failure object for task {test_case['task_id']} due to BadRequestError: {e}"
-                    )
-                    sample_results.append(
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": None,
-                            "task_id": test_case["task_id"],
-                            "error": str(e),
-                            "equivalent": 0,
-                            "exact_match": 0,
-                            "generated_command_empty": 0,
-                        }
-                    )
-                    break
-
-                except ValueError as e:
-                    print(
-                        f"Returning failure object for task {test_case['task_id']} due to ValueError: {e}"
-                    )
-                    sample_results.append(
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": None,
-                            "task_id": test_case["task_id"],
-                            "error": str(e),
-                            "equivalent": 0,
-                            "exact_match": 0,
-                            "generated_command_empty": 0,
-                        }
-                    )
-                    break
-
-                except Exception as e:
-                    print(f"Error on task {test_case['task_id']}: {e}")
-                    if attempt == args.max_attempts - 1:
-                        print(f"Returning failure object for task {test_case['task_id']}")
-                        sample_results.append(
-                            {
-                                "sample_idx": sample_idx,
-                                "choice_idx": None,
-                                "task_id": test_case["task_id"],
-                                "error": str(e),
-                                "equivalent": 0,
-                                "exact_match": 0,
-                                "generated_command_empty": 0,
-                            }
-                        )
-                    await asyncio.sleep(delay)
-                    delay *= 2
-
-        # Compute avg@n and pass@n
-        # num_judge_matches counts total equivalences across all judge samples for all generation samples
-        # judge_avg_at_n is the fraction of all judge evaluations that found equivalence
-        num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
-        judge_avg_at_n = num_judge_matches / len(sample_results)
-        judge_pass_at_n = int(num_judge_matches > 0)
-        num_exact_matches = test_case.get("num_exact_matches", 0)
-
-        # Compute empty command rate for this task
-        empty_command_rate = num_generated_command_empty / len(samples) if samples else 0.0
-
+    if test_case.get("error", None) is not None:
+        print(
+            f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}"
+        )
         return {
             "task_id": test_case["task_id"],
-            "context": test_case["context"],
-            "expected_command": test_case["expected_command"],
-            "sample_evaluations": sample_results,
-            "num_generation_samples": num_generation_samples,
-            "num_judge_samples_per_generation": args.num_samples,
-            "num_total_evaluations": len(sample_results),
-            "num_judge_matches": num_judge_matches,
-            "judge_avg_at_n": judge_avg_at_n,
-            "judge_pass_at_n": judge_pass_at_n,
-            "num_exact_matches": num_exact_matches,
-            "num_generated_command_empty": num_generated_command_empty,
-            "empty_command_rate": empty_command_rate,
-            "had_error": any("error" in s for s in sample_results),
+            "error": test_case["error"],
+            "judge_avg_at_n": 0.0,
+            "judge_pass_at_n": 0,
+            "num_generated_command_empty": 0,
+            "empty_command_rate": 0.0,
+            "num_format_correct": 0,
+            "format_correct_rate": 0.0,
+            "had_error": True,
         }
+
+    samples = test_case.get("samples", [])
+    if not samples:
+        print(f"Returning failure object for task {test_case['task_id']} due to no samples")
+        return {
+            "task_id": test_case["task_id"],
+            "error": "No samples",
+            "judge_avg_at_n": 0.0,
+            "judge_pass_at_n": 0,
+            "num_generated_command_empty": 0,
+            "empty_command_rate": 0.0,
+            "num_format_correct": 0,
+            "format_correct_rate": 0.0,
+            "had_error": True,
+        }
+
+    # Evaluate all samples in parallel
+    sample_tasks = [
+        evaluate_single_sample(
+            client,
+            sem,
+            test_case,
+            sample,
+            sample_idx,
+            args,
+            system_prompt,
+            prompt_template,
+            include_context,
+        )
+        for sample_idx, sample in enumerate(samples)
+    ]
+    sample_results_nested = await asyncio.gather(*sample_tasks)
+
+    # Flatten results
+    sample_results = []
+    for results in sample_results_nested:
+        sample_results.extend(results)
+
+    # Compute metrics
+    num_generation_samples = len(samples)
+    expected_command = test_case["expected_command"]
+
+    # Count format correct and empty commands from results
+    # We need to count unique samples (by sample_idx) for format_correct and empty counts
+    sample_format_valid = {}
+    sample_empty = {}
+    for r in sample_results:
+        idx = r.get("sample_idx")
+        if idx is not None:
+            # Track format validity per sample (take first occurrence)
+            if idx not in sample_format_valid:
+                sample_format_valid[idx] = r.get("format_valid", False)
+            # Track empty status per sample
+            if idx not in sample_empty:
+                sample_empty[idx] = r.get("generated_command_empty", 0) == 1
+
+    num_format_correct = sum(1 for v in sample_format_valid.values() if v)
+    num_generated_command_empty = sum(1 for v in sample_empty.values() if v)
+
+    # Compute avg@n and pass@n
+    num_judge_matches = sum(s.get("equivalent", 0) for s in sample_results)
+    judge_avg_at_n = num_judge_matches / len(sample_results) if sample_results else 0.0
+    judge_pass_at_n = int(num_judge_matches > 0)
+    num_exact_matches = test_case.get("num_exact_matches", 0)
+
+    # Compute empty command rate for this task
+    empty_command_rate = (
+        num_generated_command_empty / num_generation_samples if num_generation_samples else 0.0
+    )
+
+    # Compute format correct rate for this task
+    format_correct_rate = (
+        num_format_correct / num_generation_samples if num_generation_samples else 0.0
+    )
+
+    return {
+        "task_id": test_case["task_id"],
+        "context": test_case["context"],
+        "expected_command": expected_command,
+        "sample_evaluations": sample_results,
+        "num_generation_samples": num_generation_samples,
+        "num_judge_samples_per_generation": args.num_samples,
+        "num_total_evaluations": len(sample_results),
+        "num_judge_matches": num_judge_matches,
+        "judge_avg_at_n": judge_avg_at_n,
+        "judge_pass_at_n": judge_pass_at_n,
+        "num_exact_matches": num_exact_matches,
+        "num_generated_command_empty": num_generated_command_empty,
+        "empty_command_rate": empty_command_rate,
+        "num_format_correct": num_format_correct,
+        "format_correct_rate": format_correct_rate,
+        "had_error": any("error" in s for s in sample_results),
+    }
 
 
 async def run_single_eval(
@@ -537,6 +673,13 @@ async def run_single_eval(
     total_empty_command_rate = sum(r.get("empty_command_rate", 0) for r in results) / len(results)
     total_generated_command_empty = sum(r.get("num_generated_command_empty", 0) for r in results)
 
+    # Calculate format correct rate: average across all tasks
+    total_format_correct_rate = sum(r.get("format_correct_rate", 0) for r in results) / len(results)
+    total_format_correct = sum(r.get("num_format_correct", 0) for r in results)
+    total_format_incorrect = sum(
+        r.get("num_generation_samples", 0) - r.get("num_format_correct", 0) for r in results
+    )
+
     total_exact_match_avg_at_n = loaded_data["generation_scores"]["total_exact_match_avg_at_n"]
     total_exact_match_pass_at_n = loaded_data["generation_scores"]["total_exact_match_pass_at_n"]
 
@@ -554,6 +697,9 @@ async def run_single_eval(
         f"{args.wandb_eval_type}/total_exact_match_pass_at_n": total_exact_match_pass_at_n,
         f"{args.wandb_eval_type}/total_empty_command_rate": total_empty_command_rate,
         f"{args.wandb_eval_type}/total_generated_command_empty": total_generated_command_empty,
+        f"{args.wandb_eval_type}/total_format_correct_rate": total_format_correct_rate,
+        f"{args.wandb_eval_type}/total_format_correct": total_format_correct,
+        f"{args.wandb_eval_type}/total_format_incorrect": total_format_incorrect,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
@@ -577,6 +723,9 @@ async def run_single_eval(
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                     "total_empty_command_rate": total_empty_command_rate,
                     "total_generated_command_empty": total_generated_command_empty,
+                    "total_format_correct_rate": total_format_correct_rate,
+                    "total_format_correct": total_format_correct,
+                    "total_format_incorrect": total_format_incorrect,
                     "max_attempts": args.max_attempts,
                     "num_errors": num_errors,
                 },
@@ -597,6 +746,9 @@ async def run_single_eval(
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
     print(f"Empty Command Rate: {total_empty_command_rate * 100:.2f}%")
     print(f"Total Empty Commands: {total_generated_command_empty}")
+    print(f"Format Correct Rate: {total_format_correct_rate * 100:.2f}%")
+    print(f"Total Format Correct: {total_format_correct}")
+    print(f"Total Format Incorrect: {total_format_incorrect}")
     print(f"Evaluations output file: {evaluations_file}")
 
     return {
@@ -609,6 +761,7 @@ async def run_single_eval(
         "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
         "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
         "total_empty_command_rate": total_empty_command_rate,
+        "total_format_correct_rate": total_format_correct_rate,
     }
 
 
@@ -726,7 +879,8 @@ async def run_batch_eval(args: Args, base_url: str):
             f"  Step {r['eval_step']:>5}: Judge Avg@N = {r['total_judge_avg_at_n']*100:5.2f}%, "
             f"Pass@N = {r['total_judge_pass_at_n']}, "
             f"Exact Avg@N = {r['total_exact_match_avg_at_n']*100:5.2f}%, "
-            f"Empty Command Rate = {r['total_empty_command_rate']*100:5.2f}%"
+            f"Empty Rate = {r['total_empty_command_rate']*100:5.2f}%, "
+            f"Format Correct = {r['total_format_correct_rate']*100:5.2f}%"
         )
     print("#" * 60)
 
