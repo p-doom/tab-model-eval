@@ -330,7 +330,7 @@ async def evaluate_single_sample(
         expected_command = test_case["expected_command"]
 
         # Check if generated command is exact match with expected command
-        if sample["exact_match"] == 1:
+        if sample.get("exact_match", 0) == 1:
             print(f"Exact match found for task {test_case['task_id']}")
             return [
                 {
