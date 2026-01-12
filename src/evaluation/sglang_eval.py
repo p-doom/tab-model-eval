@@ -418,37 +418,6 @@ async def evaluate_single_sample(
                     )
                 return results
 
-            except BadRequestError as e:
-                print(f"BadRequestError for task {test_case['task_id']}: {e}")
-                return [
-                    {
-                        "sample_idx": sample_idx,
-                        "choice_idx": None,
-                        "task_id": test_case["task_id"],
-                        "error": str(e),
-                        "equivalent": 0,
-                        "exact_match": 0,
-                        "generated_command_empty": 0,
-                        "format_valid": format_valid,
-                        "format_reason": format_reason,
-                    }
-                ]
-
-            except ValueError as e:
-                print(f"ValueError for task {test_case['task_id']}: {e}")
-                return [
-                    {
-                        "sample_idx": sample_idx,
-                        "choice_idx": None,
-                        "task_id": test_case["task_id"],
-                        "error": str(e),
-                        "equivalent": 0,
-                        "generated_command_empty": 0,
-                        "format_valid": format_valid,
-                        "format_reason": format_reason,
-                    }
-                ]
-
             except Exception as e:
                 print(f"Error on task {test_case['task_id']}: {e}")
                 if attempt == args.max_attempts - 1:
