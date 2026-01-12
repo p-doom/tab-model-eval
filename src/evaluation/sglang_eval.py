@@ -329,11 +329,6 @@ async def evaluate_single_sample(
         results = []
         expected_command = test_case["expected_command"]
 
-        # Check command format validity (only applies strict checks if expected is a sed edit)
-        format_valid, format_reason = check_command_format(
-            sample["generated_command"], expected_command
-        )
-
         # Handle empty generated command
         if sample["generated_command"] == "":
             return [
@@ -344,10 +339,15 @@ async def evaluate_single_sample(
                     "error": f"Empty generated command for task {test_case['task_id']}",
                     "equivalent": 0,
                     "generated_command_empty": 1,
-                    "format_valid": format_valid,
-                    "format_reason": format_reason,
+                    "format_valid": False,
+                    "format_reason": "empty_generated_command",
                 }
             ]
+
+        # Check command format validity (only applies strict checks if expected is a sed edit)
+        format_valid, format_reason = check_command_format(
+            sample["generated_command"], expected_command
+        )
 
         # If format check failed, skip the judge and mark as non-equivalent
         if not format_valid:
