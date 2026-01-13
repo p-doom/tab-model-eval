@@ -309,7 +309,7 @@ def check_command_format(command: str, expected_command: str) -> Tuple[bool, str
 # ----------------------------
 # Result factory functions
 # ----------------------------
-def create_sample_result_success(
+def create_sample_result_evaluated(
     sample_idx: int,
     generated_command: str,
     equivalent: int,
@@ -324,7 +324,9 @@ def create_sample_result_success(
 ) -> Dict[str, Any]:
     """
     Factory for successful sample evaluation results.
-    Used when the judge successfully evaluates a sample.
+    Used when a sample evaluation result is determined,
+    either by the judge or by skipping evaluation due to
+    format issues, exact matches, or similar conditions.
     """
     result = {
         "sample_idx": sample_idx,
@@ -429,7 +431,7 @@ async def evaluate_single_sample(
         if sample.get("exact_match", 0) == 1:
             print(f"Exact match found for task {test_case['task_id']}")
             return [
-                create_sample_result_success(
+                create_sample_result_evaluated(
                     sample_idx=sample_idx,
                     generated_command=sample["generated_command"],
                     equivalent=1,
@@ -458,7 +460,7 @@ async def evaluate_single_sample(
         # If format check failed, skip the judge and mark as non-equivalent
         if not format_valid:
             return [
-                create_sample_result_success(
+                create_sample_result_evaluated(
                     sample_idx=sample_idx,
                     generated_command=sample["generated_command"],
                     equivalent=0,
@@ -506,7 +508,7 @@ async def evaluate_single_sample(
                     equivalent = result.get("equivalent", 0)
 
                     results.append(
-                        create_sample_result_success(
+                        create_sample_result_evaluated(
                             sample_idx=sample_idx,
                             generated_command=sample["generated_command"],
                             equivalent=equivalent,
