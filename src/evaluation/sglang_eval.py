@@ -61,7 +61,7 @@ class Args:
     tp_size: int = 1
 
     # Client-related
-    presence_penalty: float = 0
+    presence_penalty: float = 0.0
     num_samples: int = 1
     enable_thinking: bool = True
 
