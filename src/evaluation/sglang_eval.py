@@ -51,7 +51,7 @@ class Args:
     local_log_dir: str = "data/eval/local_logs"
 
     # Server-related (sglang)
-    judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    judge_model_path: str = "Qwen/Qwen3-30B-A3B-Thinking-2507"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960

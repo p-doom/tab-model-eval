@@ -27,7 +27,7 @@ class Args:
     model_name: str = "default"
 
     # Server-related (sglang)
-    model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    model_path: str = "Qwen/Qwen3-30B-A3B-Instruct-2507"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
