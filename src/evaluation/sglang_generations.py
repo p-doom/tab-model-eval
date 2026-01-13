@@ -27,7 +27,7 @@ class Args:
     model_name: str = "default"
 
     # Server-related (sglang)
-    model_path: str = "Qwen/Qwen3-0.6B"
+    model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
@@ -38,10 +38,7 @@ class Args:
     lora_paths: Optional[List[str]] = None
 
     # Model-related
-    temperature: float = 0.7
-    top_p: float = 0.8
-    presence_penalty: float = 0.0
-    top_k: int = 20
+    presence_penalty: float = 1.5
     num_samples: int = 5
     max_new_tokens: int = 5000
 
@@ -142,13 +139,10 @@ async def generate_next_command(
                 resp = await client.chat.completions.create(
                     model=args.model_name,
                     messages=messages,
-                    temperature=args.temperature,
-                    top_p=args.top_p,
                     presence_penalty=args.presence_penalty,
                     n=args.num_samples,
                     max_tokens=args.max_new_tokens,
                     extra_body={
-                        "top_k": args.top_k,
                         "chat_template_kwargs": {"enable_thinking": False},
                     },
                 )

@@ -61,10 +61,7 @@ class Args:
     tp_size: int = 1
 
     # Client-related
-    temperature: float = 0.7
-    top_p: float = 0.8
-    presence_penalty: float = 0.0
-    top_k: int = 20
+    presence_penalty: float = 1.5
     num_samples: int = 1
     enable_thinking: bool = True
 
@@ -400,13 +397,10 @@ async def evaluate_single_sample(
                 resp = await client.chat.completions.create(
                     model=args.judge_name,
                     messages=messages,
-                    temperature=args.temperature,
-                    top_p=args.top_p,
                     presence_penalty=args.presence_penalty,
                     n=args.num_samples,
                     response_format={"type": "json_object"},
                     extra_body={
-                        "top_k": args.top_k,
                         "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                     },
                 )
