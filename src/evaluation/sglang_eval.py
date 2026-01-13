@@ -51,7 +51,7 @@ class Args:
     local_log_dir: str = "data/eval/local_logs"
 
     # Server-related (sglang)
-    judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    judge_model_path: str = "Qwen/Qwen3-30B-A3B-Thinking-2507"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
@@ -61,10 +61,7 @@ class Args:
     tp_size: int = 1
 
     # Client-related
-    temperature: float = 0.7
-    top_p: float = 0.8
     presence_penalty: float = 0.0
-    top_k: int = 20
     num_samples: int = 1
     enable_thinking: bool = True
 
@@ -400,13 +397,10 @@ async def evaluate_single_sample(
                 resp = await client.chat.completions.create(
                     model=args.judge_name,
                     messages=messages,
-                    temperature=args.temperature,
-                    top_p=args.top_p,
                     presence_penalty=args.presence_penalty,
                     n=args.num_samples,
                     response_format={"type": "json_object"},
                     extra_body={
-                        "top_k": args.top_k,
                         "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                     },
                 )
