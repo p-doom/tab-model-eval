@@ -307,6 +307,102 @@ def check_command_format(command: str, expected_command: str) -> Tuple[bool, str
 
 
 # ----------------------------
+# Result factory functions
+# ----------------------------
+def create_sample_result_success(
+    sample_idx: int,
+    generated_command: str,
+    equivalent: int,
+    exact_match: int = 0,
+    generated_command_empty: int = 0,
+    format_valid: bool = True,
+    format_reason: str = "valid",
+    choice_idx: Optional[int] = None,
+    messages: Optional[List[Dict[str, str]]] = None,
+    thinking_trace: str = "",
+    evaluation_results: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Factory for successful sample evaluation results.
+    Used when the judge successfully evaluates a sample.
+    """
+    result = {
+        "sample_idx": sample_idx,
+        "generated_command": generated_command,
+        "equivalent": equivalent,
+        "exact_match": exact_match,
+        "generated_command_empty": generated_command_empty,
+        "format_valid": format_valid,
+        "format_reason": format_reason,
+    }
+
+    # Add optional fields if provided
+    if choice_idx is not None:
+        result["choice_idx"] = choice_idx
+    if messages is not None:
+        result["messages"] = messages
+    if thinking_trace:
+        result["thinking_trace"] = thinking_trace
+    if evaluation_results is not None:
+        result["evaluation_results"] = evaluation_results
+
+    return result
+
+
+def create_sample_result_failure(
+    sample_idx: int,
+    task_id: str,
+    error: str,
+    format_valid: bool = False,
+    format_reason: str = "error",
+    generated_command: str = "",
+    equivalent: int = 0,
+    exact_match: int = 0,
+    generated_command_empty: int = 0,
+    choice_idx: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Factory for failed sample evaluation results.
+    Used when evaluation fails (empty command, format error, judge error, etc.).
+    """
+    return {
+        "sample_idx": sample_idx,
+        "choice_idx": choice_idx,
+        "task_id": task_id,
+        "error": error,
+        "equivalent": equivalent,
+        "exact_match": exact_match,
+        "generated_command": generated_command,
+        "generated_command_empty": generated_command_empty,
+        "format_valid": format_valid,
+        "format_reason": format_reason,
+    }
+
+
+def create_task_result_failure(
+    task_id: str,
+    error: str,
+    had_error: bool = True,
+) -> Dict[str, Any]:
+    """
+    Factory for failed task-level evaluation results.
+    Used when a task cannot be evaluated (no samples, error in test case, etc.).
+    Returns aggregated metrics with zero values.
+    """
+    return {
+        "task_id": task_id,
+        "error": error,
+        "judge_avg_at_n": 0.0,
+        "judge_pass_at_n": 0,
+        "num_generated_command_empty": 0,
+        "empty_command_rate": 0.0,
+        "num_format_correct": 0,
+        "format_correct_rate": 0.0,
+        "had_error": had_error,
+    }
+
+
+# ----------------------------
 # Eval logic
 # ----------------------------
 async def evaluate_single_sample(
@@ -333,30 +429,25 @@ async def evaluate_single_sample(
         if sample.get("exact_match", 0) == 1:
             print(f"Exact match found for task {test_case['task_id']}")
             return [
-                {
-                    "sample_idx": sample_idx,
-                    "generated_command": sample["generated_command"],
-                    "equivalent": 1,
-                    "exact_match": sample["exact_match"],
-                    "generated_command_empty": 0,
-                    "format_valid": True,
-                    "format_reason": "same_as_expected",
-                }
+                create_sample_result_success(
+                    sample_idx=sample_idx,
+                    generated_command=sample["generated_command"],
+                    equivalent=1,
+                    exact_match=sample["exact_match"],
+                    format_reason="same_as_expected",
+                )
             ]
 
         # Handle empty generated command
         if sample["generated_command"] == "":
             return [
-                {
-                    "sample_idx": sample_idx,
-                    "choice_idx": None,
-                    "task_id": test_case["task_id"],
-                    "error": f"Empty generated command for task {test_case['task_id']}",
-                    "equivalent": 0,
-                    "generated_command_empty": 1,
-                    "format_valid": False,
-                    "format_reason": "empty_generated_command",
-                }
+                create_sample_result_failure(
+                    sample_idx=sample_idx,
+                    task_id=test_case["task_id"],
+                    error=f"Empty generated command for task {test_case['task_id']}",
+                    generated_command_empty=1,
+                    format_reason="empty_generated_command",
+                )
             ]
 
         # Check command format validity (only applies strict checks if expected is a sed edit)
@@ -367,16 +458,14 @@ async def evaluate_single_sample(
         # If format check failed, skip the judge and mark as non-equivalent
         if not format_valid:
             return [
-                {
-                    "sample_idx": sample_idx,
-                    "choice_idx": None,
-                    "generated_command": sample["generated_command"],
-                    "equivalent": 0,
-                    "exact_match": sample.get("exact_match", 0),
-                    "generated_command_empty": 0,
-                    "format_valid": format_valid,
-                    "format_reason": format_reason,
-                }
+                create_sample_result_success(
+                    sample_idx=sample_idx,
+                    generated_command=sample["generated_command"],
+                    equivalent=0,
+                    exact_match=sample.get("exact_match", 0),
+                    format_valid=format_valid,
+                    format_reason=format_reason,
+                )
             ]
 
         for attempt in range(args.max_attempts):
@@ -417,19 +506,18 @@ async def evaluate_single_sample(
                     equivalent = result.get("equivalent", 0)
 
                     results.append(
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": choice_idx,
-                            "messages": messages,
-                            "generated_command": sample["generated_command"],
-                            "thinking_trace": thinking_trace,
-                            "evaluation_results": result,
-                            "equivalent": equivalent,
-                            "exact_match": sample["exact_match"],
-                            "generated_command_empty": 0,
-                            "format_valid": format_valid,
-                            "format_reason": format_reason,
-                        }
+                        create_sample_result_success(
+                            sample_idx=sample_idx,
+                            generated_command=sample["generated_command"],
+                            equivalent=equivalent,
+                            exact_match=sample["exact_match"],
+                            format_valid=format_valid,
+                            format_reason=format_reason,
+                            choice_idx=choice_idx,
+                            messages=messages,
+                            thinking_trace=thinking_trace,
+                            evaluation_results=result,
+                        )
                     )
                 return results
 
@@ -437,16 +525,15 @@ async def evaluate_single_sample(
                 print(f"Error on task {test_case['task_id']}: {e}")
                 if attempt == args.max_attempts - 1:
                     return [
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": None,
-                            "task_id": test_case["task_id"],
-                            "error": str(e),
-                            "equivalent": 0,
-                            "generated_command_empty": 0,
-                            "format_valid": format_valid,
-                            "format_reason": format_reason,
-                        }
+                        create_sample_result_failure(
+                            sample_idx=sample_idx,
+                            task_id=test_case["task_id"],
+                            error=str(e),
+                            format_valid=format_valid,
+                            format_reason=format_reason,
+                            generated_command=sample.get("generated_command", ""),
+                            exact_match=sample.get("exact_match", 0),
+                        )
                     ]
                 await asyncio.sleep(delay)
                 delay *= 2
@@ -470,32 +557,18 @@ async def evaluate_generated_command(
         print(
             f"Returning failure object for task {test_case['task_id']} due to error: {test_case['error']}"
         )
-        return {
-            "task_id": test_case["task_id"],
-            "error": test_case["error"],
-            "judge_avg_at_n": 0.0,
-            "judge_pass_at_n": 0,
-            "num_generated_command_empty": 0,
-            "empty_command_rate": 0.0,
-            "num_format_correct": 0,
-            "format_correct_rate": 0.0,
-            "had_error": True,
-        }
+        return create_task_result_failure(
+            task_id=test_case["task_id"],
+            error=test_case["error"],
+        )
 
     samples = test_case.get("samples", [])
     if not samples:
         print(f"Returning failure object for task {test_case['task_id']} due to no samples")
-        return {
-            "task_id": test_case["task_id"],
-            "error": "No samples",
-            "judge_avg_at_n": 0.0,
-            "judge_pass_at_n": 0,
-            "num_generated_command_empty": 0,
-            "empty_command_rate": 0.0,
-            "num_format_correct": 0,
-            "format_correct_rate": 0.0,
-            "had_error": True,
-        }
+        return create_task_result_failure(
+            task_id=test_case["task_id"],
+            error="No samples",
+        )
 
     # Evaluate all samples in parallel
     sample_tasks = [
