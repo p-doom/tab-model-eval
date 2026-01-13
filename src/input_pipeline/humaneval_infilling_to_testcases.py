@@ -78,26 +78,29 @@ def create_sed_command(
     viewport_start: int,
     viewport_end: int,
 ) -> str:
-    """
+    r"""
     Create a sed command to replace lines, followed by cat to show viewport.
     
-    For multi-line content, uses the format:
+    Uses shell-style backslash line continuation to match training data format:
     sed -i 'START,ENDc\
     LINE1\
     LINE2' FILE && cat -n FILE | sed -n 'VSTART,VENDp'
+    
+    Each line except the last ends with \ for shell continuation.
     """
     lines = new_content.rstrip("\n").split("\n")
 
     if len(lines) == 1:
         # Single line replacement
         escaped_line = escape_for_sed(lines[0])
-        sed_cmd = f"sed -i '{start_line},{end_line}c\\{escaped_line}' {file_path}"
+        sed_cmd = f"sed -i '{start_line},{end_line}c\\\n{escaped_line}' {file_path}"
     else:
-        # Multi-line replacement with continuation syntax
+        # Multi-line replacement with shell backslash continuation
+        # Each line ends with \ except the last
         escaped_lines = [escape_for_sed(line) for line in lines]
-        # Build the replacement with \ at end of each line except last
-        replacement = "\\n".join(escaped_lines)
-        sed_cmd = f"sed -i '{start_line},{end_line}c\\{replacement}' {file_path}"
+        # Join with backslash + newline for shell continuation
+        replacement = "\\\n".join(escaped_lines)
+        sed_cmd = f"sed -i '{start_line},{end_line}c\\\n{replacement}' {file_path}"
 
     # Chain with viewport view
     full_cmd = f"{sed_cmd} && cat -n {file_path} | sed -n '{viewport_start},{viewport_end}p'"
@@ -352,8 +355,35 @@ def create_continuation_testcase(
     viewport_start = max(1, partial_line_num - 10)
     viewport_end = min(len(file_lines) + len(solution_lines), partial_line_num + 10)
 
-    # Context: model already made a partial edit, now views file
+    # Create original file lines (before partial edit) for initial cat
+    original_file_lines = parsed["prompt_lines"].copy()
+    original_file_lines.append("")  # Empty gap
+    original_file_lines.extend(parsed["suffix_lines"])
+
+    # Context: ls, cat, then model already made a partial edit, now views file
     context = [
+        # ls to explore
+        {
+            "role": "assistant",
+            "content": f"```bash\nls {base_path}/\n```",
+            "eval_tag": "NO_EVAL",
+        },
+        {
+            "role": "user",
+            "content": f"<stdout>\n{entry_point}.py\n</stdout>",
+            "eval_tag": None,
+        },
+        # cat to view file
+        {
+            "role": "assistant",
+            "content": f"```bash\ncat -n {file_path}\n```",
+            "eval_tag": "NO_EVAL",
+        },
+        {
+            "role": "user",
+            "content": f"<stdout>\n{create_numbered_file_content(original_file_lines)}\n</stdout>",
+            "eval_tag": None,
+        },
         # Previous partial edit (simulated)
         {
             "role": "assistant",
