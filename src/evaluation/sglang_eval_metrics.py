@@ -6,7 +6,6 @@ This script evaluates generated commands using deterministic metrics:
 - Empty command detection
 - Exact match (from generation file)
 - HumanEval execution (sandbox-based code execution and testing)
-- IFEval evaluation (instruction-following evaluation)
 
 This is designed to run quickly without any LLM calls, enabling fast
 iteration on format validation and cheap evaluation of many checkpoints.
@@ -27,14 +26,6 @@ Usage:
         --metrics-file data/eval/output/humaneval_metrics.json \
         --eval-step 1000 \
         --run-humaneval-sandbox
-
-    # With IFEval evaluation
-    python sglang_eval_metrics.py \
-        --generations-file data/eval/output/ifeval_generations.json \
-        --metrics-file data/eval/output/ifeval_metrics.json \
-        --eval-step 1000 \
-        --run-ifeval \
-        --ifeval-testcases-file data/eval/ifeval/ifeval_testcases.jsonl
 """
 
 import json
@@ -52,9 +43,7 @@ from sglang_eval_utils import (
     LocalLogger,
     check_command_format,
     evaluate_humaneval_sample,
-    evaluate_ifeval_sample,
     is_humaneval_task,
-    is_ifeval_task,
     load_dataset,
     save_dataset,
 )
@@ -64,20 +53,6 @@ def load_humaneval_testcases(filepath: str) -> Dict[str, Dict[str, Any]]:
     """
     Load HumanEval test cases from JSONL file and index by task_id.
     Returns a dict mapping task_id -> test case (with humaneval_meta).
-    """
-    testcases = {}
-    with open(filepath, "r") as f:
-        for line in f:
-            tc = json.loads(line)
-            task_id = tc.get("task_id", "")
-            testcases[task_id] = tc
-    return testcases
-
-
-def load_ifeval_testcases(filepath: str) -> Dict[str, Dict[str, Any]]:
-    """
-    Load IFEval test cases from JSONL file and index by task_id.
-    Returns a dict mapping task_id -> test case (with ifeval_meta).
     """
     testcases = {}
     with open(filepath, "r") as f:
@@ -127,12 +102,6 @@ class Args:
     # Number of parallel workers for sandbox execution
     num_workers: int = 32
 
-    # IFEval evaluation
-    run_ifeval: bool = False
-    # Path to IFEval test cases file (JSONL with ifeval_meta)
-    # Required for IFEval execution to get instruction metadata
-    ifeval_testcases_file: str = ""
-
     def get_eval_jobs(self) -> List[tuple[str, str, int]]:
         """
         Returns a list of (generations_file, metrics_file, eval_step) tuples.
@@ -169,18 +138,12 @@ def evaluate_sample_metrics(
     humaneval_meta: Optional[Dict[str, Any]] = None,
     run_humaneval_sandbox: bool = False,
     sandbox_base_dir: Optional[str] = None,
-    ifeval_meta: Optional[Dict[str, Any]] = None,
-    run_ifeval: bool = False,
 ) -> Dict[str, Any]:
     """
     Evaluate a single sample using deterministic metrics.
-    Returns metrics dict including format validity, exact match, and optionally HumanEval/IFEval results.
-
-    Note: IFEval uses the full response_text (raw model output), not the extracted generated_command.
+    Returns metrics dict including format validity, exact match, and optionally HumanEval results.
     """
     generated_command = sample.get("generated_command", "")
-    # For IFEval, use the full response text, not just the extracted command
-    response_text = sample.get("response_text", "")
 
     # Check for empty command (for format/HumanEval evaluation)
     generated_command_empty = generated_command == ""
@@ -232,28 +195,6 @@ def evaluate_sample_metrics(
             if result["humaneval_error"] and "test_failed" not in result["humaneval_error"]:
                 print(f"HumanEval error: {result['humaneval_error']}")
 
-    # Run IFEval evaluation if enabled and metadata is available
-    # IFEval uses the full response_text, not the extracted bash command
-    if run_ifeval and ifeval_meta:
-        ifeval_result = evaluate_ifeval_sample(
-            response=response_text,
-            ifeval_meta=ifeval_meta,
-        )
-        result.update(
-            {
-                "ifeval_strict_pass": ifeval_result["ifeval_strict_pass"],
-                "ifeval_loose_pass": ifeval_result["ifeval_loose_pass"],
-                "ifeval_strict_instructions_followed": ifeval_result[
-                    "ifeval_strict_instructions_followed"
-                ],
-                "ifeval_loose_instructions_followed": ifeval_result[
-                    "ifeval_loose_instructions_followed"
-                ],
-                "ifeval_total_instructions": ifeval_result["ifeval_total_instructions"],
-                "ifeval_error": ifeval_result["ifeval_error"],
-            }
-        )
-
     return result
 
 
@@ -262,8 +203,6 @@ def evaluate_task_metrics(
     run_humaneval_sandbox: bool = False,
     sandbox_base_dir: Optional[str] = None,
     humaneval_testcases: Optional[Dict[str, Dict[str, Any]]] = None,
-    run_ifeval: bool = False,
-    ifeval_testcases: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Evaluate all samples for a test case using deterministic metrics.
@@ -274,13 +213,9 @@ def evaluate_task_metrics(
         sandbox_base_dir: Base directory for sandboxes
         humaneval_testcases: Dict mapping task_id -> test case (with humaneval_meta).
                             Required for HumanEval sandbox execution to get test code.
-        run_ifeval: Whether to run IFEval evaluation
-        ifeval_testcases: Dict mapping task_id -> test case (with ifeval_meta).
-                         Required for IFEval evaluation to get instruction metadata.
     """
     task_id = test_case.get("task_id", "")
     is_humaneval = is_humaneval_task(task_id)
-    is_ifeval = is_ifeval_task(task_id)
 
     # Base error result
     def make_error_result(error: str) -> Dict[str, Any]:
@@ -306,18 +241,6 @@ def evaluate_task_metrics(
                     "humaneval_pass_rate": 0.0,
                 }
             )
-        if run_ifeval and is_ifeval:
-            result.update(
-                {
-                    "num_ifeval_strict_pass": 0,
-                    "num_ifeval_loose_pass": 0,
-                    "total_ifeval_strict_instructions_followed": 0,
-                    "total_ifeval_loose_instructions_followed": 0,
-                    "total_ifeval_instructions": 0,
-                    "ifeval_strict_pass_rate": 0.0,
-                    "ifeval_loose_pass_rate": 0.0,
-                }
-            )
         return result
 
     # Handle error cases from generation
@@ -341,13 +264,6 @@ def evaluate_task_metrics(
         if not context:
             context = tc_data.get("context", [])
 
-    # Get ifeval_meta from test case or external testcases file
-    ifeval_meta = test_case.get("ifeval_meta", None)
-    if ifeval_meta is None and ifeval_testcases and task_id in ifeval_testcases:
-        # Get metadata from external testcases file
-        tc_data = ifeval_testcases[task_id]
-        ifeval_meta = tc_data.get("ifeval_meta", None)
-
     # Evaluate each sample
     sample_metrics = [
         evaluate_sample_metrics(
@@ -358,8 +274,6 @@ def evaluate_task_metrics(
             humaneval_meta=humaneval_meta,
             run_humaneval_sandbox=run_humaneval_sandbox and is_humaneval,
             sandbox_base_dir=sandbox_base_dir,
-            ifeval_meta=ifeval_meta,
-            run_ifeval=run_ifeval and is_ifeval,
         )
         for idx, sample in enumerate(samples)
     ]
@@ -403,31 +317,6 @@ def evaluate_task_metrics(
             }
         )
 
-    # Add IFEval metrics if applicable
-    if run_ifeval and is_ifeval:
-        num_strict_pass = sum(1 for m in sample_metrics if m.get("ifeval_strict_pass", False))
-        num_loose_pass = sum(1 for m in sample_metrics if m.get("ifeval_loose_pass", False))
-        total_strict_followed = sum(
-            m.get("ifeval_strict_instructions_followed", 0) for m in sample_metrics
-        )
-        total_loose_followed = sum(
-            m.get("ifeval_loose_instructions_followed", 0) for m in sample_metrics
-        )
-        total_instructions = sum(m.get("ifeval_total_instructions", 0) for m in sample_metrics)
-        result.update(
-            {
-                "num_ifeval_strict_pass": num_strict_pass,
-                "num_ifeval_loose_pass": num_loose_pass,
-                "total_ifeval_strict_instructions_followed": total_strict_followed,
-                "total_ifeval_loose_instructions_followed": total_loose_followed,
-                "total_ifeval_instructions": total_instructions,
-                "ifeval_strict_pass_rate": num_strict_pass / num_samples if num_samples else 0.0,
-                "ifeval_loose_pass_rate": num_loose_pass / num_samples if num_samples else 0.0,
-                "ifeval_strict_pass_at_1": int(num_strict_pass > 0),
-                "ifeval_loose_pass_at_1": int(num_loose_pass > 0),
-            }
-        )
-
     return result
 
 
@@ -438,7 +327,6 @@ def run_single_metrics_eval(
     eval_step: int,
     logger=None,
     humaneval_testcases: Optional[Dict[str, Dict[str, Any]]] = None,
-    ifeval_testcases: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """
     Run metrics evaluation on a single generations file.
@@ -451,10 +339,6 @@ def run_single_metrics_eval(
         print(f"HumanEval sandbox execution: ENABLED")
         if humaneval_testcases:
             print(f"HumanEval testcases loaded: {len(humaneval_testcases)} tasks")
-    if args.run_ifeval:
-        print(f"IFEval evaluation: ENABLED")
-        if ifeval_testcases:
-            print(f"IFEval testcases loaded: {len(ifeval_testcases)} tasks")
     print(f"{'='*60}")
 
     loaded_data = load_dataset(generations_file)
@@ -464,12 +348,9 @@ def run_single_metrics_eval(
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
 
-    # Check if we have HumanEval and IFEval tasks
+    # Check if we have HumanEval tasks
     num_humaneval_tasks = sum(1 for tc in test_cases if is_humaneval_task(tc.get("task_id", "")))
-    num_ifeval_tasks = sum(1 for tc in test_cases if is_ifeval_task(tc.get("task_id", "")))
-    print(
-        f"Processing {len(test_cases)} test cases ({num_humaneval_tasks} HumanEval, {num_ifeval_tasks} IFEval tasks)..."
-    )
+    print(f"Processing {len(test_cases)} test cases ({num_humaneval_tasks} HumanEval tasks)...")
 
     # Evaluate all tasks - use parallel processing if HumanEval sandbox is enabled
     if args.run_humaneval_sandbox and args.num_workers > 1:
@@ -481,8 +362,6 @@ def run_single_metrics_eval(
             run_humaneval_sandbox=args.run_humaneval_sandbox,
             sandbox_base_dir=args.sandbox_base_dir,
             humaneval_testcases=humaneval_testcases,
-            run_ifeval=args.run_ifeval,
-            ifeval_testcases=ifeval_testcases,
         )
 
         results = []
@@ -501,8 +380,6 @@ def run_single_metrics_eval(
                 run_humaneval_sandbox=args.run_humaneval_sandbox,
                 sandbox_base_dir=args.sandbox_base_dir,
                 humaneval_testcases=humaneval_testcases,
-                run_ifeval=args.run_ifeval,
-                ifeval_testcases=ifeval_testcases,
             )
             for tc in tqdm(test_cases, desc="Evaluating")
         ]
@@ -571,64 +448,6 @@ def run_single_metrics_eval(
             }
         )
 
-    # IFEval-specific metrics
-    ifeval_results = [r for r in results if "ifeval_strict_pass_rate" in r]
-    if ifeval_results:
-        total_ifeval_strict_pass = sum(r["num_ifeval_strict_pass"] for r in ifeval_results)
-        total_ifeval_loose_pass = sum(r["num_ifeval_loose_pass"] for r in ifeval_results)
-        total_ifeval_samples = sum(r["num_samples"] for r in ifeval_results)
-        total_ifeval_strict_followed = sum(
-            r["total_ifeval_strict_instructions_followed"] for r in ifeval_results
-        )
-        total_ifeval_loose_followed = sum(
-            r["total_ifeval_loose_instructions_followed"] for r in ifeval_results
-        )
-        total_ifeval_instructions = sum(r["total_ifeval_instructions"] for r in ifeval_results)
-        avg_ifeval_strict_pass_rate = sum(
-            r["ifeval_strict_pass_rate"] for r in ifeval_results
-        ) / len(ifeval_results)
-        avg_ifeval_loose_pass_rate = sum(r["ifeval_loose_pass_rate"] for r in ifeval_results) / len(
-            ifeval_results
-        )
-        total_ifeval_strict_pass_at_1 = sum(
-            r.get("ifeval_strict_pass_at_1", 0) for r in ifeval_results
-        )
-        total_ifeval_loose_pass_at_1 = sum(
-            r.get("ifeval_loose_pass_at_1", 0) for r in ifeval_results
-        )
-
-        scores.update(
-            {
-                "num_ifeval_tasks": len(ifeval_results),
-                "total_ifeval_strict_pass": total_ifeval_strict_pass,
-                "total_ifeval_loose_pass": total_ifeval_loose_pass,
-                "total_ifeval_samples": total_ifeval_samples,
-                "total_ifeval_strict_instructions_followed": total_ifeval_strict_followed,
-                "total_ifeval_loose_instructions_followed": total_ifeval_loose_followed,
-                "total_ifeval_instructions": total_ifeval_instructions,
-                "avg_ifeval_strict_pass_rate": avg_ifeval_strict_pass_rate,
-                "avg_ifeval_loose_pass_rate": avg_ifeval_loose_pass_rate,
-                "total_ifeval_strict_pass_at_1": total_ifeval_strict_pass_at_1,
-                "total_ifeval_loose_pass_at_1": total_ifeval_loose_pass_at_1,
-                "ifeval_strict_pass_at_1_rate": (
-                    total_ifeval_strict_pass_at_1 / len(ifeval_results) if ifeval_results else 0.0
-                ),
-                "ifeval_loose_pass_at_1_rate": (
-                    total_ifeval_loose_pass_at_1 / len(ifeval_results) if ifeval_results else 0.0
-                ),
-                "ifeval_instruction_accuracy_strict": (
-                    total_ifeval_strict_followed / total_ifeval_instructions
-                    if total_ifeval_instructions
-                    else 0.0
-                ),
-                "ifeval_instruction_accuracy_loose": (
-                    total_ifeval_loose_followed / total_ifeval_instructions
-                    if total_ifeval_instructions
-                    else 0.0
-                ),
-            }
-        )
-
     # Log metrics
     metrics_to_log = {
         "eval_step": eval_step,
@@ -649,35 +468,15 @@ def run_single_metrics_eval(
     if humaneval_results:
         metrics_to_log.update(
             {
-                f"{args.wandb_eval_type}/num_humaneval_tasks": len(humaneval_results),
-                f"{args.wandb_eval_type}/avg_humaneval_pass_rate": avg_humaneval_pass_rate,
-                f"{args.wandb_eval_type}/total_humaneval_pass_at_1": total_humaneval_pass_at_1,
+                f"{args.wandb_eval_type}/num_humaneval_tasks": scores["num_humaneval_tasks"],
+                f"{args.wandb_eval_type}/avg_humaneval_pass_rate": scores[
+                    "avg_humaneval_pass_rate"
+                ],
+                f"{args.wandb_eval_type}/total_humaneval_pass_at_1": scores[
+                    "total_humaneval_pass_at_1"
+                ],
                 f"{args.wandb_eval_type}/humaneval_pass_at_1_rate": scores[
                     "humaneval_pass_at_1_rate"
-                ],
-            }
-        )
-
-    # Add IFEval metrics to log
-    if ifeval_results:
-        metrics_to_log.update(
-            {
-                f"{args.wandb_eval_type}/num_ifeval_tasks": len(ifeval_results),
-                f"{args.wandb_eval_type}/avg_ifeval_strict_pass_rate": avg_ifeval_strict_pass_rate,
-                f"{args.wandb_eval_type}/avg_ifeval_loose_pass_rate": avg_ifeval_loose_pass_rate,
-                f"{args.wandb_eval_type}/total_ifeval_strict_pass_at_1": total_ifeval_strict_pass_at_1,
-                f"{args.wandb_eval_type}/total_ifeval_loose_pass_at_1": total_ifeval_loose_pass_at_1,
-                f"{args.wandb_eval_type}/ifeval_strict_pass_at_1_rate": scores[
-                    "ifeval_strict_pass_at_1_rate"
-                ],
-                f"{args.wandb_eval_type}/ifeval_loose_pass_at_1_rate": scores[
-                    "ifeval_loose_pass_at_1_rate"
-                ],
-                f"{args.wandb_eval_type}/ifeval_instruction_accuracy_strict": scores[
-                    "ifeval_instruction_accuracy_strict"
-                ],
-                f"{args.wandb_eval_type}/ifeval_instruction_accuracy_loose": scores[
-                    "ifeval_instruction_accuracy_loose"
                 ],
             }
         )
@@ -694,7 +493,6 @@ def run_single_metrics_eval(
             "config_metrics": {
                 "run_humaneval_sandbox": args.run_humaneval_sandbox,
                 "sandbox_timeout": args.sandbox_timeout,
-                "run_ifeval": args.run_ifeval,
             },
             "eval_step": eval_step,
             "generations_file": generations_file,
@@ -720,29 +518,13 @@ def run_single_metrics_eval(
 
     if humaneval_results:
         print(f"\n--- HumanEval Results ---")
-        print(f"HumanEval Tasks: {len(humaneval_results)}")
-        print(f"HumanEval Pass Rate (avg): {avg_humaneval_pass_rate * 100:.2f}%")
+        print(f"HumanEval Tasks: {scores['num_humaneval_tasks']}")
+        print(f"HumanEval Pass Rate (avg): {scores['avg_humaneval_pass_rate'] * 100:.2f}%")
         print(
-            f"HumanEval Pass@1: {total_humaneval_pass_at_1}/{len(humaneval_results)} ({scores['humaneval_pass_at_1_rate'] * 100:.2f}%)"
-        )
-        print(f"Total Tests Passed: {total_humaneval_test_passed}/{total_humaneval_samples}")
-
-    if ifeval_results:
-        print(f"\n--- IFEval Results ---")
-        print(f"IFEval Tasks: {len(ifeval_results)}")
-        print(f"IFEval Strict Pass Rate (avg): {avg_ifeval_strict_pass_rate * 100:.2f}%")
-        print(f"IFEval Loose Pass Rate (avg): {avg_ifeval_loose_pass_rate * 100:.2f}%")
-        print(
-            f"IFEval Strict Pass@1: {total_ifeval_strict_pass_at_1}/{len(ifeval_results)} ({scores['ifeval_strict_pass_at_1_rate'] * 100:.2f}%)"
+            f"HumanEval Pass@1: {scores['total_humaneval_pass_at_1']}/{scores['num_humaneval_tasks']} ({scores['humaneval_pass_at_1_rate'] * 100:.2f}%)"
         )
         print(
-            f"IFEval Loose Pass@1: {total_ifeval_loose_pass_at_1}/{len(ifeval_results)} ({scores['ifeval_loose_pass_at_1_rate'] * 100:.2f}%)"
-        )
-        print(
-            f"Instruction Accuracy (strict): {scores['ifeval_instruction_accuracy_strict'] * 100:.2f}%"
-        )
-        print(
-            f"Instruction Accuracy (loose): {scores['ifeval_instruction_accuracy_loose'] * 100:.2f}%"
+            f"Total Tests Passed: {scores['total_humaneval_test_passed']}/{scores['total_humaneval_samples']}"
         )
 
     print(f"\nOutput file: {metrics_file}")
@@ -779,16 +561,6 @@ def run_batch_metrics_eval(args: Args):
     elif args.run_humaneval_sandbox and not args.humaneval_testcases_file:
         print("WARNING: HumanEval sandbox enabled but no testcases file provided.")
         print("         Use --humaneval-testcases-file to specify the testcases file.")
-
-    # Load IFEval testcases if IFEval evaluation is enabled
-    ifeval_testcases = None
-    if args.run_ifeval and args.ifeval_testcases_file:
-        print(f"Loading IFEval testcases from: {args.ifeval_testcases_file}")
-        ifeval_testcases = load_ifeval_testcases(args.ifeval_testcases_file)
-        print(f"Loaded {len(ifeval_testcases)} IFEval testcases")
-    elif args.run_ifeval and not args.ifeval_testcases_file:
-        print("WARNING: IFEval evaluation enabled but no testcases file provided.")
-        print("         Use --ifeval-testcases-file to specify the testcases file.")
 
     # Initialize logger
     logger = None
@@ -833,7 +605,6 @@ def run_batch_metrics_eval(args: Args):
             eval_step=step,
             logger=logger,
             humaneval_testcases=humaneval_testcases,
-            ifeval_testcases=ifeval_testcases,
         )
         all_results.append(result)
 
@@ -856,8 +627,6 @@ def run_batch_metrics_eval(args: Args):
         )
         if "avg_humaneval_pass_rate" in r:
             line += f", HumanEval Pass = {r['avg_humaneval_pass_rate']*100:5.2f}%"
-        if "avg_ifeval_strict_pass_rate" in r:
-            line += f", IFEval Strict = {r['avg_ifeval_strict_pass_rate']*100:5.2f}%"
         print(line)
     print("#" * 60)
 
