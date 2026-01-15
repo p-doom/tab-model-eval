@@ -94,12 +94,9 @@ class Args:
 
     # HumanEval sandbox execution
     run_humaneval_sandbox: bool = False
-    sandbox_base_dir: Optional[str] = None  # If None, uses system temp
-    sandbox_timeout: float = 10.0  # Timeout for test execution
-    # Path to HumanEval test cases file (JSONL with humaneval_meta)
-    # Required for sandbox execution to get test code
+    sandbox_base_dir: Optional[str] = None
+    sandbox_timeout: float = 10.0
     humaneval_testcases_file: str = ""
-    # Number of parallel workers for sandbox execution
     num_workers: int = 32
 
     def get_eval_jobs(self) -> List[tuple[str, str, int]]:
@@ -144,11 +141,8 @@ def evaluate_sample_metrics(
     Returns metrics dict including format validity, exact match, and optionally HumanEval results.
     """
     generated_command = sample.get("generated_command", "")
-
-    # Check for empty command (for format/HumanEval evaluation)
     generated_command_empty = generated_command == ""
 
-    # Check format validity (only meaningful if there's a generated command)
     if generated_command_empty:
         format_valid = False
         format_reason = "empty_generated_command"
@@ -164,11 +158,8 @@ def evaluate_sample_metrics(
         "exact_match": sample.get("exact_match", 0),
     }
 
-    # Run HumanEval sandbox evaluation if enabled and metadata is available
-    # Skip if format is invalid - no point running tests on malformed commands
     if run_humaneval_sandbox and humaneval_meta and context:
         if not format_valid:
-            # Skip sandbox execution for format-invalid commands
             result.update(
                 {
                     "humaneval_execution_success": False,
@@ -243,7 +234,6 @@ def evaluate_task_metrics(
             )
         return result
 
-    # Handle error cases from generation
     if test_case.get("error", None) is not None:
         return make_error_result(test_case["error"])
 
@@ -254,17 +244,13 @@ def evaluate_task_metrics(
     expected_command = test_case.get("expected_command", "")
     context = test_case.get("context", [])
 
-    # Get humaneval_meta from test case or external testcases file
     humaneval_meta = test_case.get("humaneval_meta", None)
     if humaneval_meta is None and humaneval_testcases and task_id in humaneval_testcases:
-        # Get metadata from external testcases file
         tc_data = humaneval_testcases[task_id]
         humaneval_meta = tc_data.get("humaneval_meta", None)
-        # Also get context from testcases if not in generation result
         if not context:
             context = tc_data.get("context", [])
 
-    # Evaluate each sample
     sample_metrics = [
         evaluate_sample_metrics(
             sample=sample,
@@ -278,7 +264,6 @@ def evaluate_task_metrics(
         for idx, sample in enumerate(samples)
     ]
 
-    # Aggregate metrics
     num_samples = len(samples)
     num_format_correct = sum(1 for m in sample_metrics if m["format_valid"])
     num_empty = sum(1 for m in sample_metrics if m["generated_command_empty"])
@@ -297,11 +282,9 @@ def evaluate_task_metrics(
         "empty_command_rate": num_empty / num_samples if num_samples else 0.0,
         "exact_match_rate": num_exact_matches / num_samples if num_samples else 0.0,
         "sample_metrics": sample_metrics,
-        # Preserve original samples for downstream judge evaluation
         "samples": samples,
     }
 
-    # Add HumanEval metrics if applicable
     if run_humaneval_sandbox and is_humaneval:
         num_exec_success = sum(
             1 for m in sample_metrics if m.get("humaneval_execution_success", False)
@@ -348,15 +331,12 @@ def run_single_metrics_eval(
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
 
-    # Check if we have HumanEval tasks
     num_humaneval_tasks = sum(1 for tc in test_cases if is_humaneval_task(tc.get("task_id", "")))
     print(f"Processing {len(test_cases)} test cases ({num_humaneval_tasks} HumanEval tasks)...")
 
-    # Evaluate all tasks - use parallel processing if HumanEval sandbox is enabled
     if args.run_humaneval_sandbox and args.num_workers > 1:
         print(f"Using {args.num_workers} parallel workers for sandbox execution...")
 
-        # Create a partial function with fixed arguments
         eval_func = partial(
             evaluate_task_metrics,
             run_humaneval_sandbox=args.run_humaneval_sandbox,
@@ -366,14 +346,11 @@ def run_single_metrics_eval(
 
         results = []
         with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
-            # Submit all tasks
             futures = {executor.submit(eval_func, tc): tc for tc in test_cases}
 
-            # Collect results with progress bar
             for future in tqdm(as_completed(futures), total=len(futures), desc="Evaluating"):
                 results.append(future.result())
     else:
-        # Sequential evaluation
         results = [
             evaluate_task_metrics(
                 tc,
@@ -384,7 +361,6 @@ def run_single_metrics_eval(
             for tc in tqdm(test_cases, desc="Evaluating")
         ]
 
-    # Sort by task_id
     results.sort(key=lambda x: x["task_id"])
 
     # Aggregate scores

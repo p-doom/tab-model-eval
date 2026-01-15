@@ -146,6 +146,54 @@ def filter_tasks_by_context_length(
 # ----------------------------
 # Command format validation
 # ----------------------------
+def _check_sed_multiline_continuation(command: str) -> Tuple[bool, str]:
+    r"""
+    Check if a multi-line sed c\/i\/a\ command has proper backslash line continuation.
+
+    In sed, multi-line replacement text requires each line (except the last) to end
+    with a backslash (\) for line continuation. Without this, sed interprets the
+    next line as a new command and fails with errors like "unknown command: `f'".
+
+    Valid:   sed -i '12c\line1\<newline>line2' file
+    Invalid: sed -i '12c\line1<newline>line2' file  (missing \ before newline)
+
+    Returns (is_valid, reason).
+    """
+    # Match sed commands that use c\, i\, or a\ (change, insert, append)
+    # These are the commands that can have multi-line content
+    # Pattern: sed -i 'ADDRESSc\CONTENT' or sed -i "ADDRESSc\CONTENT"
+    multiline_pattern = r"sed\s+-i\s+(['\"])(.+?[cia]\\)(.*?)\1"
+    match = re.search(multiline_pattern, command, re.DOTALL)
+
+    if not match:
+        # Not a c\/i\/a\ command or couldn't parse - skip this check
+        return (True, "not_multiline_sed")
+
+    # Get the replacement content (everything after c\, i\, or a\ until closing quote)
+    content = match.group(3)
+
+    # Check if content spans multiple lines
+    lines = content.split("\n")
+    if len(lines) <= 1:
+        # Single line replacement - no continuation needed
+        return (True, "single_line_replacement")
+
+    # For multi-line content, each line except the last must end with \
+    # The last line ends with the closing quote (already stripped by regex)
+    # Note: First line may be empty if content starts with \n (e.g., 'c\\nfirst_line')
+    # and we should skip empty lines at the beginning
+    for i, line in enumerate(lines[:-1]):  # Check all lines except the last
+        # Skip empty lines (can occur at the beginning after c\)
+        if not line.strip():
+            continue
+        # Line should end with \ for continuation
+        # Note: the line might have trailing spaces before \, so strip and check
+        if not line.rstrip().endswith("\\"):
+            return (False, "missing_backslash_continuation")
+
+    return (True, "valid_multiline_continuation")
+
+
 def check_command_format(command: str, expected_command: str) -> Tuple[bool, str]:
     r"""
     Validates that a command follows the required edit format.
@@ -157,6 +205,7 @@ def check_command_format(command: str, expected_command: str) -> Tuple[bool, str
     - If expected is a sed edit, the generated command must:
       - Use one of the 4 allowed sed patterns (not s/old/new/ substitution)
       - Not use file redirection (>, >>, tee) to modify files
+      - Have proper backslash line continuation for multi-line replacements
 
     Valid sed patterns:
       1. Replace block: sed -i 'START,ENDc\...'
@@ -210,6 +259,10 @@ def check_command_format(command: str, expected_command: str) -> Tuple[bool, str
         or re.search(insert_pattern, command)
         or re.search(append_pattern, command)
     ):
+        # Check for proper backslash line continuation in multi-line sed commands
+        continuation_valid, continuation_reason = _check_sed_multiline_continuation(command)
+        if not continuation_valid:
+            return (False, continuation_reason)
         return (True, "valid_edit_command")
 
     return (False, "invalid_format")
