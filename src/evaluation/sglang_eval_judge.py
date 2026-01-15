@@ -29,7 +29,7 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 import tyro
@@ -122,7 +122,7 @@ class Args:
         """
         # Check batch mode
         if self.evaluations_files and self.eval_steps:
-            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strip()]
+            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strkip()]
             steps = [int(s.strip()) for s in self.eval_steps.split(",") if s.strip()]
 
             # Prefer metrics_files if provided
@@ -200,6 +200,21 @@ async def evaluate_single_sample_with_judge(
         results = []
         expected_command = test_case.get("expected_command", "")
         generated_command = sample.get("generated_command", "")
+
+        # Check if generated command is exact match with expected command
+        if sample.get("exact_match", 0) == 1:
+            print(f"Exact match found for task {test_case['task_id']}")
+            return [
+                {
+                    "sample_idx": sample_idx,
+                    "generated_command": sample["generated_command"],
+                    "equivalent": 1,
+                    "exact_match": sample["exact_match"],
+                    "generated_command_empty": 0,
+                    "format_valid": True,
+                    "format_reason": "same_as_expected",
+                }
+            ]
 
         for attempt in range(args.max_attempts):
             try:

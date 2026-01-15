@@ -11,6 +11,9 @@ Determine if the **Generated Command** achieves the same outcome as the **Expect
 - Whitespace or quoting style
 - Line insertion position when order doesn't matter (e.g., import statements in most languages)
 - Minor formatting differences in generated files that don't affect program behavior
+- Different commit messages as long as they make sense
+- Different file/directory/variable naming as long as it doesn't affect the program/workflow
+- Printing a few extra lines
 
 **NOT Equivalent** — Commands produce different results:
 - Different files, directories, or arguments
