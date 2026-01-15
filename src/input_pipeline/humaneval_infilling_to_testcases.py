@@ -334,16 +334,9 @@ def create_continuation_testcase(
     # Cut the first line at a random point
     cut_point = rng.randint(int(len(first_line) * 0.3), int(len(first_line) * 0.7))
     partial_first_line = first_line[:cut_point]
-    remaining_first_line = first_line[cut_point:]
 
     # The partial solution is just the cut first line
     partial_solution = partial_first_line
-    # The remaining solution is the rest
-    remaining_solution = (
-        remaining_first_line + "\n" + "\n".join(solution_lines[1:])
-        if len(solution_lines) > 1
-        else remaining_first_line
-    )
 
     # Create file with partial solution
     file_lines = parsed["prompt_lines"].copy()

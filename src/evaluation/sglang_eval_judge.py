@@ -40,7 +40,6 @@ from tqdm.asyncio import tqdm_asyncio
 from sglang_eval_utils import (
     LocalLogger,
     check_command_format,
-    estimate_token_count,
     filter_tasks_by_context_length,
     load_dataset,
     save_dataset,
@@ -99,6 +98,7 @@ class Args:
     # Generation params for judge
     temperature: float = 0.7
     top_p: float = 0.8
+    # We set presence_penalty to 0.0 to avoid the model from hallucinating variable names.
     presence_penalty: float = 0.0
     top_k: int = 20
     num_samples: int = 1
