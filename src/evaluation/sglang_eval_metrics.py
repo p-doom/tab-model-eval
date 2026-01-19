@@ -49,20 +49,6 @@ from sglang_eval_utils import (
 )
 
 
-def load_humaneval_testcases(filepath: str) -> Dict[str, Dict[str, Any]]:
-    """
-    Load HumanEval test cases from JSONL file and index by task_id.
-    Returns a dict mapping task_id -> test case (with humaneval_meta).
-    """
-    testcases = {}
-    with open(filepath, "r") as f:
-        for line in f:
-            tc = json.loads(line)
-            task_id = tc.get("task_id", "")
-            testcases[task_id] = tc
-    return testcases
-
-
 # ----------------------------
 # Argument definitions
 # ----------------------------
@@ -122,6 +108,20 @@ class Args:
                 "Either provide single-file args (generations_file, metrics_file) "
                 "or batch args (generations_files, metrics_files, eval_steps)"
             )
+
+
+def load_humaneval_testcases(filepath: str) -> Dict[str, Dict[str, Any]]:
+    """
+    Load HumanEval test cases from JSONL file and index by task_id.
+    Returns a dict mapping task_id -> test case (with humaneval_meta).
+    """
+    testcases = {}
+    with open(filepath, "r") as f:
+        for line in f:
+            tc = json.loads(line)
+            task_id = tc.get("task_id", "")
+            testcases[task_id] = tc
+    return testcases
 
 
 # ----------------------------
@@ -221,7 +221,7 @@ def evaluate_task_metrics(
             "format_correct_rate": 0.0,
             "empty_command_rate": 0.0,
             "exact_match_rate": 0.0,
-            "sample_metrics": [],
+            "samples": [],
         }
         if run_humaneval_sandbox and is_humaneval:
             result.update(
@@ -251,8 +251,9 @@ def evaluate_task_metrics(
         if not context:
             context = tc_data.get("context", [])
 
-    sample_metrics = [
-        evaluate_sample_metrics(
+    updated_samples = []
+    for idx, sample in enumerate(samples):
+        sample_metric = evaluate_sample_metrics(
             sample=sample,
             sample_idx=idx,
             expected_command=expected_command,
@@ -261,13 +262,13 @@ def evaluate_task_metrics(
             run_humaneval_sandbox=run_humaneval_sandbox and is_humaneval,
             sandbox_base_dir=sandbox_base_dir,
         )
-        for idx, sample in enumerate(samples)
-    ]
+        updated_sample = {**sample, **sample_metric}
+        updated_samples.append(updated_sample)
 
-    num_samples = len(samples)
-    num_format_correct = sum(1 for m in sample_metrics if m["format_valid"])
-    num_empty = sum(1 for m in sample_metrics if m["generated_command_empty"])
-    num_exact_matches = sum(m["exact_match"] for m in sample_metrics)
+    num_samples = len(updated_samples)
+    num_format_correct = sum(1 for s in updated_samples if s["format_valid"])
+    num_empty = sum(1 for s in updated_samples if s["generated_command_empty"])
+    num_exact_matches = sum(s["exact_match"] for s in updated_samples)
 
     result = {
         "task_id": task_id,
@@ -281,15 +282,14 @@ def evaluate_task_metrics(
         "format_correct_rate": num_format_correct / num_samples if num_samples else 0.0,
         "empty_command_rate": num_empty / num_samples if num_samples else 0.0,
         "exact_match_rate": num_exact_matches / num_samples if num_samples else 0.0,
-        "sample_metrics": sample_metrics,
-        "samples": samples,
+        "samples": updated_samples,
     }
 
     if run_humaneval_sandbox and is_humaneval:
         num_exec_success = sum(
-            1 for m in sample_metrics if m.get("humaneval_execution_success", False)
+            1 for s in updated_samples if s.get("humaneval_execution_success", False)
         )
-        num_test_passed = sum(1 for m in sample_metrics if m.get("humaneval_test_passed", False))
+        num_test_passed = sum(1 for s in updated_samples if s.get("humaneval_test_passed", False))
         result.update(
             {
                 "num_humaneval_execution_success": num_exec_success,
@@ -547,6 +547,7 @@ def run_batch_metrics_eval(args: Args):
             run_id=run_id,
             run_name=args.wandb_name,
             project=args.wandb_project,
+            eval_type=args.wandb_eval_type,
             config={"batch_mode": True, "num_jobs": len(eval_jobs)},
             tags=args.wandb_tags,
         )

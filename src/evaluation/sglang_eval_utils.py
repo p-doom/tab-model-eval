@@ -20,7 +20,19 @@ from typing import Any, Dict, List, Optional, Tuple
 # Local logger for offline mode
 # ----------------------------
 class LocalLogger:
-    """A simple local logger that saves metrics to JSON files for later sync to wandb."""
+    """
+    A simple local logger that saves metrics to JSON files for later sync to wandb.
+
+    Supports eval_type namespacing to allow parallel evals to write to separate files:
+    - Each eval type (unit_tests, handcrafted, humaneval, ifeval) writes to its own subdir
+    - Shared metadata is stored at the run level
+
+    Directory structure:
+        {log_dir}/{run_id}/
+            metadata.json           # Shared run metadata
+            {eval_type}/
+                metrics.jsonl       # Eval-specific metrics
+    """
 
     def __init__(
         self,
@@ -28,20 +40,30 @@ class LocalLogger:
         run_id: str,
         run_name: str,
         project: str,
+        eval_type: str = "default",  # e.g., "unit_tests", "handcrafted", "humaneval", "ifeval"
         config: Optional[dict] = None,
         tags: Optional[list] = None,
     ):
-        self.log_dir = os.path.join(log_dir, run_id)
-        os.makedirs(self.log_dir, exist_ok=True)
+        # Run-level directory (shared across evals)
+        self.run_dir = os.path.join(log_dir, run_id)
+        os.makedirs(self.run_dir, exist_ok=True)
+
+        # Eval-specific directory
+        self.eval_type = eval_type
+        self.eval_dir = os.path.join(self.run_dir, eval_type)
+        os.makedirs(self.eval_dir, exist_ok=True)
+
         self.run_id = run_id
         self.run_name = run_name
         self.project = project
         self.config = config or {}
         self.tags = tags or []
-        self.metrics_file = os.path.join(self.log_dir, "metrics.jsonl")
 
-        # Save run metadata
-        metadata_file = os.path.join(self.log_dir, "metadata.json")
+        # Metrics file is eval-specific (allows parallel writes)
+        self.metrics_file = os.path.join(self.eval_dir, "metrics.jsonl")
+
+        # Save run metadata at run level (shared across evals)
+        metadata_file = os.path.join(self.run_dir, "metadata.json")
         if os.path.exists(metadata_file):
             print(
                 f"Metadata file already exists for run_id={run_id} at {metadata_file}. "
@@ -61,10 +83,12 @@ class LocalLogger:
                     f,
                     indent=2,
                 )
-        print(f"LocalLogger initialized. Logs will be saved to: {self.log_dir}")
+        print(
+            f"LocalLogger initialized for eval_type={eval_type}. Logs will be saved to: {self.eval_dir}"
+        )
 
     def log(self, metrics: dict):
-        """Append metrics to the JSONL file."""
+        """Append metrics to the eval-specific JSONL file."""
         metrics_with_timestamp = {"timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"), **metrics}
         with open(self.metrics_file, "a") as f:
             f.write(json.dumps(metrics_with_timestamp) + "\n")
@@ -72,7 +96,7 @@ class LocalLogger:
 
     def finish(self):
         """Called when logging is complete."""
-        print(f"LocalLogger finished. All logs saved to: {self.log_dir}")
+        print(f"LocalLogger finished. All logs saved to: {self.eval_dir}")
 
 
 # ----------------------------
@@ -242,16 +266,21 @@ def check_command_format(command: str, expected_command: str) -> Tuple[bool, str
 
     # Allowed edit patterns:
     # 1. Replace block: sed -i 'START,ENDc\...' or sed -i 'LINEc\...' (single line)
+    #    Note: backslash after c is optional in GNU sed (e.g., '5,5c#TEXT' is valid)
     # 2. Delete block: sed -i 'START,ENDd' or sed -i 'LINEd'
     # 3. Insert before: sed -i 'STARTi\...'
+    #    Note: backslash after i is optional in GNU sed
     # 4. Append to end: sed -i '$a\...'
+    #    Note: backslash after a is optional in GNU sed
 
-    # Replace: accept both range (5,10c\) and single line (5c\)
-    replace_pattern = r"sed\s+-i\s+['\"](\d+)(,\d+)?c\\"
+    # Replace: accept both range (5,10c\) and single line (5c\), backslash optional
+    replace_pattern = r"sed\s+-i\s+['\"](\d+)(,\d+)?c\\?"
     # Delete: accept both range and single line
     delete_pattern = r"sed\s+-i\s+['\"](\d+)(,\d+)?d['\"]"
-    insert_pattern = r"sed\s+-i\s+['\"](\d+)i\\"
-    append_pattern = r"sed\s+-i\s+['\"]\$a\\"
+    # Insert: backslash optional
+    insert_pattern = r"sed\s+-i\s+['\"](\d+)i\\?"
+    # Append: backslash optional
+    append_pattern = r"sed\s+-i\s+['\"]\$a\\?"
 
     if (
         re.search(replace_pattern, command)

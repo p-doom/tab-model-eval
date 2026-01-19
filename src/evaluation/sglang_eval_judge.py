@@ -29,7 +29,7 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
 import tyro
@@ -85,7 +85,7 @@ class Args:
     local_log_dir: str = "data/eval/local_logs"
 
     # Server-related (sglang)
-    judge_model_path: str = "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+    judge_model_path: str = "Qwen/Qwen3-32B"
     judge_name: str = "default"
     server_host: str = "0.0.0.0"
     server_port: int = 30000
@@ -95,12 +95,8 @@ class Args:
     mem_fraction_static: float = 0.95
     tp_size: int = 1
 
-    # Generation params for judge
-    temperature: float = 0.7
-    top_p: float = 0.8
     # We set presence_penalty to 0.0 to avoid the model from hallucinating variable names.
     presence_penalty: float = 0.0
-    top_k: int = 20
     num_samples: int = 1
     enable_thinking: bool = True
 
@@ -122,7 +118,7 @@ class Args:
         """
         # Check batch mode
         if self.evaluations_files and self.eval_steps:
-            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strkip()]
+            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strip()]
             steps = [int(s.strip()) for s in self.eval_steps.split(",") if s.strip()]
 
             # Prefer metrics_files if provided
@@ -201,21 +197,6 @@ async def evaluate_single_sample_with_judge(
         expected_command = test_case.get("expected_command", "")
         generated_command = sample.get("generated_command", "")
 
-        # Check if generated command is exact match with expected command
-        if sample.get("exact_match", 0) == 1:
-            print(f"Exact match found for task {test_case['task_id']}")
-            return [
-                {
-                    "sample_idx": sample_idx,
-                    "generated_command": sample["generated_command"],
-                    "equivalent": 1,
-                    "exact_match": sample["exact_match"],
-                    "generated_command_empty": 0,
-                    "format_valid": True,
-                    "format_reason": "same_as_expected",
-                }
-            ]
-
         for attempt in range(args.max_attempts):
             try:
                 format_dict = {
@@ -234,13 +215,10 @@ async def evaluate_single_sample_with_judge(
                 resp = await client.chat.completions.create(
                     model=args.judge_name,
                     messages=messages,
-                    temperature=args.temperature,
-                    top_p=args.top_p,
                     presence_penalty=args.presence_penalty,
                     n=args.num_samples,
                     response_format={"type": "json_object"},
                     extra_body={
-                        "top_k": args.top_k,
                         "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
                     },
                 )
@@ -318,51 +296,45 @@ async def evaluate_task_with_judge(
 
     expected_command = test_case.get("expected_command", "")
 
-    # If coming from metrics file, we may have sample_metrics with format info
-    sample_metrics = test_case.get("sample_metrics", [])
-
     # Build list of samples to evaluate
     samples_to_eval = []
     skipped_samples = []
 
     for idx, sample in enumerate(samples):
-        # Check if we should skip this sample
         should_skip = False
         skip_reason = None
 
-        # Empty command check
         generated_command = sample.get("generated_command", "")
         if generated_command == "":
             should_skip = True
             skip_reason = "empty_generated_command"
+        elif sample.get("exact_match", 0) == 1:
+            should_skip = True
         elif args.skip_format_invalid and input_type == "metrics":
-            # Check format validity from metrics
-            if idx < len(sample_metrics):
-                if not sample_metrics[idx].get("format_valid", True):
-                    should_skip = True
-                    skip_reason = sample_metrics[idx].get("format_reason", "format_invalid")
+            if not sample.get("format_valid", True):
+                should_skip = True
+                skip_reason = sample.get("format_reason", "format_invalid")
         elif args.skip_format_invalid and input_type == "generations":
-            # Do inline format check
             format_valid, format_reason = check_command_format(generated_command, expected_command)
             if not format_valid:
                 should_skip = True
                 skip_reason = format_reason
 
         if should_skip:
+            exact_match = sample.get("exact_match", 0)
             skipped_samples.append(
                 {
                     "sample_idx": idx,
                     "generated_command": generated_command,
-                    "equivalent": 0,
+                    "equivalent": exact_match,
                     "skipped": True,
                     "skip_reason": skip_reason,
-                    "exact_match": sample.get("exact_match", 0),
+                    "exact_match": exact_match,
                 }
             )
         else:
             samples_to_eval.append((idx, sample))
 
-    # Evaluate remaining samples in parallel
     if samples_to_eval:
         eval_tasks = [
             evaluate_single_sample_with_judge(
@@ -384,16 +356,13 @@ async def evaluate_task_with_judge(
     else:
         eval_results = []
 
-    # Combine results
     all_results = skipped_samples + eval_results
 
-    # Compute metrics
     num_judge_matches = sum(r.get("equivalent", 0) for r in all_results if not r.get("skipped"))
     num_evaluated = len([r for r in all_results if not r.get("skipped")])
     num_skipped = len(skipped_samples)
 
-    # For avg@n, only count evaluated samples
-    judge_avg_at_n = num_judge_matches / num_evaluated if num_evaluated > 0 else 0.0
+    judge_avg_at_n = num_judge_matches / num_evaluated
     judge_pass_at_n = int(num_judge_matches > 0)
 
     return {
@@ -433,7 +402,6 @@ async def run_single_judge_eval(
     print(f"Skip format invalid: {args.skip_format_invalid}")
     print(f"{'='*60}")
 
-    # Load data based on input type
     if input_type == "metrics":
         test_cases, config_generations, gen_scores = load_test_cases_from_metrics(input_file)
     else:
@@ -442,7 +410,6 @@ async def run_single_judge_eval(
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
 
-    # Filter by context length
     test_cases, skipped_cases = filter_tasks_by_context_length(
         test_cases,
         system_prompt=system_prompt,
@@ -458,7 +425,6 @@ async def run_single_judge_eval(
     print(f"  Skipped (too long): {len(skipped_cases)}")
     print()
 
-    # Evaluate all tasks
     tasks = [
         evaluate_task_with_judge(client, sem, tc, args, system_prompt, prompt_template, input_type)
         for tc in test_cases
@@ -482,7 +448,6 @@ async def run_single_judge_eval(
     total_judge_pass_at_n = sum(r["judge_pass_at_n"] for r in results)
     num_errors = sum(1 for r in results if r.get("had_error", False))
 
-    # Get exact match metrics from generation scores
     gen_exact_match_avg = gen_scores.get(
         "total_exact_match_avg_at_n", gen_scores.get("gen_exact_match_avg_at_n", 0)
     )
@@ -590,6 +555,7 @@ async def run_batch_judge_eval(args: Args, base_url: str):
             run_id=run_id,
             run_name=args.wandb_name,
             project=args.wandb_project,
+            eval_type=args.wandb_eval_type,
             config={"batch_mode": True, "num_jobs": len(eval_jobs)},
             tags=args.wandb_tags,
         )
