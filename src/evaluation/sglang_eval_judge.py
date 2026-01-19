@@ -358,7 +358,7 @@ async def evaluate_task_with_judge(
 
     all_results = skipped_samples + eval_results
 
-    num_judge_matches = sum(r.get("equivalent", 0) for r in all_results if not r.get("skipped"))
+    num_judge_matches = sum(r.get("equivalent", 0) for r in all_results)
     num_evaluated = len([r for r in all_results if not r.get("skipped")])
     num_skipped = len(skipped_samples)
 
@@ -445,15 +445,19 @@ async def run_single_judge_eval(
     total_skipped = sum(r["num_skipped"] for r in results)
 
     avg_judge_at_n = sum(r["judge_avg_at_n"] for r in results) / num_tasks if num_tasks else 0.0
-    total_judge_pass_at_n = sum(r["judge_pass_at_n"] for r in results)
+    avg_judge_pass_at_n = (
+        sum(r["judge_pass_at_n"] for r in results) / num_tasks if num_tasks else 0.0
+    )
     num_errors = sum(1 for r in results if r.get("had_error", False))
 
-    gen_exact_match_avg = gen_scores.get(
+    gen_exact_match_avg_at_n = gen_scores.get(
         "total_exact_match_avg_at_n", gen_scores.get("gen_exact_match_avg_at_n", 0)
     )
-    gen_exact_match_pass = gen_scores.get(
+    # Convert pass@n count to rate
+    gen_exact_match_pass_count = gen_scores.get(
         "total_exact_match_pass_at_n", gen_scores.get("gen_exact_match_pass_at_n", 0)
     )
+    gen_exact_match_pass_at_n = gen_exact_match_pass_count / num_tasks if num_tasks else 0.0
 
     scores = {
         "total_test_cases": num_tasks,
@@ -461,9 +465,9 @@ async def run_single_judge_eval(
         "total_skipped": total_skipped,
         "total_judge_matches": total_judge_matches,
         "avg_judge_at_n": avg_judge_at_n,
-        "total_judge_pass_at_n": total_judge_pass_at_n,
-        "gen_exact_match_avg_at_n": gen_exact_match_avg,
-        "gen_exact_match_pass_at_n": gen_exact_match_pass,
+        "avg_judge_pass_at_n": avg_judge_pass_at_n,
+        "gen_exact_match_avg_at_n": gen_exact_match_avg_at_n,
+        "gen_exact_match_pass_at_n": gen_exact_match_pass_at_n,
         "num_errors": num_errors,
     }
 
@@ -474,9 +478,9 @@ async def run_single_judge_eval(
         f"{args.wandb_eval_type}/total_evaluated": total_evaluated,
         f"{args.wandb_eval_type}/total_skipped": total_skipped,
         f"{args.wandb_eval_type}/avg_judge_at_n": avg_judge_at_n,
-        f"{args.wandb_eval_type}/total_judge_pass_at_n": total_judge_pass_at_n,
-        f"{args.wandb_eval_type}/gen_exact_match_avg_at_n": gen_exact_match_avg,
-        f"{args.wandb_eval_type}/gen_exact_match_pass_at_n": gen_exact_match_pass,
+        f"{args.wandb_eval_type}/avg_judge_pass_at_n": avg_judge_pass_at_n,
+        f"{args.wandb_eval_type}/gen_exact_match_avg_at_n": gen_exact_match_avg_at_n,
+        f"{args.wandb_eval_type}/gen_exact_match_pass_at_n": gen_exact_match_pass_at_n,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
@@ -507,9 +511,9 @@ async def run_single_judge_eval(
     print(f"Total Evaluated: {total_evaluated}")
     print(f"Total Skipped: {total_skipped}")
     print(f"Judge Avg@N: {avg_judge_at_n * 100:.2f}%")
-    print(f"Judge Pass@N: {total_judge_pass_at_n}")
-    print(f"Exact Match Avg@N: {gen_exact_match_avg * 100:.2f}%")
-    print(f"Exact Match Pass@N: {gen_exact_match_pass}")
+    print(f"Judge Pass@N: {avg_judge_pass_at_n * 100:.2f}%")
+    print(f"Exact Match Avg@N: {gen_exact_match_avg_at_n * 100:.2f}%")
+    print(f"Exact Match Pass@N: {gen_exact_match_pass_at_n * 100:.2f}%")
     print(f"Errors: {num_errors}")
     print(f"Output file: {evaluations_file}")
 
@@ -621,7 +625,7 @@ async def run_batch_judge_eval(args: Args, base_url: str):
         print(
             f"  Step {r['eval_step']:>5}: "
             f"Judge Avg@N = {r['avg_judge_at_n']*100:5.2f}%, "
-            f"Pass@N = {r['total_judge_pass_at_n']}, "
+            f"Pass@N = {r['avg_judge_pass_at_n']*100:5.2f}%, "
             f"Evaluated = {r['total_evaluated']}, "
             f"Skipped = {r['total_skipped']}"
         )
