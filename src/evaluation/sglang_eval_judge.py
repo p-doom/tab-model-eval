@@ -362,7 +362,7 @@ async def evaluate_task_with_judge(
     num_evaluated = len([r for r in all_results if not r.get("skipped")])
     num_skipped = len(skipped_samples)
 
-    judge_avg_at_n = num_judge_matches / num_evaluated
+    judge_avg_at_n = num_judge_matches / len(all_results)
     judge_pass_at_n = int(num_judge_matches > 0)
 
     return {
