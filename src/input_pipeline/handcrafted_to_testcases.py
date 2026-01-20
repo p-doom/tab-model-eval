@@ -18,6 +18,7 @@ def parse_md_file(input_file):
     # Use regex to find all headers with optional eval tags
     # Pattern matches: # User or # Assistant <EVAL> or # Assistant <NO_EVAL>
     pattern = r"# (User|Assistant)(?: <(EVAL|NO_EVAL)>)?\n"
+    assertions_pattern = r"<assertions>\n(.*?)\n</assertions>"
 
     parsed_data = []
 
@@ -42,11 +43,22 @@ def parse_md_file(input_file):
 
         dialogue_content = content[start_pos:end_pos].strip()
 
+        # Extract assertion if present
+        assertion_match = re.search(assertions_pattern, dialogue_content, re.DOTALL)
+        assertions = assertion_match.group(1).strip() if assertion_match else None
+
+        # If assertions are present, remove them from the dialogue content
+        if assertions:
+            dialogue_content = re.sub(
+                assertions_pattern, "", dialogue_content, flags=re.DOTALL
+            ).strip()
+
         parsed_data.append(
             {
                 "role": role,
                 "content": dialogue_content,
                 "eval_tag": eval_tag,  # None for User, "EVAL" or "NO_EVAL" for Assistant
+                "assertions": assertions,
             }
         )
 
@@ -73,6 +85,7 @@ def create_incremental_test_cases(parsed_data, task_name):
                     "task_id": f"{task_name}/{task_number}",
                     "context": context,
                     "expected_final_response": expected_response,
+                    "assertions": assistant_turn.get("assertions", None),
                 }
                 test_cases.append(test_case)
                 task_number += 1

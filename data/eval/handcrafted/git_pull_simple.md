@@ -19,6 +19,13 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 git pull
 ```
 
+<assertions>
+Make sure that:
+- we pull the latest changes from the remote repository
+- pulling by specifying the branch (dev/ali) is also valid
+- nothing else is being modified at all
+</assertions>
+
 # User
 <stdout>
 remote: Enumerating objects: 13, done.
@@ -38,6 +45,12 @@ Fast-forward
 ```bash
 git push
 ```
+
+<assertions>
+Make sure that:
+- we push the changes to the remote repository
+- nothing else is being modified at all
+</assertions>
 
 # User
 <stdout>

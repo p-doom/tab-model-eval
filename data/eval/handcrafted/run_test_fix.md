@@ -51,6 +51,15 @@ cat -n tests/test_math.py
 sed -i '12,12c\    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/test_math.py | sed -n '7,16p'
 ```
 
+<assertions>
+Make sure that:
+- the correct file is being edited (tests/test_math.py)
+- the correct line is being edited (line 12)
+- the test is being fixed by changing the assertion from 5 to 4
+- nothing else is being modified at all
+- the correct file is being catted with the correct viewport (between line 7 and 16)
+</assertions>
+
 # User
 <stdout>
      7  def teardown_module(module):
@@ -69,6 +78,12 @@ sed -i '12,12c\    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/tes
 ```bash
 pytest tests/test_math.py
 ```
+
+<assertions>
+Make sure that:
+- the test is being run again
+- nothing else is being modified at all
+</assertions>
 
 # User
 <stdout>

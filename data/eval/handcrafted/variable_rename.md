@@ -18,6 +18,12 @@ NameError: name 'd' is not defined
 cat -n src/process.py
 ```
 
+<assertions>
+Make sure that:
+- we cat the complete file using the cat command with the -n flag
+- nothing else is being modified at all
+</assertions>
+
 # User
 <stdout>
      1  import json
@@ -42,6 +48,15 @@ cat -n src/process.py
 ```bash
 sed -i '11,11c\    if "id" in data.keys():' src/process.py && cat -n src/process.py | sed -n '6,15p'
 ```
+
+<assertions>
+Make sure that:
+- the correct file is being edited (src/process.py)
+- the correct line is being edited (line 11)
+- the variable is being renamed from d to data
+- nothing else is being modified at all
+- the correct file is being catted with the correct viewport (between line 6 and 15)
+</assertions>
 
 # User
 <stdout>

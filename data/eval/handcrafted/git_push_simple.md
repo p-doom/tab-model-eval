@@ -13,6 +13,12 @@ bash: gi: command not found
 git push
 ```
 
+<assertions>
+Make sure that:
+- we push the changes to the remote repository
+- nothing else is being modified at all
+</assertions>
+
 # User
 <stdout>
 Everything up-to-date

@@ -17,6 +17,13 @@ NameError: name 'tyro' is not defined
 cat -n src/input_pipeline/validation_to_testcases.py
 ```
 
+<assertions>
+Make sure that:
+- the complete contents of the files are catted using the cat command with the -n flag
+- do not use grep or any other command to filter the output
+- nothing is being modified at all
+</assertions>
+
 # User
 <stdout>
      1  import json
@@ -84,6 +91,14 @@ cat -n src/input_pipeline/validation_to_testcases.py
 sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n src/input_pipeline/validation_to_testcases.py | sed -n '1,10p'
 ```
 
+<assertions>
+Make sure that:
+- tyro is being imported
+- it can be imported either at the top, in between or at the end of the other import statements
+- make sure that part that was edited is being catted with the correct viewport (between line 1 and 10)
+</assertions>
+
+
 # User
 <stdout>
      1  import tyro
@@ -103,6 +118,13 @@ sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n 
 ```bash
 python src/input_pipeline/validation_to_testcases.py --input_file data/temp/validation.jsonl --output_file data/temp/validation_testcases.jsonl
 ```
+
+<assertions>
+Make sure that:
+- we are running the correct script
+- we use the correct input and output files
+- nothing else is being modified at all
+</assertions>
 
 # User
 <stdout>

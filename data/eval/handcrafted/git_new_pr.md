@@ -71,6 +71,14 @@ upstream, see 'push.autoSetupRemote' in 'git help config'.
 git push --set-upstream origin feat/new-handcrafted-tasks
 ```
 
+<assertions>
+Make sure that:
+- we push the branch to the remote repository
+- we create a new branch called feat/new-handcrafted-tasks
+- we push the branch to the remote repository with the --set-upstream flag
+- nothing else is being modified at all
+</assertions>
+
 # User
 <stdout>
 Enumerating objects: 12, done.

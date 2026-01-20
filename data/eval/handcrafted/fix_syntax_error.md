@@ -16,6 +16,13 @@ SyntaxError: '(' was never closed
 cat -n src/train.py
 ```
 
+<assertions>
+Make sure that:
+- the complete contents of the files are catted using the cat command with the -n flag
+- do not use grep or any other command to filter the output
+- nothing is being modified at all
+</assertions>
+
 # User
 <stdout>
      1  import os
@@ -46,6 +53,15 @@ cat -n src/train.py
 ```bash
 sed -i '14,14c\    print(f"Training started at {time.time()}")' src/train.py && cat -n src/train.py | sed -n '10,19p'
 ```
+
+<assertions>
+Make sure that:
+- the syntax error is being fixed by closing the parentheses
+- the correct file is being edited
+- the correct line is being edited (line 14)
+- nothing else is being modified at all
+- the correct file is being catted with the correct viewport (between line 10 and 19)
+</assertions>
 
 # User
 <stdout>

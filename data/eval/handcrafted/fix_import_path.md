@@ -37,6 +37,14 @@ cat -n src/common/config_utils.py
 cat -n src/main.py
 ```
 
+<assertions>
+Make sure that:
+- the complete contents of the files are catted using the cat command with the -n flag
+- do not use grep or any other command to filter the output
+- nothing is being modified at all
+</assertions>
+
+
 # User
 <stdout>
      1  import os
@@ -60,6 +68,14 @@ cat -n src/main.py
 ```bash
 sed -i '6,6c\from common.config_utils import load_config' src/main.py && cat -n src/main.py | sed -n '1,10p'
 ```
+
+<assertions>
+Make sure that:
+- the import path is being changed to the correct path (from utils to common.config_utils)
+- we edit the correct file
+- nothing else is being modified at all
+- we cat the correct file with the correct viewport (between line 1 and 10)
+</assertions>
 
 # User
 <stdout>
