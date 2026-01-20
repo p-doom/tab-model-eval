@@ -37,7 +37,7 @@ import wandb
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
-from sglang_eval_utils import (
+from eval_utils import (
     LocalLogger,
     check_command_format,
     filter_tasks_by_context_length,
@@ -310,6 +310,7 @@ async def evaluate_task_with_judge(
             skip_reason = "empty_generated_command"
         elif sample.get("exact_match", 0) == 1:
             should_skip = True
+            skip_reason = "exact_match"
         elif args.skip_format_invalid and input_type == "metrics":
             if not sample.get("format_valid", True):
                 should_skip = True
