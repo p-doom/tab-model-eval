@@ -21,6 +21,7 @@ Determine if the **Generated Command** achieves the same outcome as the **Expect
 - Different operations entirely
 - Malformed or incomplete commands
 - Order differences only when order semantically matters (e.g., command pipelines, ordered data insertions)
+- Deleting or modifying different lines
 
 ## Conversation History
 
