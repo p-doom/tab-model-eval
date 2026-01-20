@@ -18,18 +18,20 @@ cat -n src/common/config_utils.py
 
 # User
 <stdout>
-     1  import yaml
-     2  import os
-     3  
-     4  def load_config(path):
-     5      if not os.path.exists(path):
-     6          return {}
-     7      with open(path, 'r') as f:
-     8          return yaml.safe_load(f)
-     9  
-    10  def save_config(config, path):
-    11      with open(path, 'w') as f:
-    12          yaml.dump(config, f)
+     1	import yaml
+     2	import os
+     3	
+     4	
+     5	def load_config(path):
+     6	    if not os.path.exists(path):
+     7	        return {}
+     8	    with open(path, "r") as f:
+     9	        return yaml.safe_load(f)
+    10	
+    11	
+    12	def save_config(config, path):
+    13	    with open(path, "w") as f:
+    14	        yaml.dump(config, f)
 </stdout>
 
 # Assistant <NO_EVAL>
@@ -47,46 +49,56 @@ Make sure that:
 
 # User
 <stdout>
-     1  import os
-     2  import sys
-     3  import time
-     4  import logging
-     5  
-     6  from utils import load_config
-     7  
-     8  def main():
-     9      setup_logging()
-    10      config = load_config("config.yaml")
-    11      print(f"Loaded config: {config}")
-    12  
-    13  if __name__ == "__main__":
-    14      main()
+     1	import os
+     2	import sys
+     3	import time
+     4	import logging
+     5	
+     6	from utils import load_config
+     7	
+     8	
+     9	def main():
+    10	    setup_logging()
+    11	    config = load_config("config.yaml")
+    12	    print(f"Loaded config: {config}")
+    13	
+    14	
+    15	if __name__ == "__main__":
+    16	    main()
 </stdout>
 
 
 # Assistant <EVAL>
 ```bash
-sed -i '6,6c\from common.config_utils import load_config' src/main.py && cat -n src/main.py | sed -n '1,10p'
+sed -i '6,6c\from common.config_utils import load_config' src/main.py && cat -n src/main.py | sed -n '1,16p'
 ```
 
 <assertions>
 Make sure that:
+- the correct file is being edited (src/main.py)
+- the correct line is being edited (line 6)
 - the import path is being changed to the correct path (from utils to common.config_utils)
 - we edit the correct file
 - nothing else is being modified at all
-- we cat the correct file with the correct viewport (between line 1 and 10)
+- we cat the correct file with the correct viewport (between line 1 and 16)
 </assertions>
 
 # User
 <stdout>
-     1  import os
-     2  import sys
-     3  import time
-     4  import logging
-     5  
-     6  from common.config_utils import load_config
-     7  
-     8  def main():
-     9      setup_logging()
-    10      config = load_config("config.yaml")
+     1	import os
+     2	import sys
+     3	import time
+     4	import logging
+     5	
+     6	from common.config_utils import load_config
+     7	
+     8	
+     9	def main():
+    10	    setup_logging()
+    11	    config = load_config("config.yaml")
+    12	    print(f"Loaded config: {config}")
+    13	
+    14	
+    15	if __name__ == "__main__":
+    16	    main()
 </stdout>

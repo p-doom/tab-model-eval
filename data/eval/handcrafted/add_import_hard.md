@@ -88,14 +88,14 @@ Make sure that:
 
 # Assistant <EVAL>
 ```bash
-sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n src/input_pipeline/validation_to_testcases.py | sed -n '1,10p'
+sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n src/input_pipeline/validation_to_testcases.py | sed -n '1,11p'
 ```
 
 <assertions>
 Make sure that:
 - tyro is being imported
 - it can be imported either at the top, in between or at the end of the other import statements
-- make sure that part that was edited is being catted with the correct viewport (between line 1 and 10)
+- make sure that part that was edited is being catted with the correct viewport (between line 1 and 11)
 </assertions>
 
 
@@ -111,6 +111,7 @@ Make sure that:
      8  class Args:
      9      input_file: str = "data/eval/val/validation.jsonl"
     10      output_file: str = "data/eval/val/validation_testcases.jsonl"
+    11      task_name: str = "validation_set"
 </stdout>
 
 
