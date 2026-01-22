@@ -39,7 +39,7 @@ import tyro
 import wandb
 from tqdm import tqdm
 
-from sglang_eval_utils import (
+from eval_utils import (
     LocalLogger,
     check_command_format,
     evaluate_humaneval_sample,

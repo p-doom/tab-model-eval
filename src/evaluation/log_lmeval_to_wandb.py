@@ -42,7 +42,7 @@ from typing import Dict, List, Optional, Any
 
 import wandb
 
-from sglang_eval_utils import LocalLogger
+from eval_utils import LocalLogger
 
 
 def find_results_json(step_dir: str) -> Optional[str]:
