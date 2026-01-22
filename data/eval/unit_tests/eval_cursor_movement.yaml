@@ -298,7 +298,7 @@ states:
               return pred_latents_BTNL, denoise_t_BT
   cursor:
     file: jasmine/models/dynamics.py
-    line: 0
+    line: 1
     column: 0
 - step: 1
   eval: NO_EVAL

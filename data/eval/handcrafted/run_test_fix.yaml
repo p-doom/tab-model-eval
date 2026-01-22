@@ -47,7 +47,7 @@ states:
           assert subtract(2, 1) == 1
   cursor:
     file: tests/test_math.py
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: EVAL

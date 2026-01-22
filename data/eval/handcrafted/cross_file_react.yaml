@@ -35,7 +35,7 @@ states:
     components/Button.jsx: ''
   cursor:
     file: components/Button.jsx
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL
@@ -131,7 +131,7 @@ states:
       export default App;
   cursor:
     file: App.jsx
-    line: 0
+    line: 1
     column: 0
 - step: 5
   eval: NO_EVAL

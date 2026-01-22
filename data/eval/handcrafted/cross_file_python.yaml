@@ -54,7 +54,7 @@ states:
           return (arr - arr.mean()) / arr.std()
   cursor:
     file: utils.py
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -96,7 +96,7 @@ states:
     main.py: ''
   cursor:
     file: main.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL

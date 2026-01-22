@@ -312,7 +312,7 @@ states:
               )
   cursor:
     file: jasmine/baselines/diffusion/sample_diffusion.py
-    line: 0
+    line: 1
     column: 0
 - step: 1
   eval: NO_EVAL

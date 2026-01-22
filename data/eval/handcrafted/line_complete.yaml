@@ -40,7 +40,7 @@ states:
               with open(filepath, "w") as f:
   cursor:
     file: src/data_loader.py
-    line: 0
+    line: 1
     column: 0
 - step: 1
   eval: NO_EVAL

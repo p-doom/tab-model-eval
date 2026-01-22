@@ -76,7 +76,7 @@ states:
           is_premium: Optional[bool] = None
   cursor:
     file: backend/models.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL
@@ -133,7 +133,7 @@ states:
           is_premium: Optional[bool] = None
   cursor:
     file: backend/models.py
-    line: 0
+    line: 1
     column: 0
 - step: 4
   eval: NO_EVAL
@@ -255,7 +255,7 @@ states:
       }
   cursor:
     file: frontend/UserTable.tsx
-    line: 0
+    line: 1
     column: 0
 - step: 5
   eval: NO_EVAL

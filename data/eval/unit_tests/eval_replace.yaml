@@ -65,7 +65,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -208,7 +208,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 4
   eval: NO_EVAL
@@ -437,7 +437,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 6
   eval: NO_EVAL
@@ -752,7 +752,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 8
   eval: NO_EVAL
@@ -1153,7 +1153,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 10
   eval: NO_EVAL
@@ -1640,7 +1640,7 @@ states:
           --data_dir $array_records_dir
   cursor:
     file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_32_nodes.sbatch
-    line: 0
+    line: 1
     column: 0
 - step: 12
   eval: EVAL

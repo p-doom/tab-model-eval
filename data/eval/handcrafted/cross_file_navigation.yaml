@@ -45,7 +45,7 @@ states:
       \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
   cursor:
     file: services.py
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -103,7 +103,7 @@ states:
       \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
   cursor:
     file: main.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL

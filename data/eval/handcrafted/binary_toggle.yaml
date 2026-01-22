@@ -61,7 +61,7 @@ states:
       applyTheme();
   cursor:
     file: theme.js
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL

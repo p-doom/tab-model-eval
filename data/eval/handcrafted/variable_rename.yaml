@@ -43,7 +43,7 @@ states:
           process_data({"id": 123})
   cursor:
     file: src/process.py
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: EVAL

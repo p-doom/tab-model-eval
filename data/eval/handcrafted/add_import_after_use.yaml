@@ -122,7 +122,7 @@ states:
       {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
   cursor:
     file: products.jsonl
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -277,7 +277,7 @@ states:
           print(f"Expensive (>$100): {len(expensive)}")
   cursor:
     file: process_data.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL

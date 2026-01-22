@@ -63,7 +63,7 @@ states:
       JWT_EXPIRY=3600
   cursor:
     file: .env.example
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -212,7 +212,7 @@ states:
           return key is not None and key.startswith("pk_test_")
   cursor:
     file: payments.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: NO_EVAL

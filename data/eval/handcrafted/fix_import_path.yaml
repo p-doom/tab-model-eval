@@ -33,7 +33,7 @@ states:
               yaml.dump(config, f)
   cursor:
     file: src/common/config_utils.py
-    line: 0
+    line: 1
     column: 0
 - step: 2
   eval: NO_EVAL
@@ -74,7 +74,7 @@ states:
           main()
   cursor:
     file: src/main.py
-    line: 0
+    line: 1
     column: 0
 - step: 3
   eval: EVAL
