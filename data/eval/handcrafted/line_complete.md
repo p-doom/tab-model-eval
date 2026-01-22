@@ -37,13 +37,12 @@ cat -n src/data_loader.py
     30	    def save_json(self, data: Dict, filename: str) -> None:
     31	        filepath = self.data_dir / filename
     32	        with open(filepath, "w") as f:
-    33	
 </stdout>
 
 # Assistant <NO_EVAL>
 ```bash
 sed -i '24,24c\
-            self.cache[filename] = self.load_' src/data_loader.py && cat -n src/data_loader.py | sed -n '14,33p'
+            self.cache[filename] = self.load_' src/data_loader.py && cat -n src/data_loader.py | sed -n '14,32p'
 ```
 
 # User
@@ -67,13 +66,12 @@ sed -i '24,24c\
     30	    def save_json(self, data: Dict, filename: str) -> None:
     31	        filepath = self.data_dir / filename
     32	        with open(filepath, "w") as f:
-    33	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
 sed -i '24,24c\
-            self.cache[filename] = self.load_json(filename)' src/data_loader.py && cat -n src/data_loader.py | sed -n '14,33p'
+            self.cache[filename] = self.load_json(filename)' src/data_loader.py && cat -n src/data_loader.py | sed -n '14,32p'
 ```
 
 <assertions>
@@ -106,13 +104,12 @@ Make sure that:
     30	    def save_json(self, data: Dict, filename: str) -> None:
     31	        filepath = self.data_dir / filename
     32	        with open(filepath, "w") as f:
-    33	
 </stdout>
 
 # Assistant <NO_EVAL>
 ```bash
 sed -i '28,28c\
-        return [item for item in data if item.get(' src/data_loader.py && cat -n src/data_loader.py | sed -n '18,33p'
+        return [item for item in data if item.get(' src/data_loader.py && cat -n src/data_loader.py | sed -n '18,32p'
 ```
 
 # User
@@ -132,13 +129,12 @@ sed -i '28,28c\
     30	    def save_json(self, data: Dict, filename: str) -> None:
     31	        filepath = self.data_dir / filename
     32	        with open(filepath, "w") as f:
-    33	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
 sed -i '28,28c\
-        return [item for item in data if item.get(key) == value]' src/data_loader.py && cat -n src/data_loader.py | sed -n '18,33p'
+        return [item for item in data if item.get(key) == value]' src/data_loader.py && cat -n src/data_loader.py | sed -n '18,32p'
 ```
 
 <assertions>
@@ -167,12 +163,11 @@ Make sure that:
     30	    def save_json(self, data: Dict, filename: str) -> None:
     31	        filepath = self.data_dir / filename
     32	        with open(filepath, "w") as f:
-    33	
 </stdout>
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '33,33c\
+sed -i '$a\
             json.dump(data, f, indent=' src/data_loader.py && cat -n src/data_loader.py | sed -n '23,33p'
 ```
 

@@ -60,7 +60,6 @@ cat -n main.py
 
 # User
 <stdout>
-     1	
 </stdout>
 
 # Assistant <NO_EVAL>

@@ -250,7 +250,7 @@ def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:\
 
 # Assistant <EVAL>
 ```bash
-sed -i '8,18c\
+sed -i '8,24c\
             products.append(json.loads(line))\
     return products\
 \
@@ -259,7 +259,13 @@ def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:\
     for product in products:\
         if product['"'"'id'"'"'] == product_id:\
             return product\
-    return None' process_data.py && cat -n process_data.py | sed -n '2,22p'
+    return None\
+\
+\
+\
+\
+def calculate_total_value(products: List[Dict]) -> float:\
+    return sum(p['"'"'price'"'"'] for p in products)' process_data.py && cat -n process_data.py | sed -n '5,25p'
 ```
 
 <assertions>
@@ -272,9 +278,6 @@ Make sure that:
 
 # User
 <stdout>
-     2	
-     3	
-     4	def load_products(filepath: str) -> List[Dict]:
      5	    products = []
      6	    with open(filepath, 'r') as f:
      7	        for line in f:
@@ -293,6 +296,9 @@ Make sure that:
     20	
     21	def calculate_total_value(products: List[Dict]) -> float:
     22	    return sum(p['price'] for p in products)
+    23	def get_product_names(products: List[Dict]) -> List[str]:
+    24	    return [p['name'] for p in products]
+    25	
 </stdout>
 
 # Assistant <EVAL>

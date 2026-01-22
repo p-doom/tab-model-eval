@@ -234,8 +234,7 @@ sed -i '22,29c\
     --logging_steps 100 \\\
     --save_steps 1000\
 \
-\
-' train.sbatch && cat -n train.sbatch | sed -n '17,32p'
+' train.sbatch && cat -n train.sbatch | sed -n '16,31p'
 ```
 
 <assertions>
@@ -248,6 +247,7 @@ Make sure that:
 
 # User
 <stdout>
+    16	cd /workspace/project
     17	
     18	export PYTHONUNBUFFERED=1
     19	
@@ -263,5 +263,4 @@ Make sure that:
     29	    --save_steps 1000
     30	
     31	
-    32	
 </stdout>
