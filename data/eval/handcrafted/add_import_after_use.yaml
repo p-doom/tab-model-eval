@@ -1,0 +1,1094 @@
+task_id: add_import_after_use
+description: ''
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal:
+    command: ls -la
+    output: |-
+      total 24
+      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+      -rw-r--r-- 1 user user 1456 Jan 19 09:58 process_data.py
+      -rw-r--r-- 1 user user 9823 Jan 19 09:58 products.jsonl
+    exit_code: 0
+    cwd: /project
+  files: {}
+  cursor: null
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+  cursor:
+    file: products.jsonl
+    line: 0
+    column: 0
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      from typing import List, Dict, Optional
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+
+
+      def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
+          return [p for p in products if p['category'] == category]
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+
+
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 0
+    column: 0
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      from typing import List, Dict, Optional
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+
+
+      def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
+          return [p for p in products if p['category'] == category]
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+
+
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 11
+    column: 80
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      from typing import List, Dict, Optional
+
+
+      def load_products(filepath: str) -> List[Dict]:
+          products = []
+          with open(filepath, 'r') as f:
+              for line in f:
+                  products.append(json.lo
+          return products
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+      def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
+          return [p for p in products if p['category'] == category]
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+
+
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 10
+    column: 0
+- step: 5
+  eval: EVAL
+  judge_assertions: |-
+    Make sure that:
+    - the model completes the json.loads(line) call
+    - the correct file is being edited (process_data.py)
+    - the correct line is being edited (line 8)
+    - the file is being catted with approx. the correct viewport (around lines 1-21)
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      from typing import List, Dict, Optional
+
+
+      def load_products(filepath: str) -> List[Dict]:
+          products = []
+          with open(filepath, 'r') as f:
+              for line in f:
+                  products.append(json.loads(line))
+          return products
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+
+
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 12
+    column: 79
+- step: 6
+  eval: EVAL
+  judge_assertions: |-
+    Make sure that:
+    - the model navigates to the top of the file to add the missing import
+    - the correct file is being viewed (process_data.py)
+    - the viewport shows line 1 where the import needs to be added
+    Note:
+    - it is also okay if the model adds the import directly without first navigating to the top of the file
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      from typing import List, Dict, Optional
+
+
+      def load_products(filepath: str) -> List[Dict]:
+          products = []
+          with open(filepath, 'r') as f:
+              for line in f:
+                  products.append(json.loads(line))
+          return products
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+
+
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 11
+    column: 0
+- step: 7
+  eval: EVAL
+  judge_assertions: |-
+    Make sure that:
+    - the model adds import json at the top of the file
+    - the import is added before the existing imports (line 1)
+    - the correct file is being edited (process_data.py)
+    - the file is being catted with the approx. correct viewport (around lines 1-21)
+  terminal: null
+  files:
+    products.jsonl: |-
+      {"id": 1, "name": "Pro Case", "price": 62.63, "in_stock": true, "category": "peripherals"}
+      {"id": 2, "name": "USB-C Mount", "price": 114.28, "in_stock": false, "category": "storage"}
+      {"id": 3, "name": "Ergonomic Headphones", "price": 37.14, "in_stock": true, "category": "electronics"}
+      {"id": 4, "name": "Premium Lamp", "price": 130.31, "in_stock": true, "category": "audio"}
+      {"id": 5, "name": "Ultra Fan", "price": 56.54, "in_stock": true, "category": "office"}
+      {"id": 6, "name": "Ergonomic Webcam", "price": 31.39, "in_stock": true, "category": "audio"}
+      {"id": 7, "name": "Portable Sleeve", "price": 93.32, "in_stock": true, "category": "electronics"}
+      {"id": 8, "name": "Ultra Holder", "price": 147.14, "in_stock": false, "category": "audio"}
+      {"id": 9, "name": "RGB Monitor", "price": 112.69, "in_stock": true, "category": "accessories"}
+      {"id": 10, "name": "Compact Drive", "price": 49.61, "in_stock": false, "category": "accessories"}
+      {"id": 11, "name": "LED Mouse", "price": 149.83, "in_stock": true, "category": "storage"}
+      {"id": 12, "name": "Mini Dock", "price": 149.38, "in_stock": true, "category": "accessories"}
+      {"id": 13, "name": "Mechanical Case", "price": 134.85, "in_stock": true, "category": "peripherals"}
+      {"id": 14, "name": "LED Light", "price": 127.08, "in_stock": false, "category": "audio"}
+      {"id": 15, "name": "Ergonomic Mouse", "price": 51.81, "in_stock": true, "category": "peripherals"}
+      {"id": 16, "name": "Pro Webcam", "price": 121.28, "in_stock": true, "category": "peripherals"}
+      {"id": 17, "name": "Wireless Holder", "price": 28.17, "in_stock": false, "category": "audio"}
+      {"id": 18, "name": "Premium Microphone", "price": 104.26, "in_stock": true, "category": "electronics"}
+      {"id": 19, "name": "Ultra Charger", "price": 98.3, "in_stock": true, "category": "office"}
+      {"id": 20, "name": "Ergonomic Fan", "price": 42.36, "in_stock": false, "category": "audio"}
+      {"id": 21, "name": "Portable Stand", "price": 78.56, "in_stock": false, "category": "peripherals"}
+      {"id": 22, "name": "Mini Mouse", "price": 21.39, "in_stock": true, "category": "storage"}
+      {"id": 23, "name": "Mini Mount", "price": 95.93, "in_stock": true, "category": "peripherals"}
+      {"id": 24, "name": "Mini Holder", "price": 31.09, "in_stock": false, "category": "storage"}
+      {"id": 25, "name": "LED Monitor", "price": 31.87, "in_stock": true, "category": "electronics"}
+      {"id": 26, "name": "Ergonomic Cable", "price": 144.89, "in_stock": true, "category": "peripherals"}
+      {"id": 27, "name": "RGB Adapter", "price": 45.82, "in_stock": true, "category": "electronics"}
+      {"id": 28, "name": "Smart Headphones", "price": 76.98, "in_stock": true, "category": "electronics"}
+      {"id": 29, "name": "Pro Card Reader", "price": 86.46, "in_stock": true, "category": "accessories"}
+      {"id": 30, "name": "Mini Webcam", "price": 38.69, "in_stock": false, "category": "electronics"}
+      {"id": 31, "name": "Pro Drive", "price": 121.75, "in_stock": true, "category": "storage"}
+      {"id": 32, "name": "HD Lamp", "price": 27.41, "in_stock": false, "category": "accessories"}
+      {"id": 33, "name": "Smart Keyboard", "price": 52.45, "in_stock": true, "category": "peripherals"}
+      {"id": 34, "name": "USB-C Mouse", "price": 92.0, "in_stock": true, "category": "electronics"}
+      {"id": 35, "name": "Mechanical Mouse", "price": 94.11, "in_stock": true, "category": "accessories"}
+      {"id": 36, "name": "Compact Lamp", "price": 20.73, "in_stock": false, "category": "accessories"}
+      {"id": 37, "name": "Ultra Drive", "price": 54.31, "in_stock": false, "category": "storage"}
+      {"id": 38, "name": "Wireless Sleeve", "price": 83.72, "in_stock": false, "category": "accessories"}
+      {"id": 39, "name": "Mechanical Light", "price": 102.28, "in_stock": false, "category": "storage"}
+      {"id": 40, "name": "Mechanical Microphone", "price": 141.98, "in_stock": true, "category": "audio"}
+      {"id": 41, "name": "HD Organizer", "price": 107.97, "in_stock": true, "category": "peripherals"}
+      {"id": 42, "name": "HD Drive", "price": 50.45, "in_stock": true, "category": "audio"}
+      {"id": 43, "name": "Premium Stand", "price": 145.36, "in_stock": true, "category": "office"}
+      {"id": 44, "name": "LED Headphones", "price": 128.4, "in_stock": true, "category": "accessories"}
+      {"id": 45, "name": "Smart Mat", "price": 97.01, "in_stock": false, "category": "accessories"}
+      {"id": 46, "name": "Premium Mouse", "price": 59.23, "in_stock": false, "category": "storage"}
+      {"id": 47, "name": "Compact Mat", "price": 38.35, "in_stock": false, "category": "audio"}
+      {"id": 48, "name": "Portable Cooler", "price": 138.93, "in_stock": true, "category": "accessories"}
+      {"id": 49, "name": "USB-C Fan", "price": 91.25, "in_stock": true, "category": "accessories"}
+      {"id": 50, "name": "Smart Adapter", "price": 145.74, "in_stock": false, "category": "office"}
+      {"id": 51, "name": "Mini Stand", "price": 79.64, "in_stock": true, "category": "storage"}
+      {"id": 52, "name": "Wireless Fan", "price": 10.06, "in_stock": true, "category": "office"}
+      {"id": 53, "name": "Smart Card Reader", "price": 73.53, "in_stock": false, "category": "electronics"}
+      {"id": 54, "name": "Mechanical Speaker", "price": 63.18, "in_stock": true, "category": "audio"}
+      {"id": 55, "name": "Portable Mat", "price": 37.05, "in_stock": true, "category": "electronics"}
+      {"id": 56, "name": "Bluetooth Lamp", "price": 47.47, "in_stock": true, "category": "storage"}
+      {"id": 57, "name": "USB-C Organizer", "price": 21.45, "in_stock": true, "category": "audio"}
+      {"id": 58, "name": "Ultra Cable", "price": 27.03, "in_stock": true, "category": "storage"}
+      {"id": 59, "name": "Premium Monitor", "price": 102.93, "in_stock": false, "category": "storage"}
+      {"id": 60, "name": "LED Dock", "price": 38.86, "in_stock": true, "category": "audio"}
+      {"id": 61, "name": "RGB Stand", "price": 141.22, "in_stock": false, "category": "storage"}
+      {"id": 62, "name": "Smart Case", "price": 52.22, "in_stock": true, "category": "storage"}
+      {"id": 63, "name": "Ergonomic Lamp", "price": 27.48, "in_stock": true, "category": "storage"}
+      {"id": 64, "name": "Premium Light", "price": 131.12, "in_stock": false, "category": "office"}
+      {"id": 65, "name": "Ultra Stand", "price": 46.39, "in_stock": true, "category": "storage"}
+      {"id": 66, "name": "Ergonomic Charger", "price": 89.61, "in_stock": true, "category": "office"}
+      {"id": 67, "name": "Ergonomic Hub", "price": 128.15, "in_stock": true, "category": "peripherals"}
+      {"id": 68, "name": "Wireless Monitor", "price": 24.28, "in_stock": false, "category": "office"}
+      {"id": 69, "name": "Mechanical Mount", "price": 60.47, "in_stock": false, "category": "office"}
+      {"id": 70, "name": "Portable Monitor", "price": 75.61, "in_stock": false, "category": "office"}
+      {"id": 71, "name": "Bluetooth Headphones", "price": 65.4, "in_stock": true, "category": "peripherals"}
+      {"id": 72, "name": "Mini Light", "price": 62.65, "in_stock": false, "category": "storage"}
+      {"id": 73, "name": "Compact Charger", "price": 118.57, "in_stock": true, "category": "peripherals"}
+      {"id": 74, "name": "LED Fan", "price": 10.93, "in_stock": true, "category": "electronics"}
+      {"id": 75, "name": "Mini Hub", "price": 48.41, "in_stock": true, "category": "electronics"}
+      {"id": 76, "name": "Portable Headphones", "price": 110.22, "in_stock": true, "category": "storage"}
+      {"id": 77, "name": "LED Webcam", "price": 121.4, "in_stock": true, "category": "audio"}
+      {"id": 78, "name": "LED Charger", "price": 22.27, "in_stock": true, "category": "peripherals"}
+      {"id": 79, "name": "Ultra Mount", "price": 30.4, "in_stock": true, "category": "electronics"}
+      {"id": 80, "name": "Premium Organizer", "price": 145.24, "in_stock": true, "category": "storage"}
+      {"id": 81, "name": "Premium Adapter", "price": 130.25, "in_stock": true, "category": "accessories"}
+      {"id": 82, "name": "HD Microphone", "price": 54.89, "in_stock": true, "category": "office"}
+      {"id": 83, "name": "Portable Mouse", "price": 59.46, "in_stock": true, "category": "office"}
+      {"id": 84, "name": "Ergonomic Card Reader", "price": 38.76, "in_stock": true, "category": "audio"}
+      {"id": 85, "name": "Bluetooth Microphone", "price": 45.95, "in_stock": true, "category": "office"}
+      {"id": 86, "name": "Compact Keyboard", "price": 7.27, "in_stock": true, "category": "accessories"}
+      {"id": 87, "name": "Ultra Card Reader", "price": 36.68, "in_stock": true, "category": "accessories"}
+      {"id": 88, "name": "Ergonomic Mat", "price": 124.29, "in_stock": true, "category": "peripherals"}
+      {"id": 89, "name": "LED Organizer", "price": 74.01, "in_stock": false, "category": "electronics"}
+      {"id": 90, "name": "Compact Fan", "price": 81.25, "in_stock": true, "category": "electronics"}
+      {"id": 91, "name": "Premium Sleeve", "price": 145.48, "in_stock": false, "category": "storage"}
+      {"id": 92, "name": "Wireless Adapter", "price": 81.41, "in_stock": true, "category": "audio"}
+      {"id": 93, "name": "USB-C Dock", "price": 97.59, "in_stock": true, "category": "electronics"}
+      {"id": 94, "name": "Compact Mouse", "price": 51.83, "in_stock": true, "category": "accessories"}
+      {"id": 95, "name": "HD Mouse", "price": 12.15, "in_stock": true, "category": "office"}
+      {"id": 96, "name": "Ergonomic Monitor", "price": 112.06, "in_stock": true, "category": "accessories"}
+      {"id": 97, "name": "HD Holder", "price": 81.39, "in_stock": true, "category": "audio"}
+      {"id": 98, "name": "Portable Hub", "price": 103.73, "in_stock": false, "category": "accessories"}
+      {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
+      {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
+    process_data.py: |-
+      import json
+      from typing import List, Dict, Optional
+
+
+      def load_products(filepath: str) -> List[Dict]:
+          products = []
+          with open(filepath, 'r') as f:
+              for line in f:
+                  products.append(json.loads(line))
+          return products
+
+
+      def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
+          for product in products:
+              if product['id'] == product_id:
+                  return product
+          return None
+
+
+
+
+      def calculate_total_value(products: List[Dict]) -> float:
+          return sum(p['price'] for p in products)
+      def get_product_names(products: List[Dict]) -> List[str]:
+          return [p['name'] for p in products]
+
+
+      def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
+          return [p for p in products if p['price'] > threshold]
+
+
+      def count_by_category(products: List[Dict]) -> Dict[str, int]:
+          counts = {}
+          for p in products:
+              cat = p['category']
+              counts[cat] = counts.get(cat, 0) + 1
+          return counts
+
+
+      def get_available_products(products: List[Dict]) -> List[Dict]:
+          return [p for p in products if p['in_stock']]
+
+
+      if __name__ == "__main__":
+          products = load_products("products.jsonl")
+          print(f"Loaded {len(products)} products")
+          electronics = get_products_by_category(products, "electronics")
+          print(f"Electronics: {len(electronics)}")
+          expensive = get_expensive_products(products, 100.0)
+          print(f"Expensive (>$100): {len(expensive)}")
+  cursor:
+    file: process_data.py
+    line: 6
+    column: 17
