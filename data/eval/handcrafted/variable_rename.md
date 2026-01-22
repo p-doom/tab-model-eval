@@ -92,6 +92,6 @@ python src/process.py
 
 <assertions>
 Make sure that:
-- the correct script is being run
-- nothing else is being modified at all
+- the correct script is run
+- nothing else is modified at all
 </assertions>

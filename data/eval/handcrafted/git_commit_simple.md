@@ -25,7 +25,7 @@ git commit -am "Added sampling scripts for diffusion and maskgit baselines"
 Make sure that:
 - we commit all files that are modified (sample_diffusion.py and sample_maskgit.py)
 - commit can be done with the -am flag or git add . or git add <files> and then git commit -m "commit message"
-- nothing else is being modified at all
+- nothing else is modified at all
 - the exact contents of the commit message is not important, but it should be a valid commit message
 </assertions>
 

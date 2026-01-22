@@ -21,7 +21,7 @@ cat -n src/input_pipeline/validation_to_testcases.py
 Make sure that:
 - the complete contents of the files are catted using the cat command with the -n flag
 - do not use grep or any other command to filter the output
-- nothing is being modified at all
+- nothing is modified at all
 </assertions>
 
 # User
@@ -93,9 +93,9 @@ sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n 
 
 <assertions>
 Make sure that:
-- tyro is being imported
+- tyro is imported
 - it can be imported either at the top, in between or at the end of the other import statements
-- make sure that part that was edited is being catted with the correct viewport (between line 1 and 11)
+- make sure that part that was edited is cat'ed with the correct viewport (between line 1 and 11)
 </assertions>
 
 
@@ -124,7 +124,7 @@ python src/input_pipeline/validation_to_testcases.py --input_file data/temp/vali
 Make sure that:
 - we are running the correct script
 - we use the correct input and output files
-- nothing else is being modified at all
+- nothing else is modified at all
 </assertions>
 
 # User

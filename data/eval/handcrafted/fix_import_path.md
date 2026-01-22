@@ -75,11 +75,11 @@ sed -i '6,6c\from common.config_utils import load_config' src/main.py && cat -n 
 
 <assertions>
 Make sure that:
-- the correct file is being edited (src/main.py)
-- the correct line is being edited (line 6)
-- the import path is being changed to the correct path (from utils to common.config_utils)
+- the correct file is edited (src/main.py)
+- the correct line is edited (line 6)
+- the import path is changed to the correct path (from utils to common.config_utils)
 - we edit the correct file
-- nothing else is being modified at all
+- nothing else is modified at all
 - we cat the correct file with the correct viewport (between line 1 and 16)
 </assertions>
 

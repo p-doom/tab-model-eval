@@ -16,7 +16,8 @@ git push
 <assertions>
 Make sure that:
 - we push the changes to the remote repository
-- nothing else is being modified at all
+- similar push commands that specify the branch (dev/ali) are also valid
+- nothing else is modified at all
 </assertions>
 
 # User

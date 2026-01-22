@@ -125,11 +125,11 @@ sed -i '17,17c\def calculate_volume(radius: float) -> float:' src/utils/math.py 
 
 <assertions>
 Make sure that:
-- the correct file is being edited (src/utils/math.py)
-- the correct line is being edited (line 17)
-- the volume function is being typed correctly with float as the return type
-- nothing else is being modified at all (the area and circumference functions should not be changed)
-- make sure that part that was edited is being catted with the correct viewport (between line 3 and 18)
+- the correct file is edited (src/utils/math.py)
+- the correct line is edited (line 17)
+- the volume function is typed correctly with float as the return type
+- nothing else is modified at all (the area and circumference functions should not be changed)
+- make sure that part that was edited is cat'ed with the correct viewport (between line 3 and 18)
 </assertions>
 
 # User
@@ -159,8 +159,8 @@ mypy --strict src/utils/math.py
 
 <assertions>
 Make sure that:
-- the correct script is being run
-- nothing else is being modified at all
+- the correct script is run
+- nothing else is modified at all
 </assertions>
 
 # User

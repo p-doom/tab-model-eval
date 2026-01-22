@@ -25,13 +25,21 @@ Determine if the **Generated Command** achieves the same outcome as the **Expect
 - Deleting or modifying different lines
 
 **General Guidelines:**
-- When editing files, only the sed command is to be used. No other commands are allowed.
-- After editing a file, the file contents should be catted with a viewport using `cat -n FILE | sed -n 'START,ENDp'`.
-- The viewport should be roughly 10 lines before and after the edited region (they dont have to be exactly 10 lines)
-- Only use a single sed command to edit the file. Do not use multiple sed commands.
-- Generally, only one single command should be used
-  - e.g. when running scripts, tests, git commands, tools, etc.
-  - except for sed command where the viewport is required
+We only accept three types of commands:
+
+1) File viewing
+We specfically only accept the `cat -n FILE` command to view the contents of a file. No other commands are allowed.
+
+2) File edits
+We specfically only accept sed commands to edit files. No other commands are allowed.
+After editing a file, the file content around the edited region should be displayed using `cat -n FILE | sed -n 'START,ENDp'`.
+The region is defined by a viewport which is roughly 10 lines before and after the edited region.
+The viewport might be smaller when the edited region is near the edges of the file (beginning or end of the file).
+Make sure edits are done in one sed command and not multiple sed commands.
+
+3) Running scripts
+We accept arbitrary bash commands to run scripts, tests, git commands, tools, debugging commands, etc. 
+
 
 ## Conversation History
 

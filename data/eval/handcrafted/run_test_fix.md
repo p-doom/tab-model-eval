@@ -62,14 +62,20 @@ cat -n tests/test_math.py
 
 # Assistant <EVAL>
 ```bash
-sed -i '15,15c\    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/test_math.py | sed -n '1,20p'
+sed -i '15,15c\    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/test_math.py | sed -n '4,20p'
 ```
+
+<assertions>
+Make sure that:
+- the correct file is edited (tests/test_math.py)
+- the correct line is edited (line 15)
+- the assertion is changed from 5 to 4
+- nothing else is modified at all
+- the correct file is cat'ed with the correct viewport (between line 4 and 20)
+</assertions>
 
 # User
 <stdout>
-     1	import pytest
-     2	from src.math_utils import add, subtract
-     3	
      4	
      5	def setup_module(module):
      6	    print("Setup")
@@ -96,8 +102,8 @@ pytest tests/test_math.py
 
 <assertions>
 Make sure that:
-- the correct script is being run
-- nothing else is being modified at all
+- the correct script is run
+- nothing else is modified at all
 </assertions>
 
 # User

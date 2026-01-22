@@ -20,7 +20,7 @@ cat -n src/train.py
 Make sure that:
 - the complete contents of the files are catted using the cat command with the -n flag
 - do not use grep or any other command to filter the output
-- nothing is being modified at all
+- nothing is modified at all
 </assertions>
 
 
@@ -61,11 +61,11 @@ sed -i '17,17c\    print(f"Training started at {time.time()}")' src/train.py && 
 
 <assertions>
 Make sure that:
-- the syntax error is being fixed by closing the parentheses
-- the correct file is being edited
-- the correct line is being edited (line 17)
-- nothing else is being modified at all
-- the correct file is being catted with the correct viewport (between line 6 and 27)
+- the syntax error is fixed by closing the parentheses
+- the correct file is edited
+- the correct line is edited (line 17)
+- nothing else is modified at all
+- the correct file is cat'ed with the correct viewport (between line 6 and 27)
 </assertions>
 
 # User

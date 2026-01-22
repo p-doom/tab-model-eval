@@ -23,7 +23,7 @@ git pull
 Make sure that:
 - we pull the latest changes from the remote repository
 - pulling by specifying the branch (dev/ali) is also valid
-- nothing else is being modified at all
+- nothing else is modified at all
 </assertions>
 
 # User
@@ -49,7 +49,8 @@ git push
 <assertions>
 Make sure that:
 - we push the changes to the remote repository
-- nothing else is being modified at all
+- similar push commands that specify the branch (dev/ali) are also valid
+- nothing else is modified or run at all
 </assertions>
 
 # User
