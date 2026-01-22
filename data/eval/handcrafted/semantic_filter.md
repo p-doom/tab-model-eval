@@ -273,22 +273,20 @@ cat -n process_data.py | sed -n '21,41p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '41a\
-\
-\
+sed -i '44,48c\
 def get_available_products(products: List[Dict]) -> List[Dict]:\
-    available_' process_data.py && cat -n process_data.py | sed -n '31,51p'
+    available_\
+\
+if __name__ == "__main__":\
+    products = load_products("products.jsonl")\
+    print(f"Loaded {len(products)} products")\
+    electronics = get_products_by_category(products, "electronics")\
+    print(f"Electronics: {len(electronics)}")\
+    print(f"Electronics: {len(electronics)}")' process_data.py && cat -n process_data.py | sed -n '38,55p'
 ```
 
 # User
 <stdout>
-    31	
-    32	def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
-    33	    return [p for p in products if p['price'] > threshold]
-    34	
-    35	
-    36	def count_by_category(products: List[Dict]) -> Dict[str, int]:
-    37	    counts = {}
     38	    for p in products:
     39	        cat = p['category']
     40	        counts[cat] = counts.get(cat, 0) + 1
@@ -303,12 +301,16 @@ def get_available_products(products: List[Dict]) -> List[Dict]:\
     49	    print(f"Loaded {len(products)} products")
     50	    electronics = get_products_by_category(products, "electronics")
     51	    print(f"Electronics: {len(electronics)}")
+    52	    print(f"Electronics: {len(electronics)}")
+    53	    expensive = get_expensive_products(products, 100.0)
+    54	    print(f"Expensive (>$100): {len(expensive)}")
+    55	    print(f"Categories: {count_by_category(products)}")
 </stdout>
 
 # Assistant <EVAL>
 ```bash
 sed -i '45,45c\
-    available_products = [p for p in products if p['"'"'in_stock'"'"']]' process_data.py && cat -n process_data.py | sed -n '31,51p'
+    available_products = [p for p in products if p['"'"'in_stock'"'"']]' process_data.py && cat -n process_data.py | sed -n '35,55p'
 ```
 
 <assertions>
@@ -323,10 +325,6 @@ Make sure that:
 
 # User
 <stdout>
-    31	
-    32	def get_expensive_products(products: List[Dict], threshold: float) -> List[Dict]:
-    33	    return [p for p in products if p['price'] > threshold]
-    34	
     35	
     36	def count_by_category(products: List[Dict]) -> Dict[str, int]:
     37	    counts = {}
@@ -344,4 +342,8 @@ Make sure that:
     49	    print(f"Loaded {len(products)} products")
     50	    electronics = get_products_by_category(products, "electronics")
     51	    print(f"Electronics: {len(electronics)}")
+    52	    print(f"Electronics: {len(electronics)}")
+    53	    expensive = get_expensive_products(products, 100.0)
+    54	    print(f"Expensive (>$100): {len(expensive)}")
+    55	    print(f"Categories: {count_by_category(products)}")
 </stdout>

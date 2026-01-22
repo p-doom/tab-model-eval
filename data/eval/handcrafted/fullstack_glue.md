@@ -207,15 +207,15 @@ cat -n frontend/UserTable.tsx | sed -n '31,51p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '41,41c\
-    },\
+sed -i '42i\
     {\
         header: "Premium Status",\
-        accessorKey: "' frontend/UserTable.tsx && cat -n frontend/UserTable.tsx | sed -n '34,54p'
+        accessorKey: "' frontend/UserTable.tsx && cat -n frontend/UserTable.tsx | sed -n '33,53p'
 ```
 
 # User
 <stdout>
+    33	    },
     34	    {
     35	        header: "Email",
     36	        accessorKey: "email",
@@ -236,7 +236,6 @@ sed -i '41,41c\
     51	    });
     52	
     53	    if (isLoading) return <div>Loading...</div>;
-    54	    if (error) return <div>Error loading users</div>;
 </stdout>
 
 # Assistant <EVAL>

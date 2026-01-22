@@ -37,54 +37,28 @@ cat -n components/Button.jsx
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '1c\
-import React from '\''react'\'';\
-import PropTypes from '\''prop-types'\'';\
+sed -i '1i\
+import React from '"'"'react'"'"';\
+import PropTypes from '"'"'prop-types'"'"';\
 \
 export function Button({\
-    variant = '\''primary'\'',\
-    size = '\''medium'\'',\
+    variant = '"'"'primary'"'"',\
+    size = '"'"'medium'"'"',\
     disabled = false,\
     loading = false,\
     onClick,\
     children\
 }) {\
-    const baseClasses = '\''btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2'\'';\
+    const baseClasses = '"'"'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2'"'"';\
     const variantClasses = {\
-        primary: '\''bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300'\'',\
-        secondary: '\''bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300'\'',\
-        danger: '\''bg-red-600 hover:bg-red-700 text-white focus:ring-red-300'\'',\
+        primary: '"'"'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300'"'"',\
+        secondary: '"'"'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300'"'"',\
+        danger: '"'"'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300'"'"',\
     };\
     const sizeClasses = {\
-        small: '\''px-3 py-1.5 text-sm'\'',\
-        medium: '\''px-4 py-2 text-base'\'',\
-        large: '\''px-6 py-3 text-lg'\'',\
-    };\
-\
-    return (\
-        <button\
-            className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]}`}\
-            disabled={disabled || loading}\
-            onClick={onClick}\
-        >\
-            {loading ? (\
-                <span className="flex items-center gap-2">\
-                    <span className="animate-spin">⟳</span>\
-                    Loading...\
-                </span>\
-            ) : children}\
-        </button>\
-    );\
-}\
-\
-Button.propTypes = {\
-    variant: PropTypes.oneOf(['\''primary'\'', '\''secondary'\'', '\''danger'\'']),\
-    size: PropTypes.oneOf(['\''small'\'', '\''medium'\'', '\''large'\'']),\
-    disabled: PropTypes.bool,\
-    loading: PropTypes.bool,\
-    onClick: PropTypes.func,\
-    children: PropTypes.node.isRequired,\
-};' components/Button.jsx && cat -n components/Button.jsx | sed -n '1,21p'
+        small: '"'"'px-3 py-1.5 text-sm'"'"',\
+        medium: '"'"'px-4 py-2 text-base'"'"',\
+        large: '"'"'px-6 py-3 text-lg'"'"',' components/Button.jsx && cat -n components/Button.jsx | sed -n '1,21p'
 ```
 
 # User
@@ -158,7 +132,8 @@ cat -n App.jsx
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '2i\import { But' App.jsx && cat -n App.jsx | sed -n '1,21p'
+sed -i '2i\
+import { But' App.jsx && cat -n App.jsx | sed -n '1,12p'
 ```
 
 # User
@@ -175,20 +150,12 @@ sed -i '2i\import { But' App.jsx && cat -n App.jsx | sed -n '1,21p'
     10	    }, []);
     11	
     12	    const handleDecrement = useCallback(() => {
-    13	        setCount(prev => Math.max(0, prev - 1));
-    14	    }, []);
-    15	
-    16	    const handleReset = useCallback(async () => {
-    17	        setIsLoading(true);
-    18	        await new Promise(resolve => setTimeout(resolve, 500));
-    19	        setCount(0);
-    20	        setIsLoading(false);
-    21	    }, []);
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '2,2c\import { Button } from '\''./components/Button'\'';' App.jsx && cat -n App.jsx | sed -n '1,21p'
+sed -i '2,2c\
+import { Button } from '"'"'./components/Button'"'"';' App.jsx && cat -n App.jsx | sed -n '1,12p'
 ```
 
 <assertions>
@@ -214,13 +181,4 @@ Make sure that:
     10	    }, []);
     11	
     12	    const handleDecrement = useCallback(() => {
-    13	        setCount(prev => Math.max(0, prev - 1));
-    14	    }, []);
-    15	
-    16	    const handleReset = useCallback(async () => {
-    17	        setIsLoading(true);
-    18	        await new Promise(resolve => setTimeout(resolve, 500));
-    19	        setCount(0);
-    20	        setIsLoading(false);
-    21	    }, []);
 </stdout>

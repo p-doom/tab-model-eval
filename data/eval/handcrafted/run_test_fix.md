@@ -28,27 +28,28 @@ cat -n tests/test_math.py
 
 # User
 <stdout>
-     1  import pytest
-     2  from src.math_utils import add, subtract
-     3  
-     4  def setup_module(module):
-     5      print("Setup")
-     6  
-     7  def teardown_module(module):
-     8      print("Teardown")
-     9  
-    10  def test_add():
-    11      # Basic addition test
-    12      assert add(2, 2) == 5
-    13      assert add(1, 1) == 2
-    14  
-    15  def test_subtract():
-    16      assert subtract(2, 1) == 1
+     1	import pytest
+     2	from src.math_utils import add, subtract
+     3	
+     4	def setup_module(module):
+     5	    print("Setup")
+     6	
+     7	def teardown_module(module):
+     8	    print("Teardown")
+     9	
+    10	def test_add():
+    11	    # Basic addition test
+    12	    assert add(2, 2) == 5
+    13	    assert add(1, 1) == 2
+    14	
+    15	def test_subtract():
+    16	    assert subtract(2, 1) == 1
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '12,12c\    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/test_math.py | sed -n '7,16p'
+sed -i '12,12c\
+    assert add(2, 2) == 4' tests/test_math.py && cat -n tests/test_math.py | sed -n '2,16p'
 ```
 
 <assertions>
@@ -62,16 +63,21 @@ Make sure that:
 
 # User
 <stdout>
-     7  def teardown_module(module):
-     8      print("Teardown")
-     9  
-    10  def test_add():
-    11      # Basic addition test
-    12      assert add(2, 2) == 4
-    13      assert add(1, 1) == 2
-    14  
-    15  def test_subtract():
-    16      assert subtract(2, 1) == 1
+     2	from src.math_utils import add, subtract
+     3	
+     4	def setup_module(module):
+     5	    print("Setup")
+     6	
+     7	def teardown_module(module):
+     8	    print("Teardown")
+     9	
+    10	def test_add():
+    11	    # Basic addition test
+    12	    assert add(2, 2) == 4
+    13	    assert add(1, 1) == 2
+    14	
+    15	def test_subtract():
+    16	    assert subtract(2, 1) == 1
 </stdout>
 
 # Assistant <EVAL>

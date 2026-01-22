@@ -65,7 +65,7 @@ cat -n main.py
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '1c\
+sed -i '1i\
 import numpy as np\
 from utils import elementwise_add, elementwise_multiply, normalize\
 \
@@ -75,7 +75,7 @@ scalar_a, scalar_b = 5.0, 3.0\
 vec_a = [1.0, 2.0, 3.0, 4.0]\
 vec_b = [0.5, 1.5, 2.5, 3.5]\
 mat_a = np.array([[1, 2], [3, 4]])\
-mat_b = np.array([[5, 6], [7, 8]])' main.py && cat -n main.py | sed -n '1,21p'
+mat_b = np.array([[5, 6], [7, 8]])' main.py && cat -n main.py | sed -n '1,10p'
 ```
 
 # User
@@ -124,7 +124,7 @@ cat -n utils.py | sed -n '1,21p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '10a\
+sed -i '$a\
 \
 # Scalar operations\
 scalar_sum = elementwise_add(scalar_a, scalar_b)\
@@ -132,14 +132,11 @@ scalar_prod = elementwise_multiply(scalar_a, scalar_b)\
 \
 # Vector operations\
 vec_sum = elementwise_add(vec_a, vec_b)\
-vec_prod = elementwise_multiply(vec_a, vec_b)' main.py && cat -n main.py | sed -n '1,21p'
+vec_prod = elementwise_multiply(vec_a, vec_b)' main.py && cat -n main.py | sed -n '4,18p'
 ```
 
 # User
 <stdout>
-     1	import numpy as np
-     2	from utils import elementwise_add, elementwise_multiply, normalize
-     3	
      4	
      5	# Test data
      6	scalar_a, scalar_b = 5.0, 3.0
@@ -189,25 +186,18 @@ cat -n utils.py | sed -n '12,32p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '18a\
+sed -i '$a\
 \
 # Matrix operations\
 mat_sum = elementwise_add(mat_a, mat_b)\
 mat_prod = elementwise_multiply(mat_a, mat_b)\
 \
 # Normalize the matrix\
-normalized_mat = norm' main.py && cat -n main.py | sed -n '5,25p'
+normalized_mat = norm' main.py && cat -n main.py | sed -n '12,25p'
 ```
 
 # User
 <stdout>
-     5	# Test data
-     6	scalar_a, scalar_b = 5.0, 3.0
-     7	vec_a = [1.0, 2.0, 3.0, 4.0]
-     8	vec_b = [0.5, 1.5, 2.5, 3.5]
-     9	mat_a = np.array([[1, 2], [3, 4]])
-    10	mat_b = np.array([[5, 6], [7, 8]])
-    11	
     12	# Scalar operations
     13	scalar_sum = elementwise_add(scalar_a, scalar_b)
     14	scalar_prod = elementwise_multiply(scalar_a, scalar_b)
@@ -226,7 +216,8 @@ normalized_mat = norm' main.py && cat -n main.py | sed -n '5,25p'
 
 # Assistant <EVAL>
 ```bash
-sed -i '25,25c\normalized_mat = normalize(mat_a)' main.py && cat -n main.py | sed -n '5,25p'
+sed -i '25,25c\
+normalized_mat = normalize(mat_a)' main.py && cat -n main.py | sed -n '15,25p'
 ```
 
 <assertions>
@@ -241,16 +232,6 @@ Make sure that:
 
 # User
 <stdout>
-     5	# Test data
-     6	scalar_a, scalar_b = 5.0, 3.0
-     7	vec_a = [1.0, 2.0, 3.0, 4.0]
-     8	vec_b = [0.5, 1.5, 2.5, 3.5]
-     9	mat_a = np.array([[1, 2], [3, 4]])
-    10	mat_b = np.array([[5, 6], [7, 8]])
-    11	
-    12	# Scalar operations
-    13	scalar_sum = elementwise_add(scalar_a, scalar_b)
-    14	scalar_prod = elementwise_multiply(scalar_a, scalar_b)
     15	
     16	# Vector operations
     17	vec_sum = elementwise_add(vec_a, vec_b)

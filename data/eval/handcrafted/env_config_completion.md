@@ -204,23 +204,15 @@ cat -n payments.py | sed -n '81,101p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '101a\
+sed -i '$a\
 \
 \
 def get_webhook_secret() -> str:\
-    secret = os.getenv("STRIPE_W' payments.py && cat -n payments.py | sed -n '85,105p'
+    secret = os.getenv("STRIPE_W' payments.py && cat -n payments.py | sed -n '93,105p'
 ```
 
 # User
 <stdout>
-    85	    customer = stripe.Customer.create(email=email, name=name)
-    86	    return {"id": customer.id, "email": email}
-    87	
-    88	
-    89	def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
-    90	    processor = PaymentProcessor()
-    91	    processor.initialize()
-    92	    refund = stripe.Refund.create(
     93	        payment_intent=payment_intent_id,
     94	        amount=amount
     95	    )
@@ -238,11 +230,11 @@ def get_webhook_secret() -> str:\
 
 # Assistant <EVAL>
 ```bash
-sed -i '105c\
+sed -i '105,105c\
     secret = os.getenv("STRIPE_WEBHOOK_SECRET")\
     if not secret:\
         raise ValueError("Stripe webhook secret not configured")\
-    return secret' payments.py && cat -n payments.py | sed -n '88,108p'
+    return secret' payments.py && cat -n payments.py | sed -n '96,108p'
 ```
 
 <assertions>
@@ -256,14 +248,6 @@ Make sure that:
 
 # User
 <stdout>
-    88	
-    89	def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
-    90	    processor = PaymentProcessor()
-    91	    processor.initialize()
-    92	    refund = stripe.Refund.create(
-    93	        payment_intent=payment_intent_id,
-    94	        amount=amount
-    95	    )
     96	    return {"refund_id": refund.id, "status": refund.status}
     97	
     98	

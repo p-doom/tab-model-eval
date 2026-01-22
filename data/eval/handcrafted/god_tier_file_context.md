@@ -572,7 +572,7 @@ cat -n helpers.py | sed -n '478,498p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '488a\
+sed -i '489i\
     report_date = _format' helpers.py && cat -n helpers.py | sed -n '479,499p'
 ```
 
@@ -603,7 +603,7 @@ sed -i '488a\
 
 # Assistant <EVAL>
 ```bash
-sed -i '489c\
+sed -i '489,489c\
     report_date = _format_iso_date_to_human(created_at)' helpers.py && cat -n helpers.py | sed -n '479,499p'
 ```
 

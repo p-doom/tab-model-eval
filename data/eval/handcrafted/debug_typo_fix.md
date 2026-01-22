@@ -52,18 +52,21 @@ cat -n train.sbatch
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '17a\
+sed -i '18,25c\
 export PYTHONUNBUFFERED=1\
-' train.sbatch && cat -n train.sbatch | sed -n '7,27p'
+\
+python train.py \\\
+    --model_name gpt2-medium \\\
+    --dataset_path data/trian_dataset.jsonl \\\
+    --output_dir checkpoints/run_001 \\\
+    --batch_size 32 \\\
+    --learning_rate 1e-4 \\\
+    --num_epochs 10 \\\
+    --warmup_steps 500' train.sbatch && cat -n train.sbatch | sed -n '12,29p'
 ```
 
 # User
 <stdout>
-     7	#SBATCH --ntasks-per-node=1
-     8	#SBATCH --gpus-per-node=4
-     9	#SBATCH --cpus-per-task=32
-    10	#SBATCH --mem=256G
-    11	
     12	module load cuda/12.1
     13	source /opt/conda/etc/profile.d/conda.sh
     14	conda activate train_env
@@ -80,6 +83,8 @@ export PYTHONUNBUFFERED=1\
     25	    --learning_rate 1e-4 \
     26	    --num_epochs 10 \
     27	    --warmup_steps 500
+    28	    --logging_steps 100 \
+    29	    --save_steps 1000
 </stdout>
 
 # Assistant <NO_EVAL>
@@ -151,11 +156,12 @@ drwxr-xr-x 4 user user     4096 Jan 19 10:00 ..
 
 # Assistant <NO_EVAL>
 ```bash
-cat -n train.sbatch | sed -n '10,30p'
+cat -n train.sbatch | sed -n '9,29p'
 ```
 
 # User
 <stdout>
+     9	#SBATCH --cpus-per-task=32
     10	#SBATCH --mem=256G
     11	
     12	module load cuda/12.1
@@ -173,15 +179,14 @@ cat -n train.sbatch | sed -n '10,30p'
     24	    --batch_size 32 \
     25	    --learning_rate 1e-4 \
     26	    --num_epochs 10 \
-    27	    --warmup_steps 500 \
+    27	    --warmup_steps 500
     28	    --logging_steps 100 \
     29	    --save_steps 1000
-    30	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-cat -n train.sbatch | sed -n '12,32p'
+cat -n train.sbatch | sed -n '9,29p'
 ```
 
 <assertions>
@@ -194,6 +199,9 @@ Make sure that:
 
 # User
 <stdout>
+     9	#SBATCH --cpus-per-task=32
+    10	#SBATCH --mem=256G
+    11	
     12	module load cuda/12.1
     13	source /opt/conda/etc/profile.d/conda.sh
     14	conda activate train_env
@@ -209,18 +217,25 @@ Make sure that:
     24	    --batch_size 32 \
     25	    --learning_rate 1e-4 \
     26	    --num_epochs 10 \
-    27	    --warmup_steps 500 \
+    27	    --warmup_steps 500
     28	    --logging_steps 100 \
     29	    --save_steps 1000
-    30	
-    31	
-    32	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '22,22c\
-    --dataset_path data/train_dataset.jsonl \' train.sbatch && cat -n train.sbatch | sed -n '12,32p'
+sed -i '22,29c\
+    --dataset_path data/train_dataset.jsonl \\\
+    --output_dir checkpoints/run_001 \\\
+    --batch_size 32 \\\
+    --learning_rate 1e-4 \\\
+    --num_epochs 10 \\\
+    --warmup_steps 500 \\\
+    --logging_steps 100 \\\
+    --save_steps 1000\
+\
+\
+' train.sbatch && cat -n train.sbatch | sed -n '17,32p'
 ```
 
 <assertions>
@@ -233,11 +248,6 @@ Make sure that:
 
 # User
 <stdout>
-    12	module load cuda/12.1
-    13	source /opt/conda/etc/profile.d/conda.sh
-    14	conda activate train_env
-    15	
-    16	cd /workspace/project
     17	
     18	export PYTHONUNBUFFERED=1
     19	

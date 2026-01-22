@@ -64,7 +64,7 @@ cat -n train.py
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '33,36c\
+sed -i '33,40c\
     # for epoch in range(100):\
     #     for batch in dataloader:\
     #         params, opt_state, loss = train_step(params, opt_state, batch)\
@@ -72,16 +72,15 @@ sed -i '33,36c\
     \
     batch = next(iter(dataloader))\
     step = 0\
-    while Tr' train.py && cat -n train.py | sed -n '23,43p'
+    while Tr\
+\
+if __name__ == "__main__":\
+    main()\
+    main()' train.py && cat -n train.py | sed -n '28,44p'
 ```
 
 # User
 <stdout>
-    23	def main():
-    24	    rng = jax.random.PRNGKey(42)
-    25	    params = create_model(rng)
-    26	    
-    27	    global optimizer
     28	    optimizer = optax.adam(learning_rate=1e-3)
     29	    opt_state = optimizer.init(params)
     30	    
@@ -98,6 +97,7 @@ sed -i '33,36c\
     41	
     42	if __name__ == "__main__":
     43	    main()
+    44	    main()
 </stdout>
 
 # Assistant <EVAL>
@@ -107,7 +107,7 @@ sed -i '40,40c\
         params, opt_state, loss = train_step(params, opt_state, batch)\
         step += 1\
         if step % 100 == 0:\
-            print(f"Step {step}, Loss: {loss:.4f}")' train.py && cat -n train.py | sed -n '27,47p'
+            print(f"Step {step}, Loss: {loss:.4f}")' train.py && cat -n train.py | sed -n '32,48p'
 ```
 
 <assertions>
@@ -126,11 +126,6 @@ Note:
 
 # User
 <stdout>
-    27	    global optimizer
-    28	    optimizer = optax.adam(learning_rate=1e-3)
-    29	    opt_state = optimizer.init(params)
-    30	    
-    31	    dataloader = create_dataloader(batch_size=32)
     32	    
     33	    # for epoch in range(100):
     34	    #     for batch in dataloader:
@@ -147,4 +142,5 @@ Note:
     45	
     46	if __name__ == "__main__":
     47	    main()
+    48	    main()
 </stdout>

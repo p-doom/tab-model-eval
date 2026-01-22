@@ -207,7 +207,9 @@ cat -n process_data.py | sed -n '1,21p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '3a\
+sed -i '2,10c\
+\
+\
 def load_products(filepath: str) -> List[Dict]:\
     products = []\
     with open(filepath, '"'"'r'"'"') as f:\
@@ -215,7 +217,12 @@ def load_products(filepath: str) -> List[Dict]:\
             products.append(json.lo\
     return products\
 \
-' process_data.py && cat -n process_data.py | sed -n '1,21p'
+\
+def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:\
+    for product in products:\
+        if product['"'"'id'"'"'] == product_id:\
+            return product\
+    return None' process_data.py && cat -n process_data.py | sed -n '1,19p'
 ```
 
 # User
@@ -236,17 +243,23 @@ def load_products(filepath: str) -> List[Dict]:\
     14	        if product['id'] == product_id:
     15	            return product
     16	    return None
-    17	
-    18	
-    19	def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
-    20	    return [p for p in products if p['category'] == category]
-    21	
+    17	def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
+    18	    return [p for p in products if p['category'] == category]
+    19	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '8,8c\
-            products.append(json.loads(line))' process_data.py && cat -n process_data.py | sed -n '1,21p'
+sed -i '8,18c\
+            products.append(json.loads(line))\
+    return products\
+\
+\
+def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:\
+    for product in products:\
+        if product['"'"'id'"'"'] == product_id:\
+            return product\
+    return None' process_data.py && cat -n process_data.py | sed -n '2,22p'
 ```
 
 <assertions>
@@ -259,7 +272,6 @@ Make sure that:
 
 # User
 <stdout>
-     1	from typing import List, Dict, Optional
      2	
      3	
      4	def load_products(filepath: str) -> List[Dict]:
@@ -277,9 +289,10 @@ Make sure that:
     16	    return None
     17	
     18	
-    19	def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
-    20	    return [p for p in products if p['category'] == category]
-    21	
+    19	
+    20	
+    21	def calculate_total_value(products: List[Dict]) -> float:
+    22	    return sum(p['price'] for p in products)
 </stdout>
 
 # Assistant <EVAL>
@@ -316,15 +329,15 @@ Note:
     16	    return None
     17	
     18	
-    19	def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
-    20	    return [p for p in products if p['category'] == category]
-    21	
+    19	
+    20	
+    21	def calculate_total_value(products: List[Dict]) -> float:
 </stdout>
 
 # Assistant <EVAL>
 ```bash
 sed -i '1i\
-import json' process_data.py && cat -n process_data.py | sed -n '1,21p'
+import json' process_data.py && cat -n process_data.py | sed -n '1,11p'
 ```
 
 <assertions>
@@ -348,14 +361,4 @@ Make sure that:
      9	            products.append(json.loads(line))
     10	    return products
     11	
-    12	
-    13	def get_product_by_id(products: List[Dict], product_id: int) -> Optional[Dict]:
-    14	    for product in products:
-    15	        if product['id'] == product_id:
-    16	            return product
-    17	    return None
-    18	
-    19	
-    20	def get_products_by_category(products: List[Dict], category: str) -> List[Dict]:
-    21	    return [p for p in products if p['category'] == category]
 </stdout>

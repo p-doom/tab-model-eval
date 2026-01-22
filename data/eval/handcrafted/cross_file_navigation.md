@@ -202,7 +202,7 @@ cat -n main.py | sed -n '35,55p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '45c\
+sed -i '45,45c\
     success = send_notification(user_id, full_message, priority=priority)' main.py && cat -n main.py | sed -n '35,55p'
 ```
 
@@ -272,7 +272,7 @@ Make sure that:
 
 # Assistant <EVAL>
 ```bash
-sed -i '40c\
+sed -i '40,40c\
 def send_notification(user_id: int, message: str, priority: str = "normal") -> bool:' services.py && cat -n services.py | sed -n '30,50p'
 ```
 

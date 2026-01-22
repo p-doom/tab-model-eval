@@ -94,12 +94,11 @@ cat -n theme.js | sed -n '1,21p'
 ```bash
 sed -i '12,12c\
     } else {\
-        container.style.backgroundColor =' theme.js && cat -n theme.js | sed -n '1,21p'
+        container.style.backgroundColor =' theme.js && cat -n theme.js | sed -n '2,22p'
 ```
 
 # User
 <stdout>
-     1	const container = document.getElementById('app-container');
      2	const icon = document.getElementById('theme-icon');
      3	const toggleBtn = document.getElementById('theme-toggle');
      4	const isDarkTheme = localStorage.getItem('theme') === 'dark';
@@ -120,6 +119,7 @@ sed -i '12,12c\
     19	    location.reload();
     20	}
     21	
+    22	toggleBtn.addEventListener('click', toggleTheme);
 </stdout>
 
 # Assistant <EVAL>
@@ -129,7 +129,7 @@ sed -i '13,13c\
         container.style.color = '"'"'#1a1a1a'"'"';\
         icon.src = '"'"'assets/sun.png'"'"';\
         toggleBtn.textContent = '"'"'Switch to Dark'"'"';\
-    }' theme.js && cat -n theme.js | sed -n '1,21p'
+    }' theme.js && cat -n theme.js | sed -n '5,25p'
 ```
 
 <assertions>
@@ -146,10 +146,6 @@ Make sure that:
 
 # User
 <stdout>
-     1	const container = document.getElementById('app-container');
-     2	const icon = document.getElementById('theme-icon');
-     3	const toggleBtn = document.getElementById('theme-toggle');
-     4	const isDarkTheme = localStorage.getItem('theme') === 'dark';
      5	
      6	function applyTheme() {
      7	    if (isDarkTheme) {
@@ -167,4 +163,8 @@ Make sure that:
     19	
     20	function toggleTheme() {
     21	    const newTheme = isDarkTheme ? 'light' : 'dark';
+    22	    localStorage.setItem('theme', newTheme);
+    23	    location.reload();
+    24	}
+    25	
 </stdout>

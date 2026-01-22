@@ -113,31 +113,20 @@ cat -n transformer.py | sed -n '11,31p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '21i\
+sed -i '27i\
+        x = x + mlp_out\
+        x = self.ln2(x)\
+        return x\
+\
     def forward(self, x):\
         attn_out, _ = self.attn(x, x, x)\
         attn_out = self.dropout(attn_out)\
         x = x + attn_out\
-        x = self.ln1(x)\
-        mlp_out = self.mlp(x)\
-        x = x + mlp_out\
-        x = self.ln2(x)\
-        return x\
-' transformer.py && cat -n transformer.py | sed -n '11,31p'
+        x = self.ln1(x)' transformer.py && cat -n transformer.py | sed -n '21,41p'
 ```
 
 # User
 <stdout>
-    11	            nn.Linear(dim, int(dim * mlp_ratio)),
-    12	            nn.GELU(),
-    13	            nn.Dropout(dropout),
-    14	            nn.Linear(int(dim * mlp_ratio), dim),
-    15	            nn.Dropout(dropout)
-    16	        )
-    17	        self.ln1 = nn.LayerNorm(dim)
-    18	        self.ln2 = nn.LayerNorm(dim)
-    19	        self.dropout = nn.Dropout(dropout)
-    20	
     21	    def forward(self, x):
     22	        attn_out, _ = self.attn(x, x, x)
     23	        attn_out = self.dropout(attn_out)
@@ -149,6 +138,16 @@ sed -i '21i\
     29	        return x
     30	
     31	    def forward(self, x):
+    32	        attn_out, _ = self.attn(x, x, x)
+    33	        attn_out = self.dropout(attn_out)
+    34	        x = x + attn_out
+    35	        x = self.ln1(x)
+    36	        x = x + mlp_out
+    37	        x = self.ln2(x)
+    38	        return x
+    39	
+    40	
+    41	class Transformer(nn.Module):
 </stdout>
 
 # Assistant <NO_EVAL>
@@ -174,17 +173,16 @@ cat -n transformer.py | sed -n '20,40p'
     33	        attn_out = self.dropout(attn_out)
     34	        x = x + attn_out
     35	        x = self.ln1(x)
-    36	        mlp_out = self.mlp(x)
-    37	        x = x + mlp_out
-    38	        x = self.ln2(x)
-    39	        return x
+    36	        x = x + mlp_out
+    37	        x = self.ln2(x)
+    38	        return x
+    39	
     40	
 </stdout>
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '21,29c\
-    def forward(self, x):\
+sed -i '22,30c\
         ln1_out = self.ln1(x)\
         attn_out, _ = self.attn(ln1_out, ln1_out, ln1_out)\
         attn_out = self.dropout(attn_out)\
@@ -193,16 +191,12 @@ sed -i '21,29c\
         mlp_out = self.mlp(ln2_out)\
         x = x + mlp_out\
         return x\
-' transformer.py && cat -n transformer.py | sed -n '11,31p'
+\
+    def forward(self, x):' transformer.py && cat -n transformer.py | sed -n '16,36p'
 ```
 
 # User
 <stdout>
-    11	            nn.Linear(dim, int(dim * mlp_ratio)),
-    12	            nn.GELU(),
-    13	            nn.Dropout(dropout),
-    14	            nn.Linear(int(dim * mlp_ratio), dim),
-    15	            nn.Dropout(dropout)
     16	        )
     17	        self.ln1 = nn.LayerNorm(dim)
     18	        self.ln2 = nn.LayerNorm(dim)
@@ -219,6 +213,11 @@ sed -i '21,29c\
     29	        return x
     30	
     31	    def forward(self, x):
+    32	    def forward(self, x):
+    33	        attn_out, _ = self.attn(x, x, x)
+    34	        attn_out = self.dropout(attn_out)
+    35	        x = x + attn_out
+    36	        x = self.ln1(x)
 </stdout>
 
 # Assistant <NO_EVAL>
@@ -240,11 +239,11 @@ cat -n transformer.py | sed -n '20,40p'
     29	        return x
     30	
     31	    def forward(self, x):
-    32	        attn_out, _ = self.attn(x, x, x)
-    33	        attn_out = self.dropout(attn_out)
-    34	        x = x + attn_out
-    35	        x = self.ln1(x)
-    36	        mlp_out = self.mlp(x)
+    32	    def forward(self, x):
+    33	        attn_out, _ = self.attn(x, x, x)
+    34	        attn_out = self.dropout(attn_out)
+    35	        x = x + attn_out
+    36	        x = self.ln1(x)
     37	        x = x + mlp_out
     38	        x = self.ln2(x)
     39	        return x
@@ -253,20 +252,26 @@ cat -n transformer.py | sed -n '20,40p'
 
 # Assistant <NO_EVAL>
 ```bash
-sed -i '31,31c\
-    # def forward(self, x):' transformer.py && cat -n transformer.py | sed -n '20,40p'
+sed -i '31,46c\
+    # def forward(self, x):\
+        attn_out, _ = self.attn(x, x, x)\
+        attn_out = self.dropout(attn_out)\
+        x = x + attn_out\
+        x = self.ln1(x)\
+        mlp_out = self.mlp(x)\
+        x = x + mlp_out\
+        x = self.ln2(x)\
+        return x\
+\
+\
+\
+class Transformer(nn.Module):\
+    def __init__(self, vocab_size, dim, num_heads, num_layers, max_seq_len=512):\
+        super().__init__()' transformer.py && cat -n transformer.py | sed -n '28,48p'
 ```
 
 # User
 <stdout>
-    20	
-    21	    def forward(self, x):
-    22	        ln1_out = self.ln1(x)
-    23	        attn_out, _ = self.attn(ln1_out, ln1_out, ln1_out)
-    24	        attn_out = self.dropout(attn_out)
-    25	        x = x + attn_out
-    26	        ln2_out = self.ln2(x)
-    27	        mlp_out = self.mlp(ln2_out)
     28	        x = x + mlp_out
     29	        return x
     30	
@@ -280,12 +285,20 @@ sed -i '31,31c\
     38	        x = self.ln2(x)
     39	        return x
     40	
+    41	
+    42	
+    43	class Transformer(nn.Module):
+    44	    def __init__(self, vocab_size, dim, num_heads, num_layers, max_seq_len=512):
+    45	        super().__init__()
+    46	        self.blocks = nn.ModuleList([
+    47	            TransformerBlock(dim, num_heads) for _ in range(num_layers)
+    48	        ])
 </stdout>
 
 # Assistant <EVAL>
 ```bash
 sed -i '32,32c\
-        # attn_out, _ = self.attn(x, x, x)' transformer.py && cat -n transformer.py | sed -n '20,40p'
+        # attn_out, _ = self.attn(x, x, x)' transformer.py && cat -n transformer.py | sed -n '22,42p'
 ```
 
 <assertions>
@@ -301,8 +314,6 @@ Note:
 
 # User
 <stdout>
-    20	
-    21	    def forward(self, x):
     22	        ln1_out = self.ln1(x)
     23	        attn_out, _ = self.attn(ln1_out, ln1_out, ln1_out)
     24	        attn_out = self.dropout(attn_out)
@@ -322,18 +333,27 @@ Note:
     38	        x = self.ln2(x)
     39	        return x
     40	
+    41	
+    42	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '33,39c\
+sed -i '33,46c\
         # attn_out = self.dropout(attn_out)\
         # x = x + attn_out\
         # x = self.ln1(x)\
         # mlp_out = self.mlp(x)\
         # x = x + mlp_out\
         # x = self.ln2(x)\
-        # return x' transformer.py && cat -n transformer.py | sed -n '20,40p'
+        # return x\
+\
+\
+\
+class Transformer(nn.Module):\
+    def __init__(self, vocab_size, dim, num_heads, num_layers, max_seq_len=512):\
+        super().__init__()\
+        self.embedding = nn.Embedding(vocab_size, dim)' transformer.py && cat -n transformer.py | sed -n '29,49p'
 ```
 
 <assertions>
@@ -348,15 +368,6 @@ Make sure that:
 
 # User
 <stdout>
-    20	
-    21	    def forward(self, x):
-    22	        ln1_out = self.ln1(x)
-    23	        attn_out, _ = self.attn(ln1_out, ln1_out, ln1_out)
-    24	        attn_out = self.dropout(attn_out)
-    25	        x = x + attn_out
-    26	        ln2_out = self.ln2(x)
-    27	        mlp_out = self.mlp(ln2_out)
-    28	        x = x + mlp_out
     29	        return x
     30	
     31	    # def forward(self, x):
@@ -369,4 +380,13 @@ Make sure that:
     38	        # x = self.ln2(x)
     39	        # return x
     40	
+    41	
+    42	
+    43	class Transformer(nn.Module):
+    44	    def __init__(self, vocab_size, dim, num_heads, num_layers, max_seq_len=512):
+    45	        super().__init__()
+    46	        self.embedding = nn.Embedding(vocab_size, dim)
+    47	            TransformerBlock(dim, num_heads) for _ in range(num_layers)
+    48	        ])
+    49	        self.ln_f = nn.LayerNorm(dim)
 </stdout>

@@ -81,7 +81,7 @@ cat -n user.py | sed -n '1,21p'
 # Assistant <NO_EVAL>
 ```bash
 sed -i '2,2c\
-    def __init__(self, name, age, email):' user.py && cat -n user.py | sed -n '1,21p'
+    def __init__(self, name, age, email):' user.py && cat -n user.py | sed -n '1,12p'
 ```
 
 # User
@@ -98,21 +98,12 @@ sed -i '2,2c\
     10	        return self.age >= 18
     11	
     12	    def is_verified(self):
-    13	        return self.age >= 18 and len(self.name) > 0
-    14	
-    15	
-    16	def user_to_dict(user):
-    17	    return {
-    18	        "name": user.name,
-    19	        "age": user.age,
-    20	    }
-    21	
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '4a\
-        self.email = email' user.py && cat -n user.py | sed -n '1,21p'
+sed -i '5i\
+        self.email = email' user.py && cat -n user.py | sed -n '1,15p'
 ```
 
 <assertions>
@@ -142,18 +133,12 @@ Make sure that:
     13	    def is_verified(self):
     14	        return self.age >= 18 and len(self.name) > 0
     15	
-    16	
-    17	def user_to_dict(user):
-    18	    return {
-    19	        "name": user.name,
-    20	        "age": user.age,
-    21	    }
 </stdout>
 
 # Assistant <EVAL>
 ```bash
-sed -i '20a\
-        "email": user.email,' user.py && cat -n user.py | sed -n '7,27p'
+sed -i '21i\
+        "email": user.email,' user.py && cat -n user.py | sed -n '11,28p'
 ```
 
 <assertions>
@@ -168,10 +153,6 @@ Make sure that:
 
 # User
 <stdout>
-     7	    def get_name(self):
-     8	        return self.name
-     9	
-    10	    def is_adult(self):
     11	        return self.age >= 18
     12	
     13	    def is_verified(self):
@@ -189,6 +170,7 @@ Make sure that:
     25	if __name__ == "__main__":
     26	    user = User("Alice", 30)
     27	    print(user_to_dict(user))
+    28	    print(f"Verified: {user.is_verified()}")
 </stdout>
 
 # Assistant <EVAL>
@@ -231,7 +213,7 @@ Make sure that:
 # Assistant <EVAL>
 ```bash
 sed -i '26,26c\
-    user = User("Alice", 30, "alice@example.com")' user.py && cat -n user.py | sed -n '8,28p'
+    user = User("Alice", 30, "alice@example.com")' user.py && cat -n user.py | sed -n '16,28p'
 ```
 
 <assertions>
@@ -245,14 +227,6 @@ Make sure that:
 
 # User
 <stdout>
-     8	        return self.name
-     9	
-    10	    def is_adult(self):
-    11	        return self.age >= 18
-    12	
-    13	    def is_verified(self):
-    14	        return self.age >= 18 and len(self.name) > 0
-    15	
     16	
     17	def user_to_dict(user):
     18	    return {
