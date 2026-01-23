@@ -139,7 +139,6 @@ async def generate_next_command(
         delay = 0.25
         for attempt in range(args.max_attempts):
             try:
-                # Measure completion time
                 start_time = time.perf_counter()
                 resp = await client.chat.completions.create(
                     model=args.model_name,
@@ -172,7 +171,6 @@ async def generate_next_command(
                 exact_match_avg_at_n = num_exact_matches / len(samples)
                 exact_match_pass_at_n = int(num_exact_matches > 0)
 
-                # Extract token usage if available (for throughput calculation)
                 usage = getattr(resp, "usage", None)
                 prompt_tokens = usage.prompt_tokens if usage else None
                 completion_tokens = usage.completion_tokens if usage else None
@@ -188,7 +186,6 @@ async def generate_next_command(
                     "num_exact_matches": num_exact_matches,
                     "exact_match_avg_at_n": exact_match_avg_at_n,
                     "exact_match_pass_at_n": exact_match_pass_at_n,
-                    # Timing metrics
                     "completion_time_ms": completion_time_ms,
                     "prompt_tokens": prompt_tokens,
                     "completion_tokens": completion_tokens,
@@ -287,7 +284,6 @@ async def run_eval(args: Args, base_url: str):
     )
     total_exact_match_pass_at_n = sum(r.get("exact_match_pass_at_n", 0) for r in results)
 
-    # Compute completion time statistics
     completion_times = [
         r["completion_time_ms"] for r in results if r.get("completion_time_ms") is not None
     ]
@@ -300,7 +296,6 @@ async def run_eval(args: Args, base_url: str):
             "completion_time_p95_ms": float(np.percentile(completion_times, 95)),
         }
 
-        # Compute throughput (tokens/sec) if token counts are available
         completion_tokens_list = [
             r["completion_tokens"] for r in results if r.get("completion_tokens")
         ]
@@ -340,7 +335,6 @@ async def run_eval(args: Args, base_url: str):
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
 
-    # Print timing statistics
     if timing_stats:
         print("\n--- Completion Time Statistics ---")
         print(f"Requests: {timing_stats['num_timed_requests']}")

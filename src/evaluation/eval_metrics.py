@@ -440,7 +440,6 @@ def run_single_metrics_eval(
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
-    # Add timing stats from generations file if available
     timing_stats = loaded_data.get("timing_stats", {})
     if timing_stats:
         metrics_to_log.update(
@@ -495,7 +494,7 @@ def run_single_metrics_eval(
             "generations_file": generations_file,
         },
         "metrics_scores": scores,
-        "timing_stats": timing_stats,  # Pass through for downstream scripts
+        "timing_stats": timing_stats,
         "metrics_results": results,
     }
     save_dataset(metrics_file, output_data)

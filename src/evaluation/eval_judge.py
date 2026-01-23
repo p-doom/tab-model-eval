@@ -172,7 +172,6 @@ def load_test_cases_from_metrics(filepath: str) -> tuple[List[Dict], Dict, Dict,
     test_cases = data["metrics_results"]
     config = data.get("metadata", {}).get("config_generations", {})
     scores = data.get("metrics_scores", {})
-    # Timing stats may be in metadata (from generations) or at root level
     timing_stats = data.get("timing_stats", {}) or data.get("metadata", {}).get("timing_stats", {})
     return test_cases, config, scores, timing_stats
 
@@ -492,7 +491,6 @@ async def run_single_judge_eval(
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
-    # Add timing stats if available (from generations or metrics file)
     if timing_stats:
         metrics_to_log.update(
             {
