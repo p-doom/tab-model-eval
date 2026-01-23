@@ -1,3 +1,4 @@
 sglang
 lm-eval
 tyro
+numpy

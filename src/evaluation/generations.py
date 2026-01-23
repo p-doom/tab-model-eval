@@ -4,10 +4,12 @@ import os
 import re
 import sys
 import subprocess
+import time
 from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
 import httpx
+import numpy as np
 import tyro
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
@@ -35,6 +37,7 @@ class Args:
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"  # sglang’s OpenAI-compatible server ignores this value
     tp_size: int = 1
+    dp_size: int = 1
     lora_paths: Optional[List[str]] = None
 
     # Model-related
@@ -136,6 +139,8 @@ async def generate_next_command(
         delay = 0.25
         for attempt in range(args.max_attempts):
             try:
+                # Measure completion time
+                start_time = time.perf_counter()
                 resp = await client.chat.completions.create(
                     model=args.model_name,
                     messages=messages,
@@ -146,6 +151,8 @@ async def generate_next_command(
                         "chat_template_kwargs": {"enable_thinking": False},
                     },
                 )
+                end_time = time.perf_counter()
+                completion_time_ms = (end_time - start_time) * 1000  # Convert to milliseconds
 
                 expected = test_case.get("expected_final_response", "")
                 samples = []
@@ -165,6 +172,12 @@ async def generate_next_command(
                 exact_match_avg_at_n = num_exact_matches / len(samples)
                 exact_match_pass_at_n = int(num_exact_matches > 0)
 
+                # Extract token usage if available (for throughput calculation)
+                usage = getattr(resp, "usage", None)
+                prompt_tokens = usage.prompt_tokens if usage else None
+                completion_tokens = usage.completion_tokens if usage else None
+                total_tokens = usage.total_tokens if usage else None
+
                 return {
                     "task_id": test_case["task_id"],
                     "messages": messages,
@@ -175,6 +188,11 @@ async def generate_next_command(
                     "num_exact_matches": num_exact_matches,
                     "exact_match_avg_at_n": exact_match_avg_at_n,
                     "exact_match_pass_at_n": exact_match_pass_at_n,
+                    # Timing metrics
+                    "completion_time_ms": completion_time_ms,
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens,
                 }
 
             except Exception as e:
@@ -188,6 +206,7 @@ async def generate_next_command(
                         "generated_command": "",
                         "expected_command": test_case.get("expected_final_response", ""),
                         "num_exact_matches": 0,
+                        "completion_time_ms": None,
                         "error": str(e),
                     }
                 await asyncio.sleep(delay)
@@ -268,6 +287,34 @@ async def run_eval(args: Args, base_url: str):
     )
     total_exact_match_pass_at_n = sum(r.get("exact_match_pass_at_n", 0) for r in results)
 
+    # Compute completion time statistics
+    completion_times = [
+        r["completion_time_ms"] for r in results if r.get("completion_time_ms") is not None
+    ]
+    timing_stats = {}
+    if completion_times:
+        timing_stats = {
+            "num_timed_requests": len(completion_times),
+            "completion_time_mean_ms": float(np.mean(completion_times)),
+            "completion_time_median_ms": float(np.median(completion_times)),
+            "completion_time_p95_ms": float(np.percentile(completion_times, 95)),
+        }
+
+        # Compute throughput (tokens/sec) if token counts are available
+        completion_tokens_list = [
+            r["completion_tokens"] for r in results if r.get("completion_tokens")
+        ]
+        timed_results = [r for r in results if r.get("completion_time_ms") is not None]
+
+        if completion_tokens_list and len(completion_tokens_list) == len(timed_results):
+            tokens_per_sec = [
+                (r["completion_tokens"] / (r["completion_time_ms"] / 1000))
+                for r in timed_results
+                if r["completion_time_ms"] > 0
+            ]
+            if tokens_per_sec:
+                timing_stats["throughput_tokens_per_sec_mean"] = float(np.mean(tokens_per_sec))
+
     with open(args.generations_file, "w") as f:
         json.dump(
             {
@@ -277,6 +324,7 @@ async def run_eval(args: Args, base_url: str):
                     "total_exact_match_avg_at_n": total_exact_match_avg_at_n,
                     "total_exact_match_pass_at_n": total_exact_match_pass_at_n,
                 },
+                "timing_stats": timing_stats,
                 "system_prompt": system_prompt,
                 "generation_results": results,
             },
@@ -291,7 +339,18 @@ async def run_eval(args: Args, base_url: str):
     print(f"Number of Samples per Task: {args.num_samples}")
     print(f"Total Exact Match Pass At N: {total_exact_match_pass_at_n}")
     print(f"Total Exact Match Avg At N: {total_exact_match_avg_at_n * 100:.2f}%")
-    print(f"Generations output file: {args.generations_file}")
+
+    # Print timing statistics
+    if timing_stats:
+        print("\n--- Completion Time Statistics ---")
+        print(f"Requests: {timing_stats['num_timed_requests']}")
+        print(f"Mean: {timing_stats['completion_time_mean_ms']:.2f} ms")
+        print(f"Median: {timing_stats['completion_time_median_ms']:.2f} ms")
+        print(f"P95: {timing_stats['completion_time_p95_ms']:.2f} ms")
+        if "throughput_tokens_per_sec_mean" in timing_stats:
+            print(f"Throughput: {timing_stats['throughput_tokens_per_sec_mean']:.1f} tokens/sec")
+
+    print(f"\nGenerations output file: {args.generations_file}")
 
     await http.aclose()
 
@@ -302,7 +361,7 @@ async def run_eval(args: Args, base_url: str):
 async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
     """
     Poll the server's OpenAI-compatible endpoint until it responds or timeout.
-    We’ll try a lightweight call to /models.
+    We'll try a lightweight call to /models.
     """
     print(f"Waiting for server at {base_url} ...")
     deadline = asyncio.get_event_loop().time() + timeout
@@ -350,6 +409,8 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         str(args.mem_fraction_static),
         "--tp-size",
         str(args.tp_size),
+        "--dp-size",
+        str(args.dp_size),
     ]
 
     if args.lora_paths:

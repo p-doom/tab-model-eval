@@ -440,6 +440,27 @@ def run_single_metrics_eval(
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
 
+    # Add timing stats from generations file if available
+    timing_stats = loaded_data.get("timing_stats", {})
+    if timing_stats:
+        metrics_to_log.update(
+            {
+                f"{args.wandb_eval_type}/completion_time_mean_ms": timing_stats.get(
+                    "completion_time_mean_ms"
+                ),
+                f"{args.wandb_eval_type}/completion_time_median_ms": timing_stats.get(
+                    "completion_time_median_ms"
+                ),
+                f"{args.wandb_eval_type}/completion_time_p95_ms": timing_stats.get(
+                    "completion_time_p95_ms"
+                ),
+            }
+        )
+        if "throughput_tokens_per_sec_mean" in timing_stats:
+            metrics_to_log[f"{args.wandb_eval_type}/throughput_tokens_per_sec_mean"] = timing_stats[
+                "throughput_tokens_per_sec_mean"
+            ]
+
     # Add HumanEval metrics to log
     if humaneval_results:
         metrics_to_log.update(
@@ -462,7 +483,7 @@ def run_single_metrics_eval(
     else:
         wandb.log(metrics_to_log)
 
-    # Save output
+    # Save output (timing_stats already loaded above for wandb logging)
     output_data = {
         "metadata": {
             "config_generations": config_generations,
@@ -474,6 +495,7 @@ def run_single_metrics_eval(
             "generations_file": generations_file,
         },
         "metrics_scores": scores,
+        "timing_stats": timing_stats,  # Pass through for downstream scripts
         "metrics_results": results,
     }
     save_dataset(metrics_file, output_data)

@@ -156,22 +156,25 @@ class Args:
 # ----------------------------
 # Data loading helpers
 # ----------------------------
-def load_test_cases_from_generations(filepath: str) -> tuple[List[Dict], Dict, Dict]:
+def load_test_cases_from_generations(filepath: str) -> tuple[List[Dict], Dict, Dict, Dict]:
     """Load test cases from a generations file."""
     data = load_dataset(filepath)
     test_cases = data["generation_results"]
     config = data.get("config_generations", {})
     scores = data.get("generation_scores", {})
-    return test_cases, config, scores
+    timing_stats = data.get("timing_stats", {})
+    return test_cases, config, scores, timing_stats
 
 
-def load_test_cases_from_metrics(filepath: str) -> tuple[List[Dict], Dict, Dict]:
+def load_test_cases_from_metrics(filepath: str) -> tuple[List[Dict], Dict, Dict, Dict]:
     """Load test cases from a metrics file (output of sglang_eval_metrics.py)."""
     data = load_dataset(filepath)
     test_cases = data["metrics_results"]
     config = data.get("metadata", {}).get("config_generations", {})
     scores = data.get("metrics_scores", {})
-    return test_cases, config, scores
+    # Timing stats may be in metadata (from generations) or at root level
+    timing_stats = data.get("timing_stats", {}) or data.get("metadata", {}).get("timing_stats", {})
+    return test_cases, config, scores, timing_stats
 
 
 # ----------------------------
@@ -404,9 +407,13 @@ async def run_single_judge_eval(
     print(f"{'='*60}")
 
     if input_type == "metrics":
-        test_cases, config_generations, gen_scores = load_test_cases_from_metrics(input_file)
+        test_cases, config_generations, gen_scores, timing_stats = load_test_cases_from_metrics(
+            input_file
+        )
     else:
-        test_cases, config_generations, gen_scores = load_test_cases_from_generations(input_file)
+        test_cases, config_generations, gen_scores, timing_stats = load_test_cases_from_generations(
+            input_file
+        )
 
     if args.limit > 0:
         test_cases = test_cases[: args.limit]
@@ -484,6 +491,26 @@ async def run_single_judge_eval(
         f"{args.wandb_eval_type}/gen_exact_match_pass_at_n": gen_exact_match_pass_at_n,
         f"{args.wandb_eval_type}/num_errors": num_errors,
     }
+
+    # Add timing stats if available (from generations or metrics file)
+    if timing_stats:
+        metrics_to_log.update(
+            {
+                f"{args.wandb_eval_type}/completion_time_mean_ms": timing_stats.get(
+                    "completion_time_mean_ms"
+                ),
+                f"{args.wandb_eval_type}/completion_time_median_ms": timing_stats.get(
+                    "completion_time_median_ms"
+                ),
+                f"{args.wandb_eval_type}/completion_time_p95_ms": timing_stats.get(
+                    "completion_time_p95_ms"
+                ),
+            }
+        )
+        if "throughput_tokens_per_sec_mean" in timing_stats:
+            metrics_to_log[f"{args.wandb_eval_type}/throughput_tokens_per_sec_mean"] = timing_stats[
+                "throughput_tokens_per_sec_mean"
+            ]
 
     if args.use_local_logger and logger is not None:
         logger.log(metrics_to_log)
