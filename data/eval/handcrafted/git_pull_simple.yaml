@@ -1,5 +1,5 @@
 task_id: git_pull_simple
-description: ''
+description: 'This eval tests pulling remote changes and pushing updates.'
 states:
 - step: 0
   eval: NO_EVAL

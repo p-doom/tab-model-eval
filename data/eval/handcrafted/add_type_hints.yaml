@@ -1,5 +1,5 @@
 task_id: add_type_hints
-description: ''
+description: 'This eval tests adding float return type hints across math helpers.'
 states:
 - step: 0
   eval: NO_EVAL

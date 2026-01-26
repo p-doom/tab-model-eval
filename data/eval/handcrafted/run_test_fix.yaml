@@ -1,5 +1,5 @@
 task_id: run_test_fix
-description: ''
+description: 'This eval tests fixing a failing test and rerunning it.'
 states:
 - step: 0
   eval: NO_EVAL

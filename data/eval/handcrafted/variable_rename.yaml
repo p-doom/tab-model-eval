@@ -1,5 +1,5 @@
 task_id: variable_rename
-description: ''
+description: 'This eval tests renaming a variable to fix a NameError.'
 states:
 - step: 0
   eval: NO_EVAL

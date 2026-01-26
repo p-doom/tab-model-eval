@@ -1,5 +1,5 @@
 task_id: add_import_hard
-description: ''
+description: 'This eval tests adding a missing tyro import in a validation script.'
 states:
 - step: 0
   eval: NO_EVAL

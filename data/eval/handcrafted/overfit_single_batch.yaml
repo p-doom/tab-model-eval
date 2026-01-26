@@ -1,5 +1,5 @@
 task_id: overfit_single_batch
-description: ''
+description: 'This eval tests completing a single-batch overfitting training loop.'
 states:
 - step: 0
   eval: NO_EVAL

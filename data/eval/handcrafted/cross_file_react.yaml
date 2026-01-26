@@ -1,5 +1,5 @@
 task_id: cross_file_react
-description: ''
+description: 'This eval tests completing a named import with the correct React path.'
 states:
 - step: 0
   eval: NO_EVAL

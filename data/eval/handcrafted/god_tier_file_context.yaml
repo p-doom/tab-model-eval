@@ -1,5 +1,5 @@
 task_id: god_tier_file_context
-description: ''
+description: 'This eval tests using an existing helper function instead of reimplementing.'
 states:
 - step: 0
   eval: NO_EVAL

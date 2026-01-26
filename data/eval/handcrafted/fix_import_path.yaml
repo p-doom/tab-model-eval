@@ -1,5 +1,5 @@
 task_id: fix_import_path
-description: ''
+description: 'This eval tests correcting an import path to the proper module.'
 states:
 - step: 0
   eval: NO_EVAL

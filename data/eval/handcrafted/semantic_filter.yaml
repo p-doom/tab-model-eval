@@ -1,5 +1,5 @@
 task_id: semantic_filter
-description: ''
+description: 'This eval tests completing a list comprehension filter by in_stock.'
 states:
 - step: 0
   eval: NO_EVAL

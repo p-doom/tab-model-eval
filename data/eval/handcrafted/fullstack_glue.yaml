@@ -1,5 +1,5 @@
 task_id: fullstack_glue
-description: ''
+description: 'This eval tests wiring a frontend field to a backend model attribute.'
 states:
 - step: 0
   eval: NO_EVAL

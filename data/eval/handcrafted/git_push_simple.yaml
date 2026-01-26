@@ -1,5 +1,5 @@
 task_id: git_push_simple
-description: ''
+description: 'This eval tests pushing local changes to the remote repository.'
 states:
 - step: 0
   eval: NO_EVAL

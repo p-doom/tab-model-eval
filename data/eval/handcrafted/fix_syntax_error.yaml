@@ -1,5 +1,5 @@
 task_id: fix_syntax_error
-description: ''
+description: 'This eval tests fixing a missing closing parenthesis in code.'
 states:
 - step: 0
   eval: NO_EVAL

@@ -1,5 +1,5 @@
 task_id: add_import_easy
-description: ''
+description: 'This eval tests adding a missing json import in a failing script run.'
 states:
 - step: 0
   eval: NO_EVAL

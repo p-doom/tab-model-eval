@@ -1,5 +1,5 @@
 task_id: debug_typo_fix
-description: ''
+description: 'This eval tests finding and fixing a dataset path typo in a batch script.'
 states:
 - step: 0
   eval: NO_EVAL

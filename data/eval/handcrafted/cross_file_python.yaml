@@ -1,5 +1,5 @@
 task_id: cross_file_python
-description: ''
+description: 'This eval tests completing a call using context from an imported helper.'
 states:
 - step: 0
   eval: NO_EVAL

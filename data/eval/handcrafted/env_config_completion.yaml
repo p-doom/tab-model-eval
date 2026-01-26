@@ -1,5 +1,5 @@
 task_id: env_config_completion
-description: ''
+description: 'This eval tests completing an env var lookup using a .env example.'
 states:
 - step: 0
   eval: NO_EVAL

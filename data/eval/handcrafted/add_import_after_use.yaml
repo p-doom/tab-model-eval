@@ -1,5 +1,5 @@
 task_id: add_import_after_use
-description: ''
+description: 'This eval tests adding a missing json import after a usage appears in code.'
 states:
 - step: 0
   eval: NO_EVAL

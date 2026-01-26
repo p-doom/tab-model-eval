@@ -1,5 +1,5 @@
 task_id: git_new_pr
-description: ''
+description: 'This eval tests creating and pushing a new branch with upstream set.'
 states:
 - step: 0
   eval: NO_EVAL

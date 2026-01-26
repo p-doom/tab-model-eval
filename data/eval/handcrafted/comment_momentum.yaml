@@ -1,5 +1,5 @@
 task_id: comment_momentum
-description: ''
+description: 'This eval tests continuing a comment-out pattern in a model forward function.'
 states:
 - step: 0
   eval: NO_EVAL

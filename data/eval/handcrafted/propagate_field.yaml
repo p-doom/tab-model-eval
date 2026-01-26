@@ -1,5 +1,5 @@
 task_id: propagate_field
-description: ''
+description: 'This eval tests propagating a new field through class and serialization.'
 states:
 - step: 0
   eval: NO_EVAL

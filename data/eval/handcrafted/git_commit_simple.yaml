@@ -1,5 +1,5 @@
 task_id: git_commit_simple
-description: ''
+description: 'This eval tests committing modified files with git.'
 states:
 - step: 0
   eval: NO_EVAL

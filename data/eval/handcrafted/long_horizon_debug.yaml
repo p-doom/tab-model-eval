@@ -1,5 +1,5 @@
 task_id: long_horizon_debug
-description: ''
+description: 'This eval tests long-horizon edits: renaming logits and removing breakpoints.'
 states:
 - step: 0
   eval: NO_EVAL

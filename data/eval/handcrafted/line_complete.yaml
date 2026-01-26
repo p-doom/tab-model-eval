@@ -1,5 +1,5 @@
 task_id: line_complete
-description: ''
+description: 'This eval tests completing partial lines in a data loader module.'
 states:
 - step: 0
   eval: NO_EVAL

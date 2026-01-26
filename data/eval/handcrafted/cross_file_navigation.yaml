@@ -1,5 +1,5 @@
 task_id: cross_file_navigation
-description: ''
+description: 'This eval tests navigating to another file to update a function signature.'
 states:
 - step: 0
   eval: NO_EVAL

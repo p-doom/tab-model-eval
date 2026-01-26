@@ -1,5 +1,5 @@
 task_id: binary_toggle
-description: ''
+description: 'This eval tests completing a theme toggle else branch with opposite values.'
 states:
 - step: 0
   eval: NO_EVAL
