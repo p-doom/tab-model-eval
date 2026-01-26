@@ -41,6 +41,13 @@ git add data/eval/handcrafted/
 git commit -m "created more examples"
 ```
 
+<assertions>
+Make sure that:
+- we commit the changes to the staging area
+- the commit message can be different, but it should be a valid commit message
+- nothing else is modified at all
+</assertions>
+
 # User
 <stdout>
 [feat/new-handcrafted-tasks db256f1] created more examples
@@ -70,6 +77,14 @@ upstream, see 'push.autoSetupRemote' in 'git help config'.
 ```bash
 git push --set-upstream origin feat/new-handcrafted-tasks
 ```
+
+<assertions>
+Make sure that:
+- we push the branch to the remote repository
+- we create a new branch called feat/new-handcrafted-tasks
+- we push the branch to the remote repository with the --set-upstream flag
+- nothing else is modified at all
+</assertions>
 
 # User
 <stdout>

@@ -170,6 +170,7 @@ async def generate_next_command(
                     "messages": messages,
                     "context": test_case["context"],
                     "expected_command": expected,
+                    "assertions": test_case.get("assertions", "Skipping assertions parsing"),
                     "samples": samples,
                     "num_samples": len(samples),
                     "num_exact_matches": num_exact_matches,

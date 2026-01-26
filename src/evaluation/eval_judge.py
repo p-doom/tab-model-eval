@@ -77,7 +77,7 @@ class Args:
     limit: int = -1
     system_prompt_file: str = "data/prompts/judge_system_prompt_v3.md"
     judge_prompt_file: str = "data/prompts/judge_prompt_v3.md"
-    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v3_with_context.md"
+    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v4_with_context.md"
     include_context: bool = True
 
     # Local logging for offline mode
@@ -195,6 +195,7 @@ async def evaluate_single_sample_with_judge(
         delay = 0.25
         results = []
         expected_command = test_case.get("expected_command", "")
+        assertions = test_case.get("assertions", "Skipping assertions parsing")
         generated_command = sample.get("generated_command", "")
 
         for attempt in range(args.max_attempts):
@@ -202,6 +203,7 @@ async def evaluate_single_sample_with_judge(
                 format_dict = {
                     "expected": expected_command,
                     "generated": generated_command,
+                    "assertions": assertions,
                 }
                 if args.include_context:
                     format_dict["context"] = json.dumps(test_case.get("context", []), indent=2)
