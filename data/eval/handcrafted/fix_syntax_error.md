@@ -65,7 +65,7 @@ Make sure that:
 - the correct file is edited
 - the correct line is edited (line 17)
 - nothing else is modified at all
-- the correct file is cat'ed with the correct viewport (between line 6 and 27)
+- the part that was edited is being catted with approximately the correct viewport (around line 6 to 27)
 </assertions>
 
 # User

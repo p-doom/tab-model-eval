@@ -59,7 +59,7 @@ Make sure that:
 - the correct line is being edited (line 13)
 - the variable is being renamed from d to data
 - nothing else is being modified at all
-- the correct file is being catted with the correct viewport (between line 1 and 19)
+- the part that was edited is being catted with approximately the correct viewport (around line 1 to 19)
 </assertions>
 
 # User

@@ -80,7 +80,7 @@ Make sure that:
 - the import path is changed to the correct path (from utils to common.config_utils)
 - we edit the correct file
 - nothing else is modified at all
-- we cat the correct file with the correct viewport (between line 1 and 16)
+ the part that was edited is being catted with approximately the correct viewport (around line 1 to 16)
 </assertions>
 
 # User

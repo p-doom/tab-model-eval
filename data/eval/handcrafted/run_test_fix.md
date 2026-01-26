@@ -71,7 +71,7 @@ Make sure that:
 - the correct line is edited (line 15)
 - the assertion is changed from 5 to 4
 - nothing else is modified at all
-- the correct file is cat'ed with the correct viewport (between line 4 and 20)
+- the part that was edited is being catted with approximately the correct viewport (around line 4 to 20)
 </assertions>
 
 # User

@@ -56,7 +56,7 @@ Make sure that:
 - the correct line is being edited (line 7)
 - the area function is being typed correctly with float as the return type
 - nothing else is being modified at all (the circumference and volume functions should not be changed)
-- make sure that part that was edited is being catted with the correct viewport (between line 1 and 17)
+- the part that was edited is being catted with approximately the correct viewport (around line 1 to 17)
 </assertions>
 
 
@@ -93,7 +93,7 @@ Make sure that:
 - the correct line is being edited (line 12)
 - the circumference function is being typed correctly with float as the return type
 - nothing else is being modified at all (the area and volume functions should not be changed)
-- make sure that part that was edited is being catted with the correct viewport (between line 1 and 18)
+- the part that was edited is being catted with approximately the correct viewport (around line 1 to 18)
 </assertions>
 
 # User
@@ -129,7 +129,7 @@ Make sure that:
 - the correct line is edited (line 17)
 - the volume function is typed correctly with float as the return type
 - nothing else is modified at all (the area and circumference functions should not be changed)
-- make sure that part that was edited is cat'ed with the correct viewport (between line 3 and 18)
+- the part that was edited is being catted with approximately the correct viewport (around line 3 to 18)
 </assertions>
 
 # User

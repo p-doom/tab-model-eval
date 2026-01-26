@@ -95,7 +95,7 @@ sed -i '1i\import tyro' src/input_pipeline/validation_to_testcases.py && cat -n 
 Make sure that:
 - tyro is imported
 - it can be imported either at the top, in between or at the end of the other import statements
-- make sure that part that was edited is cat'ed with the correct viewport (between line 1 and 11)
+- the part that was edited is being catted with approximately the correct viewport (around line 1 to 11)
 </assertions>
 
 
