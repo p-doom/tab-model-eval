@@ -318,9 +318,41 @@
             font-weight: bold;
         }
 
+        /* Resize handle */
+        .resize-handle {
+            height: 6px;
+            background: var(--bg-tertiary);
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover {
+            background: var(--accent);
+        }
+
+        .resize-handle::after {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+        }
+
+        .resize-handle:hover::after {
+            background: white;
+        }
+
         /* Terminal Section */
         .terminal-section {
             height: 200px;
+            min-height: 80px;
+            max-height: 80%;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
@@ -479,6 +511,7 @@
         let currentStep = 0;
         let activeFile = null;
         let syncScroll = true;
+        let terminalHeight = 200; // Persisted terminal height
 
         const fileInput = document.getElementById('yaml-file');
         const fileNameEl = document.getElementById('file-name');
@@ -826,10 +859,17 @@
                         <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
                         <div class="code-container" id="prev-code">${prevHtml}</div>
                     </div>
-                    <div class="terminal-section">
+                    <div class="resize-handle" data-panel="left"></div>
+                    <div class="terminal-section" id="left-terminal">
                         <div class="section-header">Terminal</div>
                         ${renderTerminal(prevState?.terminal)}
                     </div>
+                    ${currState.judge_assertions ? `
+                        <div class="assertions-section" style="visibility: hidden;">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="right-panel">
                     <div class="panel-label current">Current Step (${currentStep})</div>
@@ -838,7 +878,8 @@
                         <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
                         <div class="code-container" id="curr-code">${currHtml}</div>
                     </div>
-                    <div class="terminal-section">
+                    <div class="resize-handle" data-panel="right"></div>
+                    <div class="terminal-section" id="right-terminal">
                         <div class="section-header">Terminal</div>
                         ${renderTerminal(currState.terminal)}
                     </div>
@@ -850,6 +891,9 @@
                     ` : ''}
                 </div>
             `;
+            
+            // Setup resize handles
+            setupResizeHandles();
             
             // Add file tab click handlers
             document.querySelectorAll('.file-tab').forEach(tab => {
@@ -893,6 +937,58 @@
                 }
             }
         }
+
+        function setupResizeHandles() {
+            const leftTerminal = document.getElementById('left-terminal');
+            const rightTerminal = document.getElementById('right-terminal');
+            
+            // Apply persisted height
+            if (leftTerminal) leftTerminal.style.height = terminalHeight + 'px';
+            if (rightTerminal) rightTerminal.style.height = terminalHeight + 'px';
+            
+            document.querySelectorAll('.resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+            });
+        }
+
+        function initResize(e) {
+            e.preventDefault();
+            
+            const handle = e.target;
+            const panel = handle.dataset.panel;
+            const leftTerminal = document.getElementById('left-terminal');
+            const rightTerminal = document.getElementById('right-terminal');
+            
+            const startY = e.clientY;
+            const startHeight = terminalHeight;
+            
+            // Disable text selection during drag
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'ns-resize';
+            
+            function onMouseMove(e) {
+                // Calculate new height (dragging up increases terminal height)
+                const deltaY = startY - e.clientY;
+                const newHeight = Math.max(80, Math.min(window.innerHeight * 0.7, startHeight + deltaY));
+                
+                terminalHeight = newHeight;
+                
+                // Apply to both terminals to keep them in sync
+                if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
+                if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
     </script>
 </body>
 </html>
+
