@@ -1,0 +1,47 @@
+task_id: '0015'
+description: 'Converted from zeta eval: 0015'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    token/token.go: "// Keywords\n\tFUNCTION = \"FUNCTION\"\n\tLET      = \"LET\"\n\
+      \tTRUE     = \"TRUE\"\n\tFALSE    = \"FALSE\"\n\tIF       = \"IF\"\n\tELSE \
+      \    = \"ELSE\"\n\tRETURN   = \"RETURN\"\n\tMACRO    = \"MACRO\"\n\tWHILE\n\
+      )\n\ntype Token struct {\n\tType    TokenType\n\tLiteral string\n}\n\nvar keywords\
+      \ = map[string]TokenType{\n\t\"fn\":     FUNCTION,\n\t\"let\":    LET,\n\t\"\
+      true\":   TRUE,\n\t\"false\":  FALSE,\n\t\"if\":     IF,"
+  cursor:
+    file: token/token.go
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    token/token.go: "// Keywords\n\tFUNCTION = \"FUNCTION\"\n\tLET      = \"LET\"\n\
+      \tTRUE     = \"TRUE\"\n\tFALSE    = \"FALSE\"\n\tIF       = \"IF\"\n\tELSE \
+      \    = \"ELSE\"\n\tRETURN   = \"RETURN\"\n\tMACRO    = \"MACRO\"\n\tWHILE\n\
+      )\n\ntype Token struct {\n\tType    TokenType\n\tLiteral string\n}\n\nvar keywords\
+      \ = map[string]TokenType{\n\t\"fn\":     FUNCTION,\n\t\"let\":    LET,\n\t\"\
+      true\":   TRUE,\n\t\"false\":  FALSE,\n\t\"if\":     IF,"
+  cursor:
+    file: token/token.go
+    line: 10
+    column: 6
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    token/token.go: "// Keywords\n\tFUNCTION = \"FUNCTION\"\n\tLET      = \"LET\"\n\
+      \tTRUE     = \"TRUE\"\n\tFALSE    = \"FALSE\"\n\tIF       = \"IF\"\n\tELSE \
+      \    = \"ELSE\"\n\tRETURN   = \"RETURN\"\n\tMACRO    = \"MACRO\"\n\tWHILE  \
+      \  = \"WHILE\"\n)\n\ntype Token struct {\n\tType    TokenType\n\tLiteral string\n\
+      }\n\nvar keywords = map[string]TokenType{\n\t\"fn\":     FUNCTION,\n\t\"let\"\
+      :    LET,\n\t\"true\":   TRUE,\n\t\"false\":  FALSE,\n\t\"if\":     IF,"
+  cursor:
+    file: token/token.go
+    line: 10
+    column: 19
+  judge_assertions: Ensure the new WHILE constant has a value of "WHILE"
+labels: local-edit,complete-pattern

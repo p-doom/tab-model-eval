@@ -1,0 +1,57 @@
+task_id: '0001'
+description: 'Converted from zeta eval: 0001'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: |-
+      use std::cmp::Ord;
+
+      pub fn quicksort<T: Ord>(arr: &mut [T]) {
+          let len = arr.len();
+          if len <= 1 {
+              return;
+          }
+
+          let pivot_index = partition(arr);
+      }
+  cursor:
+    file: src/quicksort.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: "use std::cmp::Ord;\n\npub fn quicksort<T: Ord>(arr: &mut [T])\
+      \ {\n    let len = arr.len();\n    if len <= 1 {\n        return;\n    }\n\n\
+      \    let pivot_index = partition(arr);\n    \n}"
+  cursor:
+    file: src/quicksort.rs
+    line: 10
+    column: 4
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: |-
+      use std::cmp::Ord;
+
+      pub fn quicksort<T: Ord>(arr: &mut [T]) {
+          let len = arr.len();
+          if len <= 1 {
+              return;
+          }
+
+          let pivot_index = partition(arr);
+          quicksort(&mut arr[..pivot_index]);
+          quicksort(&mut arr[pivot_index..]);
+      }
+  cursor:
+    file: src/quicksort.rs
+    line: 11
+    column: 39
+  judge_assertions: Ensure that the quicksort function recurses to the left and to
+    the right of the pivot
+labels: local-edit,complete-implementation

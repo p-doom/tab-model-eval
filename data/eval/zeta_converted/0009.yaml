@@ -1,0 +1,53 @@
+task_id: 0009
+description: 'Converted from zeta eval: 0009'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: "func (c *connImpl) HandleVoiceServerUpdate(update botgateway.EventVoiceServerUpdate)\
+      \ {\n\tc.stateMu.Lock()\n\tdefer c.stateMu.Unlock()\n\tif update.GuildID !=\
+      \ c.state.GuildID || update.Endpoint == nil {\n\t\treturn\n\t}\n\n\tc.state.Token\
+      \ = update.Token\n\tc.state.Endpoint = *update.Endpoint\n\n\tctx, cancel :=\
+      \ context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer cancel()\n\
+      \tif err := c.gateway.Open(ctx, c.state); err != nil {\n\t\tc.config.Logger.Error(\"\
+      error opening voice gateway\", slog.Any(\"err\", err))\n\t}\n}"
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: "func (c *connImpl) HandleVoiceServerUpdate(update botgateway.EventVoiceServerUpdate)\
+      \ {\n\tc.stateMu.Lock()\n\tdefer c.stateMu.Unlock()\n\tif update.GuildID !=\
+      \ c.state.GuildID || update.Endpoint == nil {\n\t\treturn\n\t}\n\n\tc.state.Token\
+      \ = update.Token\n\tc.state.Endpoint = *update.Endpoint\n\n\tgo fun\n\tctx,\
+      \ cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\tdefer\
+      \ cancel()\n\tif err := c.gateway.Open(ctx, c.state); err != nil {\n\t\tc.config.Logger.Error(\"\
+      error opening voice gateway\", slog.Any(\"err\", err))\n\t}\n}"
+  cursor:
+    file: src/main.rs
+    line: 11
+    column: 7
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: "func (c *connImpl) HandleVoiceServerUpdate(update botgateway.EventVoiceServerUpdate)\
+      \ {\n\tc.stateMu.Lock()\n\tdefer c.stateMu.Unlock()\n\tif update.GuildID !=\
+      \ c.state.GuildID || update.Endpoint == nil {\n\t\treturn\n\t}\n\n\tc.state.Token\
+      \ = update.Token\n\tc.state.Endpoint = *update.Endpoint\n\n\tgo func() {\n\t\
+      \tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\t\
+      \tdefer cancel()\n\t\tif err := c.gateway.Open(ctx, c.state); err != nil {\n\
+      \t\t\tc.config.Logger.Error(\"error opening voice gateway\", slog.Any(\"err\"\
+      , err))\n\t\t}\n\t}()\n}"
+  cursor:
+    file: src/main.rs
+    line: 17
+    column: 4
+  judge_assertions: |-
+    Ensure the `gateway.Open()` call is done inside an anonymous goroutine.
+    Ensure that the context timeout with 5 seconds is also happening inside the anonymous goroutine.
+labels: non-local-edit,complete-implementation

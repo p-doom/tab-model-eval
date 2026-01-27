@@ -1,0 +1,44 @@
+task_id: '0006'
+description: 'Converted from zeta eval: 0006'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let glob_pattern = format!("{}/**/*.rs", "/tmp");
+      }
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let dir = "
+          let glob_pattern = format!("{}/**/*.rs", "/tmp");
+      }
+  cursor:
+    file: src/main.rs
+    line: 2
+    column: 15
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let dir = "/tmp";
+          let glob_pattern = format!("{}/**/*.rs", dir);
+      }
+  cursor:
+    file: src/main.rs
+    line: 3
+    column: 50
+  judge_assertions: Ensure that the test output assigns the string "/tmp" to the variable
+    `dir`
+labels: non-local-edit,infer-intent

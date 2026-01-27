@@ -1,0 +1,1036 @@
+task_id: '0022'
+description: 'Converted from zeta eval: 0022'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+          fn tab_icon(&self, window: &mut Window, cx: &mut AppContext) -> Option<Icon> {
+              _: Model<ChannelBuffer>,
+              let editor = window.new_view(cx, |cx| {
+                  cx.new_view(|cx| {
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+          fn tab_icon(&self, window: &mut Window, cx: &mut AppContext) -> Option<Icon> {
+              _: Model<ChannelBuffer>,
+              let editor = window.new_view(cx, |cx| {
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+          fn tab_icon(&self, window: &mut Window, cx: &mut AppContext) -> Option<Icon> {
+              _: Model<ChannelBuffer>,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+          fn tab_icon(&self, window: &mut Window, cx: &mut AppContext) -> Option<Icon> {
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 5
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+              window: &mut Window,
+              cx: &mut AppContext,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 6
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+          fn to_state_proto(
+              &self,
+              window: &Window,
+              cx: &AppContext,
+          ) -> Option<proto::view::Variant> {
+              window: &mut Window,
+              cx: &mut AppContext,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 7
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+              window: &Window,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 8
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+              cx: &AppContext,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 9
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+              window: &mut Window,
+              cx: &mut AppContext,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 1
+    column: 39
+- step: 10
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 34
+    column: 34
+- step: 11
+  eval: EVAL
+  terminal: null
+  files:
+    crates/collab_ui/src/channel_view.rs: |-
+      Some(proto::view::Variant::ChannelView(
+                  proto::view::ChannelView {
+                      channel_id: channel_buffer.channel_id.0,
+                      editor: if let Some(proto::view::Variant::Editor(proto)) =
+                          self.editor.read(cx).to_state_proto(window, cx)
+                      {
+                          Some(proto)
+                      } else {
+                          None
+                      },
+                  },
+              ))
+          }
+
+          fn from_state_proto(
+              workspace: Model<workspace::Workspace>,
+              remote_id: workspace::ViewId,
+              state: &mut Option<proto::view::Variant>,
+              window: &mut Window,
+              cx: &mut AppContext,
+          ) -> Option<gpui::Task<anyhow::Result<Model<Self>>>> {
+              let Some(proto::view::Variant::ChannelView(_)) = state else {
+                  return None;
+              };
+              let Some(proto::view::Variant::ChannelView(state)) = state.take() else {
+                  unreachable!()
+              };
+
+              let open = ChannelView::load(ChannelId(state.channel_id), workspace, window, cx);
+
+              Some(window.spawn(cx, |mut cx| async move {
+                  let this = open.await?;
+
+                  let task = this.update(&mut cx, |this, cx| {
+                      this.remote_id = Some(remote_id);
+
+                      if let Some(state) = state.editor {
+                          Some(this.editor.update(cx, |editor, cx| {
+                              editor.apply_update_proto(
+                                  &this.project,
+                                  proto::update_view::Variant::Editor(proto::update_view::Editor {
+                                      selections: state.selections,
+                                      pending_selection: state.pending_selection,
+                                      scroll_top_anchor: state.scroll_top_anchor,
+                                      scroll_x: state.scroll_x,
+                                      scroll_y: state.scroll_y,
+                                      ..Default::default()
+                                  }),
+                                  window,
+                                  cx,
+                              )
+                          }))
+                      } else {
+                          None
+                      }
+                  })?;
+
+                  if let Some(task) = task {
+                      task.await?;
+                  }
+
+                  Ok(this)
+              }))
+          }
+
+          fn add_event_to_update_proto(
+              &self,
+  cursor:
+    file: crates/collab_ui/src/channel_view.rs
+    line: 34
+    column: 56
+  judge_assertions: Ensure the code only has the `editable_region` markers at the
+    start and end, not additional markers in the middle
+labels: no-op,complete-pattern

@@ -1,0 +1,468 @@
+task_id: '0027'
+description: 'Converted from zeta eval: 0027'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //\n        cursor.seek(&start, Bias::Right,\
+      \ &());\n        \n        // \n        cursor.prev(&());\n        // SEEK 4\
+      \ -> \n        // SEEK 3\n        //  3       6       7\n        // | ITEM1\
+      \ | ITEM2 | ITEM"
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //\n        cursor.seek(&start, Bias::Right,\
+      \ &());\n        \n        // \n        cursor.prev(&());\n        // SEEK 4\
+      \ -> \n        // SEEK 3"
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //\n        cursor.seek(&start, Bias::Right,\
+      \ &());\n        \n        // \n        cursor.prev(&());\n        // SEEK 4\
+      \ -> "
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //\n        cursor.seek(&start, Bias::Right,\
+      \ &());\n        \n        // \n        cursor.prev(&());"
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //\n        cursor.seek(&start, Bias::Right,\
+      \ &());\n        \n        // "
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 5
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // \n        cursor.seek(&start,\
+      \ Bias::Left, &());\n\n        //"
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 6
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: "self.excerpts_for_range_impl(\n    \
+      \        range.start().to_offset(self),\n            range.end().to_offset(self),\n\
+      \            |cursor, end| cursor <= end,\n        )\n    }\n\n    pub fn excerpts_for_range_impl(\n\
+      \        &self,\n        start: usize,\n        end: usize,\n        f: fn(usize,\
+      \ usize) -> bool,\n    ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {\n\
+      \        dbg!(start, end);\n        let mut cursor = self.excerpts.cursor::<(usize,\
+      \ Point)>(&());\n        cursor.seek(&start, Bias::Right, &());\n\n        cursor.prev(&());\n\
+      \n        iter::from_fn(move || {\n            cursor.next(&());\n\n       \
+      \     if f(cursor.start().0, end) {\n                let item = cursor.item();\n\
+      \                dbg!(item.is_none());\n                item.map(|item| MultiBufferExcerpt::new(item,\
+      \ *cursor.start()))\n            } else {\n                dbg!(\"\");\n   \
+      \             None\n            }\n        })\n    }\n\n    pub fn excerpts_for_range_rev<T:\
+      \ ToOffset>(\n        &self,\n        //  3         6       7x\n        // |\
+      \ ITEM1 | ITEM2 | ITEM3\n        //\n        // SEEK 3 -> ITEM1\n        //\
+      \ SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1\n        //  3       \
+      \  6       7\n        // cursor.prev(&());\n        \n        // "
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 7
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: |-
+      self.excerpts_for_range_impl(
+                  range.start().to_offset(self),
+                  range.end().to_offset(self),
+                  |cursor, end| cursor <= end,
+              )
+          }
+
+          pub fn excerpts_for_range_impl(
+              &self,
+              start: usize,
+              end: usize,
+              f: fn(usize, usize) -> bool,
+          ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+              dbg!(start, end);
+              let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+              cursor.seek(&start, Bias::Right, &());
+
+              cursor.prev(&());
+
+              iter::from_fn(move || {
+                  cursor.next(&());
+
+                  if f(cursor.start().0, end) {
+                      let item = cursor.item();
+                      dbg!(item.is_none());
+                      item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                  } else {
+                      dbg!("");
+                      None
+                  }
+              })
+          }
+
+          pub fn excerpts_for_range_rev<T: ToOffset>(
+              &self,
+              //  3         6       7x
+              // | ITEM1 | ITEM2 | ITEM3
+              //
+              // SEEK 3 -> ITEM1
+              // SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1
+              //  3         6       7
+              // cursor.prev(&());
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 8
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: |-
+      self.excerpts_for_range_impl(
+                  range.start().to_offset(self),
+                  range.end().to_offset(self),
+                  |cursor, end| cursor <= end,
+              )
+          }
+
+          pub fn excerpts_for_range_impl(
+              &self,
+              start: usize,
+              end: usize,
+              f: fn(usize, usize) -> bool,
+          ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+              dbg!(start, end);
+              let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+              cursor.seek(&start, Bias::Right, &());
+
+              cursor.prev(&());
+
+              iter::from_fn(move || {
+                  cursor.next(&());
+
+                  if f(cursor.start().0, end) {
+                      let item = cursor.item();
+                      dbg!(item.is_none());
+                      item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                  } else {
+                      dbg!("");
+                      None
+                  }
+              })
+          }
+
+          pub fn excerpts_for_range_rev<T: ToOffset>(
+              &self,
+              //  3         6       7x
+              // | ITEM1 | ITEM2 | ITEM3
+              //
+              // SEEK 3 -> ITEM1
+              // SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1
+              //  3         6       7
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 9
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: |-
+      self.excerpts_for_range_impl(
+                  range.start().to_offset(self),
+                  range.end().to_offset(self),
+                  |cursor, end| cursor <= end,
+              )
+          }
+
+          pub fn excerpts_for_range_impl(
+              &self,
+              start: usize,
+              end: usize,
+              f: fn(usize, usize) -> bool,
+          ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+              dbg!(start, end);
+              let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+              cursor.seek(&start, Bias::Right, &());
+
+              cursor.prev(&());
+
+              iter::from_fn(move || {
+                  cursor.next(&());
+
+                  if f(cursor.start().0, end) {
+                      let item = cursor.item();
+                      dbg!(item.is_none());
+                      item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                  } else {
+                      dbg!("");
+                      None
+                  }
+              })
+          }
+
+          pub fn excerpts_for_range_rev<T: ToOffset>(
+              &self,
+              //  3         6       7x
+              // | ITEM1 | ITEM2 | ITEM3
+              //
+              // SEEK 3 -> ITEM1
+              // SEEK 4 -> Bias::Right -> ITEM2, Bias::Left -> ITEM1
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 1
+    column: 29
+- step: 10
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: |-
+      self.excerpts_for_range_impl(
+                  range.start().to_offset(self),
+                  range.end().to_offset(self),
+                  |cursor, end| cursor <= end,
+              )
+          }
+
+          pub fn excerpts_for_range_impl(
+              &self,
+              start: usize,
+              end: usize,
+              f: fn(usize, usize) -> bool,
+          ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+              dbg!(start, end);
+              let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+              cursor.seek(&start, Bias::Right, &());
+
+              cursor.prev(&());
+
+              iter::from_fn(move || {
+                  cursor.next(&());
+
+                  if f(cursor.start().0, end) {
+                      let item = cursor.item();
+                      dbg!(item.is_none());
+                      item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                  } else {
+                      dbg!("");
+                      None
+                  }
+              })
+          }
+
+          pub fn excerpts_for_range_rev<T: ToOffset>(
+              &self,
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 18
+    column: 0
+- step: 11
+  eval: EVAL
+  terminal: null
+  files:
+    crates/multi_buffer/src/multi_buffer.rs: |-
+      self.excerpts_for_range_impl(
+                  range.start().to_offset(self),
+                  range.end().to_offset(self),
+                  |cursor, end| cursor <= end,
+              )
+          }
+
+          pub fn excerpts_for_range_impl(
+              &self,
+              start: usize,
+              end: usize,
+              f: fn(usize, usize) -> bool,
+          ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+              dbg!(start, end);
+              let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+              cursor.seek(&start, Bias::Right, &());
+
+              cursor.prev(&());
+
+              iter::from_fn(move || {
+                  cursor.next(&());
+
+                  if f(cursor.start().0, end) {
+                      let item = cursor.item();
+                      dbg!(item.is_none());
+                      item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                  } else {
+                      dbg!("");
+                      None
+                  }
+              })
+          }
+
+          pub fn excerpts_for_range_rev<T: ToOffset>(
+              &self,
+  cursor:
+    file: crates/multi_buffer/src/multi_buffer.rs
+    line: 18
+    column: 25
+  judge_assertions: |-
+    The model output should be exactly the same as the input. If it's even slightly different, the score should be 0:
+
+    Input:
+    ```crates/multi_buffer/src/multi_buffer.rs
+            self.excerpts_for_range_impl(
+    <|editable_region_start|>
+                range.start().to_offset(self),
+                range.end().to_offset(self),
+                |cursor, end| cursor <= end,
+            )
+        }
+
+        pub fn excerpts_for_range_impl(
+            &self,
+            start: usize,
+            end: usize,
+            f: fn(usize, usize) -> bool,
+        ) -> impl Iterator<Item = MultiBufferExcerpt> + '_ {
+            dbg!(start, end);
+            let mut cursor = self.excerpts.cursor::<(usize, Point)>(&());
+            cursor.seek(&start, Bias::Right, &());
+
+            cursor.prev(&());
+
+            iter::from_fn(move || {
+                cursor.next(&());
+
+                if f(cursor.start().0, end) {
+                    let item = cursor.item();
+                    dbg!(item.is_none());
+                    item.map(|item| MultiBufferExcerpt::new(item, *cursor.start()))
+                } else {
+                    dbg!("");
+                    None
+                }
+            })
+        }
+
+        pub fn excerpts_for_range_rev<T: ToOffset>(
+    <|editable_region_end|>
+            &self,
+    ```
+labels: no-op,unknown

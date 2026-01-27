@@ -1,0 +1,45 @@
+task_id: '0004'
+description: 'Converted from zeta eval: 0004'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let root_directory = "/tmp";
+          let glob_pattern = format!("{}/**/*.rs", root_directory);
+      }
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let dir = "/tmp";
+          let glob_pattern = format!("{}/**/*.rs", root_directory);
+      }
+  cursor:
+    file: src/main.rs
+    line: 2
+    column: 21
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let dir = "/tmp";
+          let glob_pattern = format!("{}/**/*.rs", dir);
+      }
+  cursor:
+    file: src/main.rs
+    line: 3
+    column: 50
+  judge_assertions: Ensure that the test output does not contain the `root_directory`
+    variable anymore and that it has been renamed into dir everywhere
+labels: local-edit,infer-intent
