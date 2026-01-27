@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eval Step Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --text-primary: #d4d4d4;
+            --text-secondary: #808080;
+            --accent: #0e639c;
+            --accent-hover: #1177bb;
+            --border: #3c3c3c;
+            --success: #4ec9b0;
+            --warning: #dcdcaa;
+            --error: #f14c4c;
+            --line-highlight: #264f78;
+            --diff-added-bg: rgba(35, 134, 54, 0.2);
+            --diff-added-text: #85e89d;
+            --diff-removed-bg: rgba(248, 81, 73, 0.2);
+            --diff-removed-text: #f97583;
+            --cursor-color: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-wrapper label {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .file-input-wrapper label:hover {
+            background: var(--accent-hover);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .task-info {
+            display: flex;
+            gap: 20px;
+            margin-left: auto;
+            font-size: 13px;
+        }
+
+        .task-info span { color: var(--text-secondary); }
+        .task-info strong { color: var(--success); }
+
+        /* Navigation */
+        .nav-controls {
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .step-indicator {
+            font-size: 14px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .step-indicator strong { color: var(--success); }
+
+        .eval-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .eval-badge.eval {
+            background: rgba(78, 201, 176, 0.2);
+            color: var(--success);
+        }
+
+        .eval-badge.no-eval {
+            background: rgba(128, 128, 128, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .keyboard-hint {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        kbd {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            border-right: 2px solid var(--accent);
+        }
+
+        .panel-label {
+            background: var(--bg-tertiary);
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .panel-label.prev { color: var(--error); }
+        .panel-label.current { color: var(--success); }
+
+        /* Files Section */
+        .files-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            background: var(--bg-secondary);
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-tabs {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .file-tab {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .file-tab:hover { background: var(--bg-secondary); }
+        .file-tab.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .file-tab.new { color: var(--diff-added-text); }
+        .file-tab.modified { color: var(--warning); }
+
+        .code-container {
+            flex: 1;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .code-line {
+            display: flex;
+            min-height: 20px;
+            position: relative;
+        }
+
+        .code-line.cursor-line {
+            background: var(--line-highlight);
+        }
+
+        .code-line.added { background: var(--diff-added-bg); }
+        .code-line.removed { background: var(--diff-removed-bg); }
+        .code-line.placeholder { 
+            background: var(--bg-secondary); 
+            opacity: 0.5;
+            min-height: 20px;
+        }
+
+        .line-number {
+            min-width: 45px;
+            padding: 0 8px;
+            text-align: right;
+            color: var(--text-secondary);
+            user-select: none;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .line-content {
+            padding: 0 8px;
+            white-space: pre;
+            flex: 1;
+        }
+
+        /* Cursor visualization */
+        .cursor-marker {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--cursor-color);
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+            margin-left: -1px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .cursor-info {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--cursor-color);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Terminal Section */
+        .terminal-section {
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .terminal-content {
+            flex: 1;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 10px 15px;
+            background: #0c0c0c;
+            color: #cccccc;
+        }
+
+        .terminal-cwd {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .terminal-command {
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+
+        .terminal-command::before {
+            content: '$ ';
+            color: var(--warning);
+        }
+
+        .terminal-output {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .terminal-exit {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .terminal-exit.success { color: var(--success); }
+        .terminal-exit.error { color: var(--error); }
+
+        /* Judge Assertions */
+        .assertions-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 10px 15px;
+            max-height: 150px;
+            overflow: auto;
+        }
+
+        .assertions-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .assertions-content {
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+        }
+
+        /* Empty states */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .no-content {
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Sync scroll indicator */
+        .sync-scroll {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .sync-scroll input { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Eval Step Visualizer</h1>
+        <div class="file-input-wrapper">
+            <label for="yaml-file">Load YAML File</label>
+            <input type="file" id="yaml-file" accept=".yaml,.yml">
+        </div>
+        <span id="file-name" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <div class="task-info" id="task-info" style="display: none;">
+            <span>Task: <strong id="task-id"></strong></span>
+            <span id="description" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+        </div>
+    </div>
+
+    <div class="nav-controls" id="nav-controls" style="display: none;">
+        <button class="nav-btn" id="btn-first">First</button>
+        <button class="nav-btn" id="btn-prev">Prev</button>
+        <div class="step-indicator">
+            Step <strong id="current-step">0</strong> / <span id="total-steps">0</span>
+        </div>
+        <button class="nav-btn" id="btn-next">Next</button>
+        <button class="nav-btn" id="btn-last">Last</button>
+        <span class="eval-badge" id="eval-badge">NO_EVAL</span>
+        <div class="sync-scroll">
+            <input type="checkbox" id="sync-scroll-checkbox" checked>
+            <label for="sync-scroll-checkbox">Sync scroll</label>
+        </div>
+        <div class="keyboard-hint">
+            <kbd>←</kbd> Prev <kbd>→</kbd> Next <kbd>Home</kbd> First <kbd>End</kbd> Last
+        </div>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <div class="empty-state" id="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <h2>Load an Eval YAML File</h2>
+            <p>Click "Load YAML File" to visualize eval steps with side-by-side diff view.</p>
+        </div>
+    </div>
+
+    <script>
+        let evalData = null;
+        let currentStep = 0;
+        let activeFile = null;
+        let syncScroll = true;
+
+        const fileInput = document.getElementById('yaml-file');
+        const fileNameEl = document.getElementById('file-name');
+        const taskInfo = document.getElementById('task-info');
+        const taskIdEl = document.getElementById('task-id');
+        const descriptionEl = document.getElementById('description');
+        const navControls = document.getElementById('nav-controls');
+        const mainContent = document.getElementById('main-content');
+        const emptyState = document.getElementById('empty-state');
+        const currentStepEl = document.getElementById('current-step');
+        const totalStepsEl = document.getElementById('total-steps');
+        const evalBadge = document.getElementById('eval-badge');
+        const syncScrollCheckbox = document.getElementById('sync-scroll-checkbox');
+
+        const btnFirst = document.getElementById('btn-first');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnLast = document.getElementById('btn-last');
+
+        fileInput.addEventListener('change', handleFileLoad);
+        btnFirst.addEventListener('click', () => goToStep(0));
+        btnPrev.addEventListener('click', () => goToStep(currentStep - 1));
+        btnNext.addEventListener('click', () => goToStep(currentStep + 1));
+        btnLast.addEventListener('click', () => goToStep(evalData.states.length - 1));
+        syncScrollCheckbox.addEventListener('change', (e) => syncScroll = e.target.checked);
+
+        document.addEventListener('keydown', (e) => {
+            if (!evalData) return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); goToStep(currentStep - 1); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); goToStep(currentStep + 1); }
+            if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
+            if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
+        });
+
+        function handleFileLoad(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileNameEl.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    evalData = jsyaml.load(event.target.result);
+                    currentStep = 0;
+                    activeFile = null;
+                    initializeReplayer();
+                } catch (err) {
+                    alert('Error parsing YAML: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function initializeReplayer() {
+            taskInfo.style.display = 'flex';
+            navControls.style.display = 'flex';
+            emptyState.style.display = 'none';
+            taskIdEl.textContent = evalData.task_id || 'Unknown';
+            descriptionEl.textContent = evalData.description || '';
+            totalStepsEl.textContent = evalData.states.length - 1;
+            renderStep();
+        }
+
+        function goToStep(step) {
+            if (!evalData || step < 0 || step >= evalData.states.length) return;
+            currentStep = step;
+            renderStep();
+        }
+
+        function getState(index) {
+            if (index < 0 || index >= evalData.states.length) return null;
+            return evalData.states[index];
+        }
+
+        function getAllFiles(prevState, currState) {
+            const files = new Set();
+            if (prevState?.files) Object.keys(prevState.files).forEach(f => files.add(f));
+            if (currState?.files) Object.keys(currState.files).forEach(f => files.add(f));
+            return Array.from(files).sort();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderCodeWithCursor(content, cursor, filename) {
+            if (!content) return '<div class="no-content">No file content</div>';
+            
+            const lines = content.split('\n');
+            const cursorLine = cursor?.file === filename ? cursor.line : null;
+            const cursorCol = cursor?.file === filename ? cursor.column : null;
+            
+            let html = '';
+            lines.forEach((line, idx) => {
+                const lineNum = idx + 1;
+                const isCursorLine = lineNum === cursorLine;
+                const lineClass = isCursorLine ? 'code-line cursor-line' : 'code-line';
+                
+                let lineHtml = escapeHtml(line);
+                if (isCursorLine && cursorCol !== null) {
+                    // Insert cursor marker at the correct column
+                    const before = escapeHtml(line.substring(0, cursorCol));
+                    const after = escapeHtml(line.substring(cursorCol));
+                    lineHtml = before + '<span class="cursor-marker"></span>' + after;
+                }
+                
+                html += `<div class="${lineClass}">
+                    <span class="line-number">${lineNum}</span>
+                    <span class="line-content">${lineHtml || ' '}</span>
+                    ${isCursorLine ? `<span class="cursor-info">L${cursorLine}:C${cursorCol}</span>` : ''}
+                </div>`;
+            });
+            return html;
+        }
+
+        // Compute LCS-based diff to identify actual added/removed lines
+        function computeDiff(prevLines, currLines) {
+            const m = prevLines.length;
+            const n = currLines.length;
+            
+            // Build LCS table
+            const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (prevLines[i - 1] === currLines[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            
+            // Backtrack to find diff operations
+            const result = [];
+            let i = m, j = n;
+            
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && prevLines[i - 1] === currLines[j - 1]) {
+                    result.unshift({ type: 'equal', prevIdx: i - 1, currIdx: j - 1 });
+                    i--; j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    result.unshift({ type: 'add', currIdx: j - 1 });
+                    j--;
+                } else {
+                    result.unshift({ type: 'remove', prevIdx: i - 1 });
+                    i--;
+                }
+            }
+            
+            return result;
+        }
+
+        function renderDiffView(prevContent, currContent, prevCursor, currCursor, filename) {
+            const prevLines = prevContent ? prevContent.split('\n') : [];
+            const currLines = currContent ? currContent.split('\n') : [];
+            
+            // Handle case where one side is empty
+            if (prevLines.length === 0 && currLines.length === 0) {
+                return { 
+                    prevHtml: '<div class="no-content">No file content</div>', 
+                    currHtml: '<div class="no-content">No file content</div>' 
+                };
+            }
+            
+            const diff = computeDiff(prevLines, currLines);
+            
+            let prevHtml = '';
+            let currHtml = '';
+            
+            for (const op of diff) {
+                if (op.type === 'equal') {
+                    // Line exists in both - show on both sides
+                    const prevLineNum = op.prevIdx + 1;
+                    const currLineNum = op.currIdx + 1;
+                    const line = prevLines[op.prevIdx];
+                    
+                    const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
+                    const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
+                    
+                    let prevLineHtml = escapeHtml(line);
+                    let currLineHtml = escapeHtml(line);
+                    
+                    if (prevIsCursor && prevCursor.column !== undefined) {
+                        const before = escapeHtml(line.substring(0, prevCursor.column));
+                        const after = escapeHtml(line.substring(prevCursor.column));
+                        prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    }
+                    if (currIsCursor && currCursor.column !== undefined) {
+                        const before = escapeHtml(line.substring(0, currCursor.column));
+                        const after = escapeHtml(line.substring(currCursor.column));
+                        currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    }
+                    
+                    const prevClass = prevIsCursor ? 'code-line cursor-line' : 'code-line';
+                    const currClass = currIsCursor ? 'code-line cursor-line' : 'code-line';
+                    
+                    prevHtml += `<div class="${prevClass}">
+                        <span class="line-number">${prevLineNum}</span>
+                        <span class="line-content">${prevLineHtml || ' '}</span>
+                        ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                    currHtml += `<div class="${currClass}">
+                        <span class="line-number">${currLineNum}</span>
+                        <span class="line-content">${currLineHtml || ' '}</span>
+                        ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                } else if (op.type === 'remove') {
+                    // Line only in prev - show on left, placeholder on right
+                    const prevLineNum = op.prevIdx + 1;
+                    const line = prevLines[op.prevIdx];
+                    const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
+                    
+                    let prevLineHtml = escapeHtml(line);
+                    if (prevIsCursor && prevCursor.column !== undefined) {
+                        const before = escapeHtml(line.substring(0, prevCursor.column));
+                        const after = escapeHtml(line.substring(prevCursor.column));
+                        prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    }
+                    
+                    const prevClass = 'code-line removed' + (prevIsCursor ? ' cursor-line' : '');
+                    
+                    prevHtml += `<div class="${prevClass}">
+                        <span class="line-number">${prevLineNum}</span>
+                        <span class="line-content">${prevLineHtml || ' '}</span>
+                        ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                    // Placeholder on current side
+                    currHtml += `<div class="code-line placeholder">
+                        <span class="line-number" style="opacity: 0.3"></span>
+                        <span class="line-content" style="opacity: 0.3"></span>
+                    </div>`;
+                    
+                } else if (op.type === 'add') {
+                    // Line only in curr - placeholder on left, show on right
+                    const currLineNum = op.currIdx + 1;
+                    const line = currLines[op.currIdx];
+                    const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
+                    
+                    let currLineHtml = escapeHtml(line);
+                    if (currIsCursor && currCursor.column !== undefined) {
+                        const before = escapeHtml(line.substring(0, currCursor.column));
+                        const after = escapeHtml(line.substring(currCursor.column));
+                        currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    }
+                    
+                    const currClass = 'code-line added' + (currIsCursor ? ' cursor-line' : '');
+                    
+                    // Placeholder on prev side
+                    prevHtml += `<div class="code-line placeholder">
+                        <span class="line-number" style="opacity: 0.3"></span>
+                        <span class="line-content" style="opacity: 0.3"></span>
+                    </div>`;
+                    
+                    currHtml += `<div class="${currClass}">
+                        <span class="line-number">${currLineNum}</span>
+                        <span class="line-content">${currLineHtml || ' '}</span>
+                        ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
+                    </div>`;
+                }
+            }
+            
+            return { prevHtml, currHtml };
+        }
+
+        function renderTerminal(terminal) {
+            if (!terminal) return '<div class="no-content">No terminal activity</div>';
+            
+            let html = '<div class="terminal-content">';
+            if (terminal.cwd) {
+                html += `<div class="terminal-cwd">${escapeHtml(terminal.cwd)}</div>`;
+            }
+            if (terminal.command) {
+                html += `<div class="terminal-command">${escapeHtml(terminal.command)}</div>`;
+            }
+            if (terminal.output) {
+                html += `<div class="terminal-output">${escapeHtml(terminal.output)}</div>`;
+            }
+            if (terminal.exit_code !== undefined) {
+                const exitClass = terminal.exit_code === 0 ? 'success' : 'error';
+                html += `<div class="terminal-exit ${exitClass}">Exit: ${terminal.exit_code}</div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function renderStep() {
+            const currState = getState(currentStep);
+            const prevState = getState(currentStep - 1);
+            
+            currentStepEl.textContent = currState.step;
+            evalBadge.textContent = currState.eval || 'NO_EVAL';
+            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+            
+            btnFirst.disabled = currentStep === 0;
+            btnPrev.disabled = currentStep === 0;
+            btnNext.disabled = currentStep === evalData.states.length - 1;
+            btnLast.disabled = currentStep === evalData.states.length - 1;
+            
+            // Get all files from both states
+            const allFiles = getAllFiles(prevState, currState);
+            
+            // Determine active file
+            if (!activeFile || !allFiles.includes(activeFile)) {
+                // Prefer cursor file, then first file
+                if (currState.cursor?.file && allFiles.includes(currState.cursor.file)) {
+                    activeFile = currState.cursor.file;
+                } else if (allFiles.length > 0) {
+                    activeFile = allFiles[0];
+                } else {
+                    activeFile = null;
+                }
+            }
+            
+            // Build file tabs
+            let tabsHtml = '';
+            allFiles.forEach(file => {
+                const prevHas = prevState?.files?.[file];
+                const currHas = currState?.files?.[file];
+                let tabClass = 'file-tab';
+                if (file === activeFile) tabClass += ' active';
+                if (!prevHas && currHas) tabClass += ' new';
+                else if (prevHas && currHas && prevState.files[file] !== currState.files[file]) tabClass += ' modified';
+                tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}</div>`;
+            });
+            
+            // Get file contents for diff
+            const prevContent = prevState?.files?.[activeFile] || null;
+            const currContent = currState?.files?.[activeFile] || null;
+            const prevCursor = prevState?.cursor;
+            const currCursor = currState?.cursor;
+            
+            const { prevHtml, currHtml } = activeFile 
+                ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
+                : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
+            
+            mainContent.innerHTML = `
+                <div class="left-panel">
+                    <div class="panel-label prev">Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})</div>
+                    <div class="files-section">
+                        <div class="section-header">Files</div>
+                        <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
+                        <div class="code-container" id="prev-code">${prevHtml}</div>
+                    </div>
+                    <div class="terminal-section">
+                        <div class="section-header">Terminal</div>
+                        ${renderTerminal(prevState?.terminal)}
+                    </div>
+                </div>
+                <div class="right-panel">
+                    <div class="panel-label current">Current Step (${currentStep})</div>
+                    <div class="files-section">
+                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}</div>
+                        <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
+                        <div class="code-container" id="curr-code">${currHtml}</div>
+                    </div>
+                    <div class="terminal-section">
+                        <div class="section-header">Terminal</div>
+                        ${renderTerminal(currState.terminal)}
+                    </div>
+                    ${currState.judge_assertions ? `
+                        <div class="assertions-section">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Add file tab click handlers
+            document.querySelectorAll('.file-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    activeFile = tab.dataset.file;
+                    renderStep();
+                });
+            });
+            
+            // Setup synchronized scrolling
+            const prevCode = document.getElementById('prev-code');
+            const currCode = document.getElementById('curr-code');
+            
+            if (prevCode && currCode) {
+                let scrolling = false;
+                
+                prevCode.addEventListener('scroll', () => {
+                    if (!syncScroll || scrolling) return;
+                    scrolling = true;
+                    currCode.scrollTop = prevCode.scrollTop;
+                    currCode.scrollLeft = prevCode.scrollLeft;
+                    setTimeout(() => scrolling = false, 50);
+                });
+                
+                currCode.addEventListener('scroll', () => {
+                    if (!syncScroll || scrolling) return;
+                    scrolling = true;
+                    prevCode.scrollTop = currCode.scrollTop;
+                    prevCode.scrollLeft = currCode.scrollLeft;
+                    setTimeout(() => scrolling = false, 50);
+                });
+                
+                // Scroll cursor into view on current side
+                if (currState.cursor?.file === activeFile) {
+                    const cursorLine = currCode.querySelector('.cursor-line');
+                    if (cursorLine) {
+                        setTimeout(() => {
+                            cursorLine.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                        }, 100);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
