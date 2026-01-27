@@ -6,6 +6,24 @@
     <title>Eval Step Visualizer</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-tsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-rust.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
     <style>
         :root {
             --bg-primary: #1e1e1e;
@@ -454,6 +472,25 @@
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
+        /* Prism.js overrides to fit our theme */
+        .line-content code {
+            background: transparent !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            white-space: pre !important;
+        }
+
+        .line-content .token {
+            background: transparent !important;
+        }
+
+        /* Ensure syntax colors work on diff backgrounds */
+        .code-line.added .line-content code,
+        .code-line.removed .line-content code {
+            background: transparent !important;
+        }
+
         /* Sync scroll indicator */
         .sync-scroll {
             display: flex;
@@ -598,12 +635,65 @@
             return div.innerHTML;
         }
 
+        // Detect language from filename extension
+        function getLanguageFromFilename(filename) {
+            if (!filename) return null;
+            const ext = filename.split('.').pop()?.toLowerCase();
+            const langMap = {
+                'py': 'python',
+                'js': 'javascript',
+                'jsx': 'jsx',
+                'ts': 'typescript',
+                'tsx': 'tsx',
+                'json': 'json',
+                'yaml': 'yaml',
+                'yml': 'yaml',
+                'sh': 'bash',
+                'bash': 'bash',
+                'zsh': 'bash',
+                'css': 'css',
+                'scss': 'css',
+                'html': 'markup',
+                'htm': 'markup',
+                'xml': 'markup',
+                'svg': 'markup',
+                'go': 'go',
+                'rs': 'rust',
+                'java': 'java',
+                'c': 'c',
+                'h': 'c',
+                'cpp': 'cpp',
+                'cc': 'cpp',
+                'cxx': 'cpp',
+                'hpp': 'cpp',
+                'md': 'markdown',
+                'toml': 'toml',
+                'ini': 'ini',
+                'cfg': 'ini',
+                'env': 'bash',
+            };
+            return langMap[ext] || null;
+        }
+
+        // Apply syntax highlighting to a line of code
+        function highlightLine(line, language) {
+            if (!language || !Prism.languages[language]) {
+                return escapeHtml(line);
+            }
+            try {
+                return Prism.highlight(line, Prism.languages[language], language);
+            } catch (e) {
+                return escapeHtml(line);
+            }
+        }
+
         function renderCodeWithCursor(content, cursor, filename) {
             if (!content) return '<div class="no-content">No file content</div>';
             
             const lines = content.split('\n');
             const cursorLine = cursor?.file === filename ? cursor.line : null;
             const cursorCol = cursor?.file === filename ? cursor.column : null;
+            const language = getLanguageFromFilename(filename);
             
             let html = '';
             lines.forEach((line, idx) => {
@@ -611,17 +701,20 @@
                 const isCursorLine = lineNum === cursorLine;
                 const lineClass = isCursorLine ? 'code-line cursor-line' : 'code-line';
                 
-                let lineHtml = escapeHtml(line);
+                let lineHtml;
                 if (isCursorLine && cursorCol !== null) {
                     // Insert cursor marker at the correct column
-                    const before = escapeHtml(line.substring(0, cursorCol));
-                    const after = escapeHtml(line.substring(cursorCol));
+                    // Highlight each part separately to maintain syntax highlighting
+                    const before = highlightLine(line.substring(0, cursorCol), language);
+                    const after = highlightLine(line.substring(cursorCol), language);
                     lineHtml = before + '<span class="cursor-marker"></span>' + after;
+                } else {
+                    lineHtml = highlightLine(line, language);
                 }
                 
                 html += `<div class="${lineClass}">
                     <span class="line-number">${lineNum}</span>
-                    <span class="line-content">${lineHtml || ' '}</span>
+                    <span class="line-content"><code>${lineHtml || ' '}</code></span>
                     ${isCursorLine ? `<span class="cursor-info">L${cursorLine}:C${cursorCol}</span>` : ''}
                 </div>`;
             });
@@ -668,6 +761,7 @@
         function renderDiffView(prevContent, currContent, prevCursor, currCursor, filename) {
             const prevLines = prevContent ? prevContent.split('\n') : [];
             const currLines = currContent ? currContent.split('\n') : [];
+            const language = getLanguageFromFilename(filename);
             
             // Handle case where one side is empty
             if (prevLines.length === 0 && currLines.length === 0) {
@@ -692,18 +786,22 @@
                     const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
                     const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
                     
-                    let prevLineHtml = escapeHtml(line);
-                    let currLineHtml = escapeHtml(line);
+                    let prevLineHtml, currLineHtml;
                     
                     if (prevIsCursor && prevCursor.column !== undefined) {
-                        const before = escapeHtml(line.substring(0, prevCursor.column));
-                        const after = escapeHtml(line.substring(prevCursor.column));
+                        const before = highlightLine(line.substring(0, prevCursor.column), language);
+                        const after = highlightLine(line.substring(prevCursor.column), language);
                         prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        prevLineHtml = highlightLine(line, language);
                     }
+                    
                     if (currIsCursor && currCursor.column !== undefined) {
-                        const before = escapeHtml(line.substring(0, currCursor.column));
-                        const after = escapeHtml(line.substring(currCursor.column));
+                        const before = highlightLine(line.substring(0, currCursor.column), language);
+                        const after = highlightLine(line.substring(currCursor.column), language);
                         currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        currLineHtml = highlightLine(line, language);
                     }
                     
                     const prevClass = prevIsCursor ? 'code-line cursor-line' : 'code-line';
@@ -711,13 +809,13 @@
                     
                     prevHtml += `<div class="${prevClass}">
                         <span class="line-number">${prevLineNum}</span>
-                        <span class="line-content">${prevLineHtml || ' '}</span>
+                        <span class="line-content"><code>${prevLineHtml || ' '}</code></span>
                         ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
                     </div>`;
                     
                     currHtml += `<div class="${currClass}">
                         <span class="line-number">${currLineNum}</span>
-                        <span class="line-content">${currLineHtml || ' '}</span>
+                        <span class="line-content"><code>${currLineHtml || ' '}</code></span>
                         ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
                     </div>`;
                     
@@ -727,18 +825,20 @@
                     const line = prevLines[op.prevIdx];
                     const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
                     
-                    let prevLineHtml = escapeHtml(line);
+                    let prevLineHtml;
                     if (prevIsCursor && prevCursor.column !== undefined) {
-                        const before = escapeHtml(line.substring(0, prevCursor.column));
-                        const after = escapeHtml(line.substring(prevCursor.column));
+                        const before = highlightLine(line.substring(0, prevCursor.column), language);
+                        const after = highlightLine(line.substring(prevCursor.column), language);
                         prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        prevLineHtml = highlightLine(line, language);
                     }
                     
                     const prevClass = 'code-line removed' + (prevIsCursor ? ' cursor-line' : '');
                     
                     prevHtml += `<div class="${prevClass}">
                         <span class="line-number">${prevLineNum}</span>
-                        <span class="line-content">${prevLineHtml || ' '}</span>
+                        <span class="line-content"><code>${prevLineHtml || ' '}</code></span>
                         ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
                     </div>`;
                     
@@ -754,11 +854,13 @@
                     const line = currLines[op.currIdx];
                     const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
                     
-                    let currLineHtml = escapeHtml(line);
+                    let currLineHtml;
                     if (currIsCursor && currCursor.column !== undefined) {
-                        const before = escapeHtml(line.substring(0, currCursor.column));
-                        const after = escapeHtml(line.substring(currCursor.column));
+                        const before = highlightLine(line.substring(0, currCursor.column), language);
+                        const after = highlightLine(line.substring(currCursor.column), language);
                         currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        currLineHtml = highlightLine(line, language);
                     }
                     
                     const currClass = 'code-line added' + (currIsCursor ? ' cursor-line' : '');
@@ -771,7 +873,7 @@
                     
                     currHtml += `<div class="${currClass}">
                         <span class="line-number">${currLineNum}</span>
-                        <span class="line-content">${currLineHtml || ' '}</span>
+                        <span class="line-content"><code>${currLineHtml || ' '}</code></span>
                         ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
                     </div>`;
                 }
