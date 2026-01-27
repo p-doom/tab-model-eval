@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+import statistics
 import sys
 import subprocess
 import time
@@ -9,7 +10,6 @@ from dataclasses import dataclass
 from typing import Dict, Any, List, Optional
 
 import httpx
-import numpy as np
 import tyro
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
@@ -58,9 +58,20 @@ class Args:
     extra_server_args: Optional[List[str]] = None
 
 
-# ----------------------------
-# Dataset helpers
-# ----------------------------
+def percentile(data: List[float], p: float) -> float:
+    if not data:
+        raise ValueError("Cannot compute percentile of empty list")
+    sorted_data = sorted(data)
+    n = len(sorted_data)
+    if n == 1:
+        return sorted_data[0]
+    k = (p / 100) * (n - 1)
+    floor_k = int(k)
+    ceil_k = min(floor_k + 1, n - 1)
+    weight = k - floor_k
+    return sorted_data[floor_k] * (1 - weight) + sorted_data[ceil_k] * weight
+
+
 def load_dataset(filepath):
     data = []
     with open(filepath, "r") as f:
@@ -284,31 +295,24 @@ async def run_eval(args: Args, base_url: str):
     )
     total_exact_match_pass_at_n = sum(r.get("exact_match_pass_at_n", 0) for r in results)
 
-    completion_times = [
-        r["completion_time_ms"] for r in results if r.get("completion_time_ms") is not None
-    ]
+    timed_results = [r for r in results if r.get("completion_time_ms") is not None]
+    completion_times = [r["completion_time_ms"] for r in timed_results]
     timing_stats = {}
     if completion_times:
         timing_stats = {
             "num_timed_requests": len(completion_times),
-            "completion_time_mean_ms": float(np.mean(completion_times)),
-            "completion_time_median_ms": float(np.median(completion_times)),
-            "completion_time_p95_ms": float(np.percentile(completion_times, 95)),
+            "completion_time_mean_ms": statistics.mean(completion_times),
+            "completion_time_median_ms": statistics.median(completion_times),
+            "completion_time_p95_ms": percentile(completion_times, 95),
         }
 
-        completion_tokens_list = [
-            r["completion_tokens"] for r in results if r.get("completion_tokens")
+        tokens_per_sec = [
+            (r["completion_tokens"] / (r["completion_time_ms"] / 1000))
+            for r in timed_results
+            if r.get("completion_tokens") is not None and r["completion_time_ms"] > 0
         ]
-        timed_results = [r for r in results if r.get("completion_time_ms") is not None]
-
-        if completion_tokens_list and len(completion_tokens_list) == len(timed_results):
-            tokens_per_sec = [
-                (r["completion_tokens"] / (r["completion_time_ms"] / 1000))
-                for r in timed_results
-                if r["completion_time_ms"] > 0
-            ]
-            if tokens_per_sec:
-                timing_stats["throughput_tokens_per_sec_mean"] = float(np.mean(tokens_per_sec))
+        if tokens_per_sec:
+            timing_stats["throughput_tokens_per_sec_mean"] = statistics.mean(tokens_per_sec)
 
     with open(args.generations_file, "w") as f:
         json.dump(
