@@ -422,7 +422,7 @@
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
             padding: 10px 15px;
-            max-height: 150px;
+            max-height: 250px;
             overflow: auto;
         }
 
@@ -439,6 +439,30 @@
             line-height: 1.5;
             white-space: pre-wrap;
             color: var(--text-secondary);
+        }
+
+        .assertions-editor {
+            width: 100%;
+            min-height: 100px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 8px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .assertions-editor:focus {
+            border-color: var(--accent);
+        }
+
+        .assertions-editor::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
         }
 
         /* Empty states */
@@ -501,6 +525,302 @@
         }
 
         .sync-scroll input { cursor: pointer; }
+
+        /* Editing mode styles */
+        .edit-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .edit-mode-toggle label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .edit-mode-toggle input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background: var(--success);
+            border: none;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .save-btn:hover {
+            background: #5ddcc3;
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Editable code textarea */
+        .code-editor {
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 10px;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 4;
+        }
+
+        .code-editor:focus {
+            outline: 1px solid var(--accent);
+        }
+
+        /* Cursor position editor */
+        .cursor-editor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cursor-editor label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .cursor-editor input[type="number"] {
+            width: 60px;
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .cursor-editor input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .cursor-editor select {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 200px;
+        }
+
+        .cursor-editor select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Add file button */
+        .add-file-btn {
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        .add-file-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .delete-file-btn {
+            background: transparent;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 5px;
+            opacity: 0.7;
+        }
+
+        .delete-file-btn:hover {
+            opacity: 1;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .modal input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .modal input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            border: none;
+        }
+
+        .modal-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Unsaved changes indicator */
+        .unsaved-indicator {
+            color: var(--warning);
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Step editor */
+        .step-editor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-editor .add-step-btn,
+        .step-editor .delete-step-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .step-editor .add-step-btn:hover {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .step-editor .delete-step-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .step-editor .delete-step-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Eval selector */
+        .eval-selector {
+            margin-left: 10px;
+        }
+
+        .eval-selector select {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Cursor mode styles */
+        .cursor-mode-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: rgba(255, 204, 0, 0.2);
+            border: 1px solid var(--cursor-color);
+            border-radius: 4px;
+            color: var(--cursor-color);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .cursor-mode-indicator.hidden {
+            display: none;
+        }
+
+        .code-container.cursor-mode {
+            cursor: crosshair;
+        }
+
+        .code-container.cursor-mode .code-line:hover {
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .cursor-mode-help {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -511,6 +831,12 @@
             <input type="file" id="yaml-file" accept=".yaml,.yml">
         </div>
         <span id="file-name" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <div class="edit-mode-toggle" id="edit-mode-toggle" style="display: none;">
+            <input type="checkbox" id="edit-mode-checkbox">
+            <label for="edit-mode-checkbox">Edit Mode</label>
+            <button class="save-btn" id="save-btn" disabled>Save YAML</button>
+            <span class="unsaved-indicator" id="unsaved-indicator" style="display: none;">● Unsaved changes</span>
+        </div>
         <div class="task-info" id="task-info" style="display: none;">
             <span>Task: <strong id="task-id"></strong></span>
             <span id="description" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
@@ -526,12 +852,27 @@
         <button class="nav-btn" id="btn-next">Next</button>
         <button class="nav-btn" id="btn-last">Last</button>
         <span class="eval-badge" id="eval-badge">NO_EVAL</span>
+        <div class="eval-selector" id="eval-selector" style="display: none;">
+            <select id="eval-select">
+                <option value="">NO_EVAL</option>
+                <option value="EVAL">EVAL</option>
+            </select>
+        </div>
+        <div class="step-editor" id="step-editor" style="display: none;">
+            <button class="add-step-btn" id="add-step-before-btn" title="Add step before current">+ Before</button>
+            <button class="add-step-btn" id="add-step-after-btn" title="Add step after current">+ After</button>
+            <button class="delete-step-btn" id="delete-step-btn" title="Delete current step">Delete Step</button>
+        </div>
         <div class="sync-scroll">
             <input type="checkbox" id="sync-scroll-checkbox" checked>
             <label for="sync-scroll-checkbox">Sync scroll</label>
         </div>
+        <div class="cursor-mode-indicator hidden" id="cursor-mode-indicator">
+            CURSOR MODE
+            <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
+        </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd> Prev <kbd>→</kbd> Next <kbd>Home</kbd> First <kbd>End</kbd> Last
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>i</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -549,6 +890,10 @@
         let activeFile = null;
         let syncScroll = true;
         let terminalHeight = 200; // Persisted terminal height
+        let editMode = false;
+        let cursorMode = false;
+        let hasUnsavedChanges = false;
+        let originalFileName = '';
 
         const fileInput = document.getElementById('yaml-file');
         const fileNameEl = document.getElementById('file-name');
@@ -562,6 +907,17 @@
         const totalStepsEl = document.getElementById('total-steps');
         const evalBadge = document.getElementById('eval-badge');
         const syncScrollCheckbox = document.getElementById('sync-scroll-checkbox');
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        const editModeCheckbox = document.getElementById('edit-mode-checkbox');
+        const saveBtn = document.getElementById('save-btn');
+        const unsavedIndicator = document.getElementById('unsaved-indicator');
+        const evalSelector = document.getElementById('eval-selector');
+        const evalSelect = document.getElementById('eval-select');
+        const stepEditor = document.getElementById('step-editor');
+        const addStepBeforeBtn = document.getElementById('add-step-before-btn');
+        const addStepAfterBtn = document.getElementById('add-step-after-btn');
+        const deleteStepBtn = document.getElementById('delete-step-btn');
+        const cursorModeIndicator = document.getElementById('cursor-mode-indicator');
 
         const btnFirst = document.getElementById('btn-first');
         const btnPrev = document.getElementById('btn-prev');
@@ -574,18 +930,178 @@
         btnNext.addEventListener('click', () => goToStep(currentStep + 1));
         btnLast.addEventListener('click', () => goToStep(evalData.states.length - 1));
         syncScrollCheckbox.addEventListener('change', (e) => syncScroll = e.target.checked);
+        
+        editModeCheckbox.addEventListener('change', (e) => {
+            editMode = e.target.checked;
+            evalSelector.style.display = editMode ? 'block' : 'none';
+            stepEditor.style.display = editMode ? 'flex' : 'none';
+            renderStep();
+        });
+        
+        saveBtn.addEventListener('click', saveYaml);
+        
+        evalSelect.addEventListener('change', (e) => {
+            if (!evalData || !editMode) return;
+            const currState = getState(currentStep);
+            if (e.target.value === '') {
+                delete currState.eval;
+            } else {
+                currState.eval = e.target.value;
+            }
+            markUnsaved();
+            updateEvalBadge();
+        });
+        
+        addStepBeforeBtn.addEventListener('click', () => addStep('before'));
+        addStepAfterBtn.addEventListener('click', () => addStep('after'));
+        deleteStepBtn.addEventListener('click', deleteCurrentStep);
 
         document.addEventListener('keydown', (e) => {
             if (!evalData) return;
-            if (e.key === 'ArrowLeft') { e.preventDefault(); goToStep(currentStep - 1); }
-            if (e.key === 'ArrowRight') { e.preventDefault(); goToStep(currentStep + 1); }
-            if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
-            if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
+            
+            // Don't handle shortcuts when typing in an input/textarea (except Escape)
+            const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+            
+            // Escape exits any mode
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (cursorMode) {
+                    cursorMode = false;
+                    cursorModeIndicator.classList.add('hidden');
+                    renderStep();
+                } else if (editMode) {
+                    editMode = false;
+                    editModeCheckbox.checked = false;
+                    evalSelector.style.display = 'none';
+                    stepEditor.style.display = 'none';
+                    renderStep();
+                }
+                return;
+            }
+            
+            // Cursor mode navigation with arrow keys
+            if (cursorMode && !isTyping) {
+                const currState = getState(currentStep);
+                if (!currState.cursor) {
+                    // Initialize cursor if not present
+                    const files = Object.keys(currState.files || {});
+                    if (files.length > 0) {
+                        currState.cursor = { file: activeFile || files[0], line: 1, column: 0 };
+                        markUnsaved();
+                    }
+                }
+                
+                if (currState.cursor) {
+                    const fileContent = currState.files?.[currState.cursor.file] || '';
+                    const lines = fileContent.split('\n');
+                    const currentLine = currState.cursor.line;
+                    const currentCol = currState.cursor.column;
+                    const currentLineContent = lines[currentLine - 1] || '';
+                    
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (currentLine > 1) {
+                            currState.cursor.line = currentLine - 1;
+                            // Clamp column to new line length
+                            const newLineContent = lines[currentLine - 2] || '';
+                            currState.cursor.column = Math.min(currentCol, newLineContent.length);
+                            markUnsaved();
+                            renderStep();
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (currentLine < lines.length) {
+                            currState.cursor.line = currentLine + 1;
+                            // Clamp column to new line length
+                            const newLineContent = lines[currentLine] || '';
+                            currState.cursor.column = Math.min(currentCol, newLineContent.length);
+                            markUnsaved();
+                            renderStep();
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        if (currentCol > 0) {
+                            currState.cursor.column = currentCol - 1;
+                        } else if (currentLine > 1) {
+                            // Move to end of previous line
+                            currState.cursor.line = currentLine - 1;
+                            currState.cursor.column = (lines[currentLine - 2] || '').length;
+                        }
+                        markUnsaved();
+                        renderStep();
+                        return;
+                    }
+                    if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        if (currentCol < currentLineContent.length) {
+                            currState.cursor.column = currentCol + 1;
+                        } else if (currentLine < lines.length) {
+                            // Move to start of next line
+                            currState.cursor.line = currentLine + 1;
+                            currState.cursor.column = 0;
+                        }
+                        markUnsaved();
+                        renderStep();
+                        return;
+                    }
+                    // Home/End for line start/end
+                    if (e.key === 'Home') {
+                        e.preventDefault();
+                        currState.cursor.column = 0;
+                        markUnsaved();
+                        renderStep();
+                        return;
+                    }
+                    if (e.key === 'End') {
+                        e.preventDefault();
+                        currState.cursor.column = currentLineContent.length;
+                        markUnsaved();
+                        renderStep();
+                        return;
+                    }
+                }
+            }
+            
+            // Don't process other shortcuts if typing
+            if (isTyping) return;
+            
+            // Toggle cursor mode with 'v'
+            if (e.key === 'v' && !cursorMode && !editMode) {
+                e.preventDefault();
+                cursorMode = true;
+                cursorModeIndicator.classList.remove('hidden');
+                renderStep();
+                return;
+            }
+            
+            // Toggle edit mode with 'i' (enter)
+            if (e.key === 'i' && !editMode && !cursorMode) {
+                e.preventDefault();
+                editMode = true;
+                editModeCheckbox.checked = true;
+                evalSelector.style.display = 'block';
+                stepEditor.style.display = 'flex';
+                renderStep();
+                return;
+            }
+            
+            // Navigation shortcuts only work when not in cursor mode
+            if (!cursorMode) {
+                if (e.key === 'ArrowLeft') { e.preventDefault(); goToStep(currentStep - 1); }
+                if (e.key === 'ArrowRight') { e.preventDefault(); goToStep(currentStep + 1); }
+                if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
+                if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
+            }
         });
 
         function handleFileLoad(e) {
             const file = e.target.files[0];
             if (!file) return;
+            originalFileName = file.name;
             fileNameEl.textContent = file.name;
             const reader = new FileReader();
             reader.onload = (event) => {
@@ -593,6 +1109,8 @@
                     evalData = jsyaml.load(event.target.result);
                     currentStep = 0;
                     activeFile = null;
+                    hasUnsavedChanges = false;
+                    updateSaveButton();
                     initializeReplayer();
                 } catch (err) {
                     alert('Error parsing YAML: ' + err.message);
@@ -604,10 +1122,248 @@
         function initializeReplayer() {
             taskInfo.style.display = 'flex';
             navControls.style.display = 'flex';
+            editModeToggle.style.display = 'flex';
             emptyState.style.display = 'none';
             taskIdEl.textContent = evalData.task_id || 'Unknown';
             descriptionEl.textContent = evalData.description || '';
             totalStepsEl.textContent = evalData.states.length - 1;
+            renderStep();
+        }
+        
+        function markUnsaved() {
+            hasUnsavedChanges = true;
+            updateSaveButton();
+        }
+        
+        function updateSaveButton() {
+            saveBtn.disabled = !hasUnsavedChanges;
+            unsavedIndicator.style.display = hasUnsavedChanges ? 'inline' : 'none';
+        }
+        
+        function updateEvalBadge() {
+            const currState = getState(currentStep);
+            evalBadge.textContent = currState.eval || 'NO_EVAL';
+            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+            evalSelect.value = currState.eval || '';
+        }
+        
+        function saveYaml() {
+            if (!evalData) return;
+            
+            // Renumber steps to be sequential
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            const yamlStr = jsyaml.dump(evalData, {
+                lineWidth: -1,  // Don't wrap lines
+                noRefs: true,
+                quotingType: '"',
+                forceQuotes: false
+            });
+            
+            const blob = new Blob([yamlStr], { type: 'text/yaml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = originalFileName || 'eval.yaml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            hasUnsavedChanges = false;
+            updateSaveButton();
+        }
+        
+        function addStep(position) {
+            if (!evalData) return;
+            
+            const currState = getState(currentStep);
+            // Deep clone the current state
+            const newState = JSON.parse(JSON.stringify(currState));
+            newState.step = position === 'before' ? currentStep : currentStep + 1;
+            
+            if (position === 'before') {
+                evalData.states.splice(currentStep, 0, newState);
+            } else {
+                evalData.states.splice(currentStep + 1, 0, newState);
+                currentStep++;
+            }
+            
+            // Renumber all steps
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            totalStepsEl.textContent = evalData.states.length - 1;
+            markUnsaved();
+            renderStep();
+        }
+        
+        function deleteCurrentStep() {
+            if (!evalData || evalData.states.length <= 1) return;
+            
+            if (!confirm('Delete this step? This cannot be undone.')) return;
+            
+            evalData.states.splice(currentStep, 1);
+            
+            // Renumber all steps
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            // Adjust current step if needed
+            if (currentStep >= evalData.states.length) {
+                currentStep = evalData.states.length - 1;
+            }
+            
+            totalStepsEl.textContent = evalData.states.length - 1;
+            markUnsaved();
+            renderStep();
+        }
+        
+        function showModal(title, placeholder, callback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3>${title}</h3>
+                    <input type="text" id="modal-input" placeholder="${placeholder}">
+                    <div class="modal-buttons">
+                        <button class="modal-btn secondary" id="modal-cancel">Cancel</button>
+                        <button class="modal-btn primary" id="modal-confirm">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            const input = document.getElementById('modal-input');
+            input.focus();
+            
+            const close = () => document.body.removeChild(overlay);
+            
+            document.getElementById('modal-cancel').onclick = close;
+            document.getElementById('modal-confirm').onclick = () => {
+                const value = input.value.trim();
+                if (value) {
+                    callback(value);
+                }
+                close();
+            };
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    const value = input.value.trim();
+                    if (value) {
+                        callback(value);
+                    }
+                    close();
+                } else if (e.key === 'Escape') {
+                    close();
+                }
+            };
+        }
+        
+        function addNewFile() {
+            showModal('Add New File', 'Enter filename (e.g., src/main.py)', (filename) => {
+                const currState = getState(currentStep);
+                if (!currState.files) currState.files = {};
+                if (currState.files[filename]) {
+                    alert('File already exists!');
+                    return;
+                }
+                currState.files[filename] = '';
+                activeFile = filename;
+                markUnsaved();
+                renderStep();
+            });
+        }
+        
+        function deleteFile(filename) {
+            if (!confirm(`Delete file "${filename}"?`)) return;
+            
+            const currState = getState(currentStep);
+            delete currState.files[filename];
+            
+            // Update cursor if it was pointing to this file
+            if (currState.cursor?.file === filename) {
+                delete currState.cursor;
+            }
+            
+            // Select another file
+            const remainingFiles = Object.keys(currState.files || {});
+            activeFile = remainingFiles.length > 0 ? remainingFiles[0] : null;
+            
+            markUnsaved();
+            renderStep();
+        }
+        
+        function updateFileContent(content) {
+            if (!evalData || !activeFile) return;
+            const currState = getState(currentStep);
+            if (!currState.files) currState.files = {};
+            currState.files[activeFile] = content;
+            markUnsaved();
+        }
+        
+        function updateCursor(file, line, column) {
+            if (!evalData) return;
+            const currState = getState(currentStep);
+            currState.cursor = { file, line, column };
+            markUnsaved();
+        }
+        
+        function handleCursorClick(e) {
+            if (!cursorMode || !activeFile) return;
+            
+            // Find the clicked line element
+            let lineEl = e.target;
+            while (lineEl && !lineEl.classList.contains('code-line')) {
+                lineEl = lineEl.parentElement;
+            }
+            
+            if (!lineEl) return;
+            
+            // Get line number from the line-number span
+            const lineNumEl = lineEl.querySelector('.line-number');
+            if (!lineNumEl) return;
+            
+            const lineNumber = parseInt(lineNumEl.textContent);
+            if (isNaN(lineNumber)) return;
+            
+            // Calculate column from click position
+            const lineContent = lineEl.querySelector('.line-content');
+            if (!lineContent) return;
+            
+            const currState = getState(currentStep);
+            const fileContent = currState.files?.[activeFile] || '';
+            const lines = fileContent.split('\n');
+            const lineText = lines[lineNumber - 1] || '';
+            
+            // Get click position relative to line content
+            const rect = lineContent.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Estimate character width (monospace font)
+            // Create a measuring element
+            const measureSpan = document.createElement('span');
+            measureSpan.style.font = window.getComputedStyle(lineContent).font;
+            measureSpan.style.visibility = 'hidden';
+            measureSpan.style.position = 'absolute';
+            measureSpan.textContent = 'X';
+            document.body.appendChild(measureSpan);
+            const charWidth = measureSpan.getBoundingClientRect().width;
+            document.body.removeChild(measureSpan);
+            
+            // Calculate column (accounting for padding)
+            const paddingLeft = 8; // matches .line-content padding
+            const column = Math.max(0, Math.min(
+                lineText.length,
+                Math.round((clickX - paddingLeft) / charWidth)
+            ));
+            
+            // Update cursor
+            updateCursor(activeFile, lineNumber, column);
             renderStep();
         }
 
@@ -908,13 +1664,13 @@
             const prevState = getState(currentStep - 1);
             
             currentStepEl.textContent = currState.step;
-            evalBadge.textContent = currState.eval || 'NO_EVAL';
-            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+            updateEvalBadge();
             
             btnFirst.disabled = currentStep === 0;
             btnPrev.disabled = currentStep === 0;
             btnNext.disabled = currentStep === evalData.states.length - 1;
             btnLast.disabled = currentStep === evalData.states.length - 1;
+            deleteStepBtn.disabled = evalData.states.length <= 1;
             
             // Get all files from both states
             const allFiles = getAllFiles(prevState, currState);
@@ -940,8 +1696,12 @@
                 if (file === activeFile) tabClass += ' active';
                 if (!prevHas && currHas) tabClass += ' new';
                 else if (prevHas && currHas && prevState.files[file] !== currState.files[file]) tabClass += ' modified';
-                tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}</div>`;
+                const deleteBtn = editMode && currHas ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
+                tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}${deleteBtn}</div>`;
             });
+            
+            // Add "new file" button in edit mode
+            const addFileBtn = editMode ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
             
             // Get file contents for diff
             const prevContent = prevState?.files?.[activeFile] || null;
@@ -949,9 +1709,38 @@
             const prevCursor = prevState?.cursor;
             const currCursor = currState?.cursor;
             
-            const { prevHtml, currHtml } = activeFile 
-                ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
-                : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
+            let prevHtml, currHtml;
+            
+            if (editMode) {
+                // In edit mode, show editable textarea for current state
+                prevHtml = activeFile 
+                    ? renderCodeWithCursor(prevContent, prevCursor, activeFile)
+                    : '<div class="no-content">No file selected</div>';
+                currHtml = activeFile 
+                    ? `<textarea class="code-editor" id="code-editor">${escapeHtml(currContent || '')}</textarea>`
+                    : '<div class="no-content">No file selected</div>';
+            } else {
+                const diffResult = activeFile 
+                    ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
+                    : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
+                prevHtml = diffResult.prevHtml;
+                currHtml = diffResult.currHtml;
+            }
+            
+            // Cursor editor for edit mode
+            const cursorEditorHtml = editMode ? `
+                <div class="cursor-editor">
+                    <label>Cursor File:</label>
+                    <select id="cursor-file-select">
+                        <option value="">-- None --</option>
+                        ${allFiles.map(f => `<option value="${f}" ${currState.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                    </select>
+                    <label>Line:</label>
+                    <input type="number" id="cursor-line-input" min="1" value="${currState.cursor?.line || 1}">
+                    <label>Column:</label>
+                    <input type="number" id="cursor-col-input" min="0" value="${currState.cursor?.column || 0}">
+                </div>
+            ` : '';
             
             mainContent.innerHTML = `
                 <div class="left-panel">
@@ -976,8 +1765,9 @@
                 <div class="right-panel">
                     <div class="panel-label current">Current Step (${currentStep})</div>
                     <div class="files-section">
-                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}</div>
+                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}${addFileBtn}</div>
                         <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
+                        ${cursorEditorHtml}
                         <div class="code-container" id="curr-code">${currHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="right"></div>
@@ -985,12 +1775,17 @@
                         <div class="section-header">Terminal</div>
                         ${renderTerminal(currState.terminal)}
                     </div>
-                    ${currState.judge_assertions ? `
+                    ${editMode ? `
+                        <div class="assertions-section">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(currState.judge_assertions || '')}</textarea>
+                        </div>
+                    ` : (currState.judge_assertions ? `
                         <div class="assertions-section">
                             <div class="assertions-title">Judge Assertions</div>
                             <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
                         </div>
-                    ` : ''}
+                    ` : '')}
                 </div>
             `;
             
@@ -999,17 +1794,100 @@
             
             // Add file tab click handlers
             document.querySelectorAll('.file-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
+                tab.addEventListener('click', (e) => {
+                    // Don't switch file if clicking delete button
+                    if (e.target.classList.contains('delete-file-btn')) return;
                     activeFile = tab.dataset.file;
                     renderStep();
                 });
             });
             
-            // Setup synchronized scrolling
+            // Delete file button handlers
+            document.querySelectorAll('.delete-file-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteFile(btn.dataset.file);
+                });
+            });
+            
+            // Add file button handler
+            const addFileBtnEl = document.getElementById('add-file-btn');
+            if (addFileBtnEl) {
+                addFileBtnEl.addEventListener('click', addNewFile);
+            }
+            
+            // Code editor handler
+            const codeEditor = document.getElementById('code-editor');
+            if (codeEditor) {
+                codeEditor.addEventListener('input', (e) => {
+                    updateFileContent(e.target.value);
+                });
+                
+                // Handle tab key in editor
+                codeEditor.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = codeEditor.selectionStart;
+                        const end = codeEditor.selectionEnd;
+                        codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                        codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+                        updateFileContent(codeEditor.value);
+                    }
+                });
+            }
+            
+            // Cursor editor handlers
+            const cursorFileSelect = document.getElementById('cursor-file-select');
+            const cursorLineInput = document.getElementById('cursor-line-input');
+            const cursorColInput = document.getElementById('cursor-col-input');
+            
+            if (cursorFileSelect && cursorLineInput && cursorColInput) {
+                const updateCursorFromInputs = () => {
+                    const file = cursorFileSelect.value;
+                    const line = parseInt(cursorLineInput.value) || 1;
+                    const column = parseInt(cursorColInput.value) || 0;
+                    if (file) {
+                        updateCursor(file, line, column);
+                    } else {
+                        // Clear cursor if no file selected
+                        const currState = getState(currentStep);
+                        delete currState.cursor;
+                        markUnsaved();
+                    }
+                };
+                
+                cursorFileSelect.addEventListener('change', updateCursorFromInputs);
+                cursorLineInput.addEventListener('change', updateCursorFromInputs);
+                cursorColInput.addEventListener('change', updateCursorFromInputs);
+            }
+            
+            // Assertions editor handler
+            const assertionsEditor = document.getElementById('assertions-editor');
+            if (assertionsEditor) {
+                assertionsEditor.addEventListener('input', (e) => {
+                    const currState = getState(currentStep);
+                    const value = e.target.value.trim();
+                    if (value) {
+                        currState.judge_assertions = value;
+                    } else {
+                        delete currState.judge_assertions;
+                    }
+                    markUnsaved();
+                });
+            }
+            
+            // Setup cursor mode click handling
+            const currCodeContainer = document.getElementById('curr-code');
+            if (cursorMode && currCodeContainer) {
+                currCodeContainer.classList.add('cursor-mode');
+                currCodeContainer.addEventListener('click', handleCursorClick);
+            }
+            
+            // Setup synchronized scrolling (only in non-edit mode)
             const prevCode = document.getElementById('prev-code');
             const currCode = document.getElementById('curr-code');
             
-            if (prevCode && currCode) {
+            if (prevCode && currCode && !editMode) {
                 let scrolling = false;
                 
                 prevCode.addEventListener('scroll', () => {
@@ -1028,8 +1906,8 @@
                     setTimeout(() => scrolling = false, 50);
                 });
                 
-                // Scroll cursor into view on current side
-                if (currState.cursor?.file === activeFile) {
+                // Scroll cursor into view on current side (only when not in cursor mode to avoid jumps during editing)
+                if (currState.cursor?.file === activeFile && !cursorMode) {
                     const cursorLine = currCode.querySelector('.cursor-line');
                     if (cursorLine) {
                         setTimeout(() => {
