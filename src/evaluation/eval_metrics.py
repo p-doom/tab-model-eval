@@ -112,7 +112,8 @@ def evaluate_task(task_result: Dict[str, Any]) -> Dict[str, Any]:
     expected_files = {}
     assertions = None
     for state in states:
-        if state.get("eval") == "EVAL":
+        eval = state.get("eval", "NO_EVAL")
+        if eval == "EVAL":
             expected_files = state.get("files", {})
             assertions = state.get("judge_assertions")
             break

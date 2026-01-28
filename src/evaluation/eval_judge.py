@@ -15,41 +15,6 @@ from tqdm.asyncio import tqdm_asyncio
 from .yaml_output import load_generation_yaml
 
 
-JUDGE_SYSTEM_PROMPT = """You are an expert code reviewer evaluating tab completion model predictions.
-
-Your task is to determine if the predicted code changes are semantically equivalent to the expected changes, based on the provided assertions.
-
-Evaluate the prediction objectively:
-1. Check if the predicted changes achieve the same functional outcome as expected
-2. Consider the assertions provided - these describe what the change should accomplish
-3. Minor formatting differences (whitespace, trailing newlines) should not affect the judgment
-4. Variable naming differences are acceptable if semantically equivalent
-
-Respond with a JSON object:
-{
-  "equivalent": 1 or 0,
-  "reasoning": "Brief explanation of your judgment"
-}
-"""
-
-JUDGE_PROMPT_TEMPLATE = """## Task
-Evaluate if the predicted file changes are semantically equivalent to the expected changes.
-
-## Assertions
-{assertions}
-
-## Expected Files
-{expected_files}
-
-## Predicted Files
-{predicted_files}
-
-## Instructions
-Based on the assertions, determine if the predicted changes accomplish the same goal as the expected changes.
-Respond with JSON: {{"equivalent": 1 or 0, "reasoning": "..."}}
-"""
-
-
 @dataclass
 class Args:
     generations_file: str = "data/eval/generations/generations.yaml"
@@ -59,6 +24,8 @@ class Args:
 
     judge_model_path: str = "Qwen/Qwen3-32B"
     judge_name: str = "default"
+    judge_system_prompt_file: str = ""
+    judge_prompt_file: str = ""
 
     server_host: str = "0.0.0.0"
     server_port: int = 30000
@@ -91,6 +58,60 @@ def format_files_for_prompt(files: Dict[str, str]) -> str:
     return "\n\n".join(parts)
 
 
+def format_context(states: List[Dict[str, Any]]) -> str:
+    if not states:
+        return ""
+    parts: List[str] = []
+    for state in states:
+        if state.get("eval") == "EVAL":
+            break
+        step = state.get("step")
+        header = f"## Step {step}" if step is not None else "## Step"
+        parts.append(header)
+
+        cursor = state.get("cursor")
+        if cursor:
+            parts.append(
+                f"Cursor: {cursor.get('file')}:{cursor.get('line')}:{cursor.get('column')}"
+            )
+
+        files = state.get("files") or {}
+        if files:
+            parts.append("Files:")
+            parts.append(format_files_for_prompt(files))
+        else:
+            parts.append("Files: (no files)")
+
+        terminal = state.get("terminal")
+        if terminal:
+            parts.append("Terminal:")
+            command = terminal.get("command")
+            output = terminal.get("output")
+            exit_code = terminal.get("exit_code")
+            cwd = terminal.get("cwd")
+            if command is not None:
+                parts.append(f"Command: {command}")
+            if cwd:
+                parts.append(f"CWD: {cwd}")
+            if exit_code is not None:
+                parts.append(f"Exit code: {exit_code}")
+            if output is not None:
+                parts.append("Output:")
+                parts.append(f"```\n{output}\n```")
+        parts.append("")
+
+    return "\n".join(parts).rstrip()
+
+
+def load_prompt_file(path: str, label: str) -> str:
+    if not path:
+        raise ValueError(f"--{label} is required")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"{label} not found: {path}")
+    with open(path, "r") as f:
+        return f.read()
+
+
 async def judge_single_sample(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
@@ -99,6 +120,9 @@ async def judge_single_sample(
     expected_files: Dict[str, str],
     predicted_files: Optional[Dict[str, str]],
     assertions: Optional[str],
+    context: str,
+    system_prompt: str,
+    prompt_template: str,
     args: Args,
 ) -> Dict[str, Any]:
     if predicted_files is None:
@@ -110,15 +134,27 @@ async def judge_single_sample(
             "skip_reason": "no_prediction",
         }
 
-    prompt = JUDGE_PROMPT_TEMPLATE.format(
-        assertions=assertions
+    expected_files_str = format_files_for_prompt(expected_files)
+    predicted_files_str = format_files_for_prompt(predicted_files)
+    template_vars = {
+        "assertions": assertions
         or "No specific assertions provided. Judge based on code correctness.",
-        expected_files=format_files_for_prompt(expected_files),
-        predicted_files=format_files_for_prompt(predicted_files),
-    )
+        "expected_files": expected_files_str,
+        "predicted_files": predicted_files_str,
+        "expected": expected_files_str,
+        "generated": predicted_files_str,
+        "context": context,
+    }
+    try:
+        prompt = prompt_template.format(**template_vars)
+    except KeyError as e:
+        raise ValueError(
+            f"Unknown placeholder in judge prompt template: {e.args[0]}. "
+            "Allowed placeholders: assertions, expected_files, predicted_files, expected, generated, context."
+        ) from e
 
     messages = [
-        {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt},
     ]
 
@@ -167,16 +203,20 @@ async def evaluate_task(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
     task_result: Dict[str, Any],
+    system_prompt: str,
+    prompt_template: str,
     args: Args,
 ) -> Dict[str, Any]:
     task_id = task_result.get("task_id", "unknown")
     states = task_result.get("states", [])
     samples = task_result.get("samples", [])
+    context = format_context(states)
 
     expected_files = {}
     assertions = None
     for state in states:
-        if state.get("eval") == "EVAL":
+        eval = state.get("eval")
+        if eval == "EVAL":
             expected_files = state.get("files", {})
             assertions = state.get("judge_assertions")
             break
@@ -216,7 +256,17 @@ async def evaluate_task(
 
         tasks.append(
             judge_single_sample(
-                client, sem, task_id, sample_idx, expected_files, predicted_files, assertions, args
+                client,
+                sem,
+                task_id,
+                sample_idx,
+                expected_files,
+                predicted_files,
+                assertions,
+                context,
+                system_prompt,
+                prompt_template,
+                args,
             )
         )
 
@@ -249,6 +299,9 @@ async def run_judge_eval(args: Args, base_url: str):
     print(f"Output: {args.evaluations_file}")
     print(f"{'='*60}")
 
+    system_prompt = load_prompt_file(args.judge_system_prompt_file, "judge-system-prompt-file")
+    prompt_template = load_prompt_file(args.judge_prompt_file, "judge-prompt-file")
+
     data = load_generation_yaml(args.generations_file)
     results = data.get("results", [])
     config = data.get("config", {})
@@ -268,7 +321,7 @@ async def run_judge_eval(args: Args, base_url: str):
     client = AsyncOpenAI(base_url=base_url, api_key=args.api_key, http_client=http)
     sem = asyncio.Semaphore(args.concurrency)
 
-    tasks = [evaluate_task(client, sem, r, args) for r in results]
+    tasks = [evaluate_task(client, sem, r, system_prompt, prompt_template, args) for r in results]
 
     task_evals: List[Dict[str, Any]] = []
     for coro in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
