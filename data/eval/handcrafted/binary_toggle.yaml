@@ -1,174 +1,174 @@
 task_id: binary_toggle
-description: 'This eval tests completing a theme toggle else branch with opposite values.'
+description: This eval tests completing a theme toggle else branch with opposite values.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 32
-      drwxr-xr-x 3 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      drwxr-xr-x 2 user user 4096 Jan 19 09:58 assets
-      -rw-r--r-- 1 user user 1234 Jan 19 09:58 index.html
-      -rw-r--r-- 1 user user  678 Jan 19 09:58 styles.css
-      -rw-r--r-- 1 user user  892 Jan 19 09:58 theme.js
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal:
-    command: ls -la assets/
-    output: |-
-      total 24
-      drwxr-xr-x 2 user user 4096 Jan 19 09:58 .
-      drwxr-xr-x 3 user user 4096 Jan 19 10:00 ..
-      -rw-r--r-- 1 user user 4523 Jan 19 09:58 logo.png
-      -rw-r--r-- 1 user user 2341 Jan 19 09:58 moon.png
-      -rw-r--r-- 1 user user 2156 Jan 19 09:58 sun.png
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    theme.js: |-
-      const container = document.getElementById('app-container');
-      const icon = document.getElementById('theme-icon');
-      const toggleBtn = document.getElementById('theme-toggle');
-      const isDarkTheme = localStorage.getItem('theme') === 'dark';
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 32
+        drwxr-xr-x 3 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        drwxr-xr-x 2 user user 4096 Jan 19 09:58 assets
+        -rw-r--r-- 1 user user 1234 Jan 19 09:58 index.html
+        -rw-r--r-- 1 user user  678 Jan 19 09:58 styles.css
+        -rw-r--r-- 1 user user  892 Jan 19 09:58 theme.js
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal:
+      command: ls -la assets/
+      output: |-
+        total 24
+        drwxr-xr-x 2 user user 4096 Jan 19 09:58 .
+        drwxr-xr-x 3 user user 4096 Jan 19 10:00 ..
+        -rw-r--r-- 1 user user 4523 Jan 19 09:58 logo.png
+        -rw-r--r-- 1 user user 2341 Jan 19 09:58 moon.png
+        -rw-r--r-- 1 user user 2156 Jan 19 09:58 sun.png
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      theme.js: |-
+        const container = document.getElementById('app-container');
+        const icon = document.getElementById('theme-icon');
+        const toggleBtn = document.getElementById('theme-toggle');
+        const isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-      function applyTheme() {
-          if (isDarkTheme) {
-              container.style.backgroundColor = '#1a1a1a';
-              container.style.color = '#ffffff';
-              icon.src = 'assets/moon.png';
-              toggleBtn.textContent = 'Switch to Light';
-          }
-      }
+        function applyTheme() {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#1a1a1a';
+                container.style.color = '#ffffff';
+                icon.src = 'assets/moon.png';
+                toggleBtn.textContent = 'Switch to Light';
+            }
+        }
 
-      function toggleTheme() {
-          const newTheme = isDarkTheme ? 'light' : 'dark';
-          localStorage.setItem('theme', newTheme);
-          location.reload();
-      }
+        function toggleTheme() {
+            const newTheme = isDarkTheme ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            location.reload();
+        }
 
-      toggleBtn.addEventListener('click', toggleTheme);
-      applyTheme();
-  cursor:
-    file: theme.js
-    line: 1
-    column: 0
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    theme.js: |-
-      const container = document.getElementById('app-container');
-      const icon = document.getElementById('theme-icon');
-      const toggleBtn = document.getElementById('theme-toggle');
-      const isDarkTheme = localStorage.getItem('theme') === 'dark';
+        toggleBtn.addEventListener('click', toggleTheme);
+        applyTheme();
+    cursor:
+      file: theme.js
+      line: 1
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      theme.js: |-
+        const container = document.getElementById('app-container');
+        const icon = document.getElementById('theme-icon');
+        const toggleBtn = document.getElementById('theme-toggle');
+        const isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-      function applyTheme() {
-          if (isDarkTheme) {
-              container.style.backgroundColor = '#1a1a1a';
-              container.style.color = '#ffffff';
-              icon.src = 'assets/moon.png';
-              toggleBtn.textContent = 'Switch to Light';
-          }
-      }
+        function applyTheme() {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#1a1a1a';
+                container.style.color = '#ffffff';
+                icon.src = 'assets/moon.png';
+                toggleBtn.textContent = 'Switch to Light';
+            }
+        }
 
-      function toggleTheme() {
-          const newTheme = isDarkTheme ? 'light' : 'dark';
-          localStorage.setItem('theme', newTheme);
-          location.reload();
-      }
+        function toggleTheme() {
+            const newTheme = isDarkTheme ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            location.reload();
+        }
 
-      toggleBtn.addEventListener('click', toggleTheme);
-      applyTheme();
-  cursor:
-    file: theme.js
-    line: 11
-    column: 50
-- step: 4
-  eval: NO_EVAL
-  terminal: null
-  files:
-    theme.js: |-
-      const container = document.getElementById('app-container');
-      const icon = document.getElementById('theme-icon');
-      const toggleBtn = document.getElementById('theme-toggle');
-      const isDarkTheme = localStorage.getItem('theme') === 'dark';
+        toggleBtn.addEventListener('click', toggleTheme);
+        applyTheme();
+    cursor:
+      file: theme.js
+      line: 11
+      column: 50
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      theme.js: |-
+        const container = document.getElementById('app-container');
+        const icon = document.getElementById('theme-icon');
+        const toggleBtn = document.getElementById('theme-toggle');
+        const isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-      function applyTheme() {
-          if (isDarkTheme) {
-              container.style.backgroundColor = '#1a1a1a';
-              container.style.color = '#ffffff';
-              icon.src = 'assets/moon.png';
-              toggleBtn.textContent = 'Switch to Light';
-          } else {
-              container.style.backgroundColor =
-      }
+        function applyTheme() {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#1a1a1a';
+                container.style.color = '#ffffff';
+                icon.src = 'assets/moon.png';
+                toggleBtn.textContent = 'Switch to Light';
+            } else {
+                container.style.backgroundColor =
+        }
 
-      function toggleTheme() {
-          const newTheme = isDarkTheme ? 'light' : 'dark';
-          localStorage.setItem('theme', newTheme);
-          location.reload();
-      }
+        function toggleTheme() {
+            const newTheme = isDarkTheme ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            location.reload();
+        }
 
-      toggleBtn.addEventListener('click', toggleTheme);
-      applyTheme();
-  cursor:
-    file: theme.js
-    line: 12
-    column: 12
-- step: 5
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model completes the else block with the opposite theme values
-    - backgroundColor is '#ffffff' (opposite of '#1a1a1a')
-    - color is '#1a1a1a' (opposite of '#ffffff')
-    - icon.src uses 'assets/sun.png' (opposite of 'assets/moon.png')
-    - toggleBtn.textContent is 'Switch to Dark' (opposite of 'Switch to Light')
-    - the closing brace } is included
-    - the correct file is being edited (theme.js)
-    - the file is being catted with approx. the correct viewport (around lines 1-21)
-  terminal: null
-  files:
-    theme.js: |-
-      const container = document.getElementById('app-container');
-      const icon = document.getElementById('theme-icon');
-      const toggleBtn = document.getElementById('theme-toggle');
-      const isDarkTheme = localStorage.getItem('theme') === 'dark';
+        toggleBtn.addEventListener('click', toggleTheme);
+        applyTheme();
+    cursor:
+      file: theme.js
+      line: 13
+      column: 41
+  - step: 5
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model completes the else block with the opposite theme values
+      - backgroundColor is '#ffffff' (opposite of '#1a1a1a')
+      - color is '#1a1a1a' (opposite of '#ffffff')
+      - icon.src uses 'assets/sun.png' (opposite of 'assets/moon.png')
+      - toggleBtn.textContent is 'Switch to Dark' (opposite of 'Switch to Light')
+      - the closing brace } is included
+      - the correct file is being edited (theme.js)
+      - the file is being catted with approx. the correct viewport (around lines 1-21)
+    terminal: null
+    files:
+      theme.js: |-
+        const container = document.getElementById('app-container');
+        const icon = document.getElementById('theme-icon');
+        const toggleBtn = document.getElementById('theme-toggle');
+        const isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-      function applyTheme() {
-          if (isDarkTheme) {
-              container.style.backgroundColor = '#1a1a1a';
-              container.style.color = '#ffffff';
-              icon.src = 'assets/moon.png';
-              toggleBtn.textContent = 'Switch to Light';
-          } else {
-              container.style.backgroundColor = '#ffffff';
-              container.style.color = '#1a1a1a';
-              icon.src = 'assets/sun.png';
-              toggleBtn.textContent = 'Switch to Dark';
-          }
-      }
+        function applyTheme() {
+            if (isDarkTheme) {
+                container.style.backgroundColor = '#1a1a1a';
+                container.style.color = '#ffffff';
+                icon.src = 'assets/moon.png';
+                toggleBtn.textContent = 'Switch to Light';
+            } else {
+                container.style.backgroundColor = '#ffffff';
+                container.style.color = '#1a1a1a';
+                icon.src = 'assets/sun.png';
+                toggleBtn.textContent = 'Switch to Dark';
+            }
+        }
 
-      function toggleTheme() {
-          const newTheme = isDarkTheme ? 'light' : 'dark';
-          localStorage.setItem('theme', newTheme);
-          location.reload();
-      }
+        function toggleTheme() {
+            const newTheme = isDarkTheme ? 'light' : 'dark';
+            localStorage.setItem('theme', newTheme);
+            location.reload();
+        }
 
-      toggleBtn.addEventListener('click', toggleTheme);
-      applyTheme();
-  cursor:
-    file: theme.js
-    line: 15
-    column: 36
+        toggleBtn.addEventListener('click', toggleTheme);
+        applyTheme();
+    cursor:
+      file: theme.js
+      line: 17
+      column: 5

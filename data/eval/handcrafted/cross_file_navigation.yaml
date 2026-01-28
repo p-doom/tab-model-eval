@@ -1,354 +1,845 @@
 task_id: cross_file_navigation
-description: 'This eval tests navigating to another file to update a function signature.'
+description: This eval tests navigating to another file to update a function signature.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 20
-      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      -rw-r--r-- 1 user user 1892 Jan 19 09:58 main.py
-      -rw-r--r-- 1 user user  456 Jan 19 09:58 requirements.txt
-      -rw-r--r-- 1 user user 1456 Jan 19 09:58 services.py
-      -rw-r--r-- 1 user user  234 Jan 19 09:58 test_services.py
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str)\
-      \ -> bool:\n    email = get_user_email(user_id)\n    if not email:\n       \
-      \ logger.warning(f\"No email found for user {user_id}\")\n        return False\n\
-      \    \n    formatted = format_notification(message, datetime.now())\n    logger.info(f\"\
-      Sending notification to {email}: {formatted}\")\n    return True\n\n\ndef send_bulk_notifications(user_ids:\
-      \ List[int], message: str) -> Dict[int, bool]:\n    results = {}\n    for user_id\
-      \ in user_ids:\n        results[user_id] = send_notification(user_id, message)\n\
-      \    return results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n\
-      \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-  cursor:
-    file: services.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str)\
-      \ -> bool:\n    email = get_user_email(user_id)\n    if not email:\n       \
-      \ logger.warning(f\"No email found for user {user_id}\")\n        return False\n\
-      \    \n    formatted = format_notification(message, datetime.now())\n    logger.info(f\"\
-      Sending notification to {email}: {formatted}\")\n    return True\n\n\ndef send_bulk_notifications(user_ids:\
-      \ List[int], message: str) -> Dict[int, bool]:\n    results = {}\n    for user_id\
-      \ in user_ids:\n        results[user_id] = send_notification(user_id, message)\n\
-      \    return results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n\
-      \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-    main.py: "import argparse\nimport logging\nfrom typing import Optional\nfrom services\
-      \ import (\n    send_notification,\n    send_bulk_notifications,\n    get_notification_history,\n\
-      \    clear_notification_queue,\n)\n\nlogging.basicConfig(level=logging.INFO)\n\
-      logger = logging.getLogger(__name__)\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"\
-      Notification CLI\")\n    parser.add_argument(\"--user-id\", type=int, required=True)\n\
-      \    parser.add_argument(\"--message\", type=str, required=True)\n    parser.add_argument(\"\
-      --priority\", type=str, default=\"normal\")\n    return parser.parse_args()\n\
-      \n\ndef validate_priority(priority: str) -> bool:\n    return priority in (\"\
-      low\", \"normal\", \"high\", \"urgent\")\n\n\ndef get_user_name(user_id: int)\
-      \ -> str:\n    names = {1: \"Alice\", 2: \"Bob\", 3: \"Charlie\"}\n    return\
-      \ names.get(user_id, \"Unknown\")\n\n\ndef log_notification_attempt(user_id:\
-      \ int, message: str, success: bool):\n    status = \"succeeded\" if success\
-      \ else \"failed\"\n    logger.info(f\"Notification to user {user_id} {status}\"\
-      )\n\n\ndef process_notification(user_id: int, message: str, priority: str) ->\
-      \ bool:\n    if not validate_priority(priority):\n        logger.error(f\"Invalid\
-      \ priority: {priority}\")\n        return False\n    \n    name = get_user_name(user_id)\n\
-      \    full_message = f\"Hello {name}, {message}\"\n    \n    success = send_notification(user_id,\
-      \ full_message)\n    log_notification_attempt(user_id, full_message, success)\n\
-      \    return success\n\n\ndef process_bulk_notification(user_ids: list, message:\
-      \ str) -> dict:\n    results = send_bulk_notifications(user_ids, message)\n\
-      \    for user_id, success in results.items():\n        log_notification_attempt(user_id,\
-      \ message, success)\n    return results\n\n\ndef show_history(user_id: int):\n\
-      \    history = get_notification_history(user_id)\n    for item in history:\n\
-      \        print(f\"  {item['timestamp']}: {item['message']}\")\n\n\ndef main():\n\
-      \    args = parse_args()\n    \n    if not validate_priority(args.priority):\n\
-      \        print(f\"Error: Invalid priority '{args.priority}'\")\n        return\
-      \ 1\n    \n    success = process_notification(args.user_id, args.message, args.priority)\n\
-      \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
-  cursor:
-    file: main.py
-    line: 1
-    column: 0
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str)\
-      \ -> bool:\n    email = get_user_email(user_id)\n    if not email:\n       \
-      \ logger.warning(f\"No email found for user {user_id}\")\n        return False\n\
-      \    \n    formatted = format_notification(message, datetime.now())\n    logger.info(f\"\
-      Sending notification to {email}: {formatted}\")\n    return True\n\n\ndef send_bulk_notifications(user_ids:\
-      \ List[int], message: str) -> Dict[int, bool]:\n    results = {}\n    for user_id\
-      \ in user_ids:\n        results[user_id] = send_notification(user_id, message)\n\
-      \    return results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n\
-      \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-    main.py: "import argparse\nimport logging\nfrom typing import Optional\nfrom services\
-      \ import (\n    send_notification,\n    send_bulk_notifications,\n    get_notification_history,\n\
-      \    clear_notification_queue,\n)\n\nlogging.basicConfig(level=logging.INFO)\n\
-      logger = logging.getLogger(__name__)\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"\
-      Notification CLI\")\n    parser.add_argument(\"--user-id\", type=int, required=True)\n\
-      \    parser.add_argument(\"--message\", type=str, required=True)\n    parser.add_argument(\"\
-      --priority\", type=str, default=\"normal\")\n    return parser.parse_args()\n\
-      \n\ndef validate_priority(priority: str) -> bool:\n    return priority in (\"\
-      low\", \"normal\", \"high\", \"urgent\")\n\n\ndef get_user_name(user_id: int)\
-      \ -> str:\n    names = {1: \"Alice\", 2: \"Bob\", 3: \"Charlie\"}\n    return\
-      \ names.get(user_id, \"Unknown\")\n\n\ndef log_notification_attempt(user_id:\
-      \ int, message: str, success: bool):\n    status = \"succeeded\" if success\
-      \ else \"failed\"\n    logger.info(f\"Notification to user {user_id} {status}\"\
-      )\n\n\ndef process_notification(user_id: int, message: str, priority: str) ->\
-      \ bool:\n    if not validate_priority(priority):\n        logger.error(f\"Invalid\
-      \ priority: {priority}\")\n        return False\n    \n    name = get_user_name(user_id)\n\
-      \    full_message = f\"Hello {name}, {message}\"\n    \n    success = send_notification(user_id,\
-      \ full_message)\n    log_notification_attempt(user_id, full_message, success)\n\
-      \    return success\n\n\ndef process_bulk_notification(user_ids: list, message:\
-      \ str) -> dict:\n    results = send_bulk_notifications(user_ids, message)\n\
-      \    for user_id, success in results.items():\n        log_notification_attempt(user_id,\
-      \ message, success)\n    return results\n\n\ndef show_history(user_id: int):\n\
-      \    history = get_notification_history(user_id)\n    for item in history:\n\
-      \        print(f\"  {item['timestamp']}: {item['message']}\")\n\n\ndef main():\n\
-      \    args = parse_args()\n    \n    if not validate_priority(args.priority):\n\
-      \        print(f\"Error: Invalid priority '{args.priority}'\")\n        return\
-      \ 1\n    \n    success = process_notification(args.user_id, args.message, args.priority)\n\
-      \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
-  cursor:
-    file: main.py
-    line: 45
-    column: 54
-- step: 4
-  eval: NO_EVAL
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str)\
-      \ -> bool:\n    email = get_user_email(user_id)\n    if not email:\n       \
-      \ logger.warning(f\"No email found for user {user_id}\")\n        return False\n\
-      \    \n    formatted = format_notification(message, datetime.now())\n    logger.info(f\"\
-      Sending notification to {email}: {formatted}\")\n    return True\n\n\ndef send_bulk_notifications(user_ids:\
-      \ List[int], message: str) -> Dict[int, bool]:\n    results = {}\n    for user_id\
-      \ in user_ids:\n        results[user_id] = send_notification(user_id, message)\n\
-      \    return results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n\
-      \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-    main.py: "import argparse\nimport logging\nfrom typing import Optional\nfrom services\
-      \ import (\n    send_notification,\n    send_bulk_notifications,\n    get_notification_history,\n\
-      \    clear_notification_queue,\n)\n\nlogging.basicConfig(level=logging.INFO)\n\
-      logger = logging.getLogger(__name__)\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"\
-      Notification CLI\")\n    parser.add_argument(\"--user-id\", type=int, required=True)\n\
-      \    parser.add_argument(\"--message\", type=str, required=True)\n    parser.add_argument(\"\
-      --priority\", type=str, default=\"normal\")\n    return parser.parse_args()\n\
-      \n\ndef validate_priority(priority: str) -> bool:\n    return priority in (\"\
-      low\", \"normal\", \"high\", \"urgent\")\n\n\ndef get_user_name(user_id: int)\
-      \ -> str:\n    names = {1: \"Alice\", 2: \"Bob\", 3: \"Charlie\"}\n    return\
-      \ names.get(user_id, \"Unknown\")\n\n\ndef log_notification_attempt(user_id:\
-      \ int, message: str, success: bool):\n    status = \"succeeded\" if success\
-      \ else \"failed\"\n    logger.info(f\"Notification to user {user_id} {status}\"\
-      )\n\n\ndef process_notification(user_id: int, message: str, priority: str) ->\
-      \ bool:\n    if not validate_priority(priority):\n        logger.error(f\"Invalid\
-      \ priority: {priority}\")\n        return False\n    \n    name = get_user_name(user_id)\n\
-      \    full_message = f\"Hello {name}, {message}\"\n    \n    success = send_notification(user_id,\
-      \ full_message, priority=priority)\n    log_notification_attempt(user_id, full_message,\
-      \ success)\n    return success\n\n\ndef process_bulk_notification(user_ids:\
-      \ list, message: str) -> dict:\n    results = send_bulk_notifications(user_ids,\
-      \ message)\n    for user_id, success in results.items():\n        log_notification_attempt(user_id,\
-      \ message, success)\n    return results\n\n\ndef show_history(user_id: int):\n\
-      \    history = get_notification_history(user_id)\n    for item in history:\n\
-      \        print(f\"  {item['timestamp']}: {item['message']}\")\n\n\ndef main():\n\
-      \    args = parse_args()\n    \n    if not validate_priority(args.priority):\n\
-      \        print(f\"Error: Invalid priority '{args.priority}'\")\n        return\
-      \ 1\n    \n    success = process_notification(args.user_id, args.message, args.priority)\n\
-      \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
-  cursor:
-    file: main.py
-    line: 45
-    column: 73
-- step: 5
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model suggests navigating to services.py (the file where send_notification is defined)
-    - the viewport is centered around line 40 where send_notification is defined
-    - this is a NAVIGATION action (cat with viewport), not an edit action
-    - the correct file is being viewed (services.py, not main.py)
-    - the file is being catted with approx. the correct viewport (around lines 30-50)
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str)\
-      \ -> bool:\n    email = get_user_email(user_id)\n    if not email:\n       \
-      \ logger.warning(f\"No email found for user {user_id}\")\n        return False\n\
-      \    \n    formatted = format_notification(message, datetime.now())\n    logger.info(f\"\
-      Sending notification to {email}: {formatted}\")\n    return True\n\n\ndef send_bulk_notifications(user_ids:\
-      \ List[int], message: str) -> Dict[int, bool]:\n    results = {}\n    for user_id\
-      \ in user_ids:\n        results[user_id] = send_notification(user_id, message)\n\
-      \    return results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n\
-      \    return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-    main.py: "import argparse\nimport logging\nfrom typing import Optional\nfrom services\
-      \ import (\n    send_notification,\n    send_bulk_notifications,\n    get_notification_history,\n\
-      \    clear_notification_queue,\n)\n\nlogging.basicConfig(level=logging.INFO)\n\
-      logger = logging.getLogger(__name__)\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"\
-      Notification CLI\")\n    parser.add_argument(\"--user-id\", type=int, required=True)\n\
-      \    parser.add_argument(\"--message\", type=str, required=True)\n    parser.add_argument(\"\
-      --priority\", type=str, default=\"normal\")\n    return parser.parse_args()\n\
-      \n\ndef validate_priority(priority: str) -> bool:\n    return priority in (\"\
-      low\", \"normal\", \"high\", \"urgent\")\n\n\ndef get_user_name(user_id: int)\
-      \ -> str:\n    names = {1: \"Alice\", 2: \"Bob\", 3: \"Charlie\"}\n    return\
-      \ names.get(user_id, \"Unknown\")\n\n\ndef log_notification_attempt(user_id:\
-      \ int, message: str, success: bool):\n    status = \"succeeded\" if success\
-      \ else \"failed\"\n    logger.info(f\"Notification to user {user_id} {status}\"\
-      )\n\n\ndef process_notification(user_id: int, message: str, priority: str) ->\
-      \ bool:\n    if not validate_priority(priority):\n        logger.error(f\"Invalid\
-      \ priority: {priority}\")\n        return False\n    \n    name = get_user_name(user_id)\n\
-      \    full_message = f\"Hello {name}, {message}\"\n    \n    success = send_notification(user_id,\
-      \ full_message, priority=priority)\n    log_notification_attempt(user_id, full_message,\
-      \ success)\n    return success\n\n\ndef process_bulk_notification(user_ids:\
-      \ list, message: str) -> dict:\n    results = send_bulk_notifications(user_ids,\
-      \ message)\n    for user_id, success in results.items():\n        log_notification_attempt(user_id,\
-      \ message, success)\n    return results\n\n\ndef show_history(user_id: int):\n\
-      \    history = get_notification_history(user_id)\n    for item in history:\n\
-      \        print(f\"  {item['timestamp']}: {item['message']}\")\n\n\ndef main():\n\
-      \    args = parse_args()\n    \n    if not validate_priority(args.priority):\n\
-      \        print(f\"Error: Invalid priority '{args.priority}'\")\n        return\
-      \ 1\n    \n    success = process_notification(args.user_id, args.message, args.priority)\n\
-      \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
-  cursor:
-    file: services.py
-    line: 40
-    column: 58
-- step: 6
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model adds the priority parameter to the send_notification function signature
-    - the parameter does not necessarily need a default value
-    - the parameter name matches what was used in the call (priority)
-    - the correct file is being edited (services.py)
-    - the file is being catted with approx. the correct viewport (around lines 30-50)
-  terminal: null
-  files:
-    services.py: "import smtplib\nfrom email.mime.text import MIMEText\nfrom typing\
-      \ import Optional, List, Dict\nfrom datetime import datetime\nimport logging\n\
-      \nlogger = logging.getLogger(__name__)\n\n\nclass NotificationService:\n   \
-      \ def __init__(self, smtp_host: str, smtp_port: int):\n        self.smtp_host\
-      \ = smtp_host\n        self.smtp_port = smtp_port\n        self._connection\
-      \ = None\n\n    def connect(self):\n        if self._connection is None:\n \
-      \           self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)\n\
-      \        return self._connection\n\n    def disconnect(self):\n        if self._connection:\n\
-      \            self._connection.quit()\n            self._connection = None\n\n\
-      \ndef get_user_email(user_id: int) -> Optional[str]:\n    users = {\n      \
-      \  1: \"alice@example.com\",\n        2: \"bob@example.com\",\n        3: \"\
-      charlie@example.com\",\n    }\n    return users.get(user_id)\n\n\ndef format_notification(message:\
-      \ str, timestamp: datetime) -> str:\n    return f\"[{timestamp.strftime('%Y-%m-%d\
-      \ %H:%M')}] {message}\"\n\n\ndef send_notification(user_id: int, message: str,\
-      \ priority: str = \"normal\") -> bool:\n    email = get_user_email(user_id)\n\
-      \    if not email:\n        logger.warning(f\"No email found for user {user_id}\"\
-      )\n        return False\n    \n    formatted = format_notification(message,\
-      \ datetime.now())\n    logger.info(f\"Sending notification to {email}: {formatted}\"\
-      )\n    return True\n\n\ndef send_bulk_notifications(user_ids: List[int], message:\
-      \ str) -> Dict[int, bool]:\n    results = {}\n    for user_id in user_ids:\n\
-      \        results[user_id] = send_notification(user_id, message)\n    return\
-      \ results\n\n\ndef get_notification_history(user_id: int) -> List[Dict]:\n \
-      \   return []\n\n\ndef clear_notification_queue() -> int:\n    return 0"
-    main.py: "import argparse\nimport logging\nfrom typing import Optional\nfrom services\
-      \ import (\n    send_notification,\n    send_bulk_notifications,\n    get_notification_history,\n\
-      \    clear_notification_queue,\n)\n\nlogging.basicConfig(level=logging.INFO)\n\
-      logger = logging.getLogger(__name__)\n\n\ndef parse_args():\n    parser = argparse.ArgumentParser(description=\"\
-      Notification CLI\")\n    parser.add_argument(\"--user-id\", type=int, required=True)\n\
-      \    parser.add_argument(\"--message\", type=str, required=True)\n    parser.add_argument(\"\
-      --priority\", type=str, default=\"normal\")\n    return parser.parse_args()\n\
-      \n\ndef validate_priority(priority: str) -> bool:\n    return priority in (\"\
-      low\", \"normal\", \"high\", \"urgent\")\n\n\ndef get_user_name(user_id: int)\
-      \ -> str:\n    names = {1: \"Alice\", 2: \"Bob\", 3: \"Charlie\"}\n    return\
-      \ names.get(user_id, \"Unknown\")\n\n\ndef log_notification_attempt(user_id:\
-      \ int, message: str, success: bool):\n    status = \"succeeded\" if success\
-      \ else \"failed\"\n    logger.info(f\"Notification to user {user_id} {status}\"\
-      )\n\n\ndef process_notification(user_id: int, message: str, priority: str) ->\
-      \ bool:\n    if not validate_priority(priority):\n        logger.error(f\"Invalid\
-      \ priority: {priority}\")\n        return False\n    \n    name = get_user_name(user_id)\n\
-      \    full_message = f\"Hello {name}, {message}\"\n    \n    success = send_notification(user_id,\
-      \ full_message, priority=priority)\n    log_notification_attempt(user_id, full_message,\
-      \ success)\n    return success\n\n\ndef process_bulk_notification(user_ids:\
-      \ list, message: str) -> dict:\n    results = send_bulk_notifications(user_ids,\
-      \ message)\n    for user_id, success in results.items():\n        log_notification_attempt(user_id,\
-      \ message, success)\n    return results\n\n\ndef show_history(user_id: int):\n\
-      \    history = get_notification_history(user_id)\n    for item in history:\n\
-      \        print(f\"  {item['timestamp']}: {item['message']}\")\n\n\ndef main():\n\
-      \    args = parse_args()\n    \n    if not validate_priority(args.priority):\n\
-      \        print(f\"Error: Invalid priority '{args.priority}'\")\n        return\
-      \ 1\n    \n    success = process_notification(args.user_id, args.message, args.priority)\n\
-      \    return 0 if success else 1\n\n\nif __name__ == \"__main__\":\n    exit(main())"
-  cursor:
-    file: services.py
-    line: 40
-    column: 84
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 20
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user 1892 Jan 19 09:58 main.py
+        -rw-r--r-- 1 user user  456 Jan 19 09:58 requirements.txt
+        -rw-r--r-- 1 user user 1456 Jan 19 09:58 services.py
+        -rw-r--r-- 1 user user  234 Jan 19 09:58 test_services.py
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str) -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+    cursor:
+      file: services.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str) -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+      main.py: |-
+        import argparse
+        import logging
+        from typing import Optional
+        from services import (
+            send_notification,
+            send_bulk_notifications,
+            get_notification_history,
+            clear_notification_queue,
+        )
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def parse_args():
+            parser = argparse.ArgumentParser(description="Notification CLI")
+            parser.add_argument("--user-id", type=int, required=True)
+            parser.add_argument("--message", type=str, required=True)
+            parser.add_argument("--priority", type=str, default="normal")
+            return parser.parse_args()
+
+
+        def validate_priority(priority: str) -> bool:
+            return priority in ("low", "normal", "high", "urgent")
+
+
+        def get_user_name(user_id: int) -> str:
+            names = {1: "Alice", 2: "Bob", 3: "Charlie"}
+            return names.get(user_id, "Unknown")
+
+
+        def log_notification_attempt(user_id: int, message: str, success: bool):
+            status = "succeeded" if success else "failed"
+            logger.info(f"Notification to user {user_id} {status}")
+
+
+        def process_notification(user_id: int, message: str, priority: str) -> bool:
+            if not validate_priority(priority):
+                logger.error(f"Invalid priority: {priority}")
+                return False
+            
+            name = get_user_name(user_id)
+            full_message = f"Hello {name}, {message}"
+            
+            success = send_notification(user_id, full_message)
+            log_notification_attempt(user_id, full_message, success)
+            return success
+
+
+        def process_bulk_notification(user_ids: list, message: str) -> dict:
+            results = send_bulk_notifications(user_ids, message)
+            for user_id, success in results.items():
+                log_notification_attempt(user_id, message, success)
+            return results
+
+
+        def show_history(user_id: int):
+            history = get_notification_history(user_id)
+            for item in history:
+                print(f"  {item['timestamp']}: {item['message']}")
+
+
+        def main():
+            args = parse_args()
+            
+            if not validate_priority(args.priority):
+                print(f"Error: Invalid priority '{args.priority}'")
+                return 1
+            
+            success = process_notification(args.user_id, args.message, args.priority)
+            return 0 if success else 1
+
+
+        if __name__ == "__main__":
+            exit(main())
+    cursor:
+      file: main.py
+      line: 1
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str) -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+      main.py: |-
+        import argparse
+        import logging
+        from typing import Optional
+        from services import (
+            send_notification,
+            send_bulk_notifications,
+            get_notification_history,
+            clear_notification_queue,
+        )
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def parse_args():
+            parser = argparse.ArgumentParser(description="Notification CLI")
+            parser.add_argument("--user-id", type=int, required=True)
+            parser.add_argument("--message", type=str, required=True)
+            parser.add_argument("--priority", type=str, default="normal")
+            return parser.parse_args()
+
+
+        def validate_priority(priority: str) -> bool:
+            return priority in ("low", "normal", "high", "urgent")
+
+
+        def get_user_name(user_id: int) -> str:
+            names = {1: "Alice", 2: "Bob", 3: "Charlie"}
+            return names.get(user_id, "Unknown")
+
+
+        def log_notification_attempt(user_id: int, message: str, success: bool):
+            status = "succeeded" if success else "failed"
+            logger.info(f"Notification to user {user_id} {status}")
+
+
+        def process_notification(user_id: int, message: str, priority: str) -> bool:
+            if not validate_priority(priority):
+                logger.error(f"Invalid priority: {priority}")
+                return False
+            
+            name = get_user_name(user_id)
+            full_message = f"Hello {name}, {message}"
+            
+            success = send_notification(user_id, full_message)
+            log_notification_attempt(user_id, full_message, success)
+            return success
+
+
+        def process_bulk_notification(user_ids: list, message: str) -> dict:
+            results = send_bulk_notifications(user_ids, message)
+            for user_id, success in results.items():
+                log_notification_attempt(user_id, message, success)
+            return results
+
+
+        def show_history(user_id: int):
+            history = get_notification_history(user_id)
+            for item in history:
+                print(f"  {item['timestamp']}: {item['message']}")
+
+
+        def main():
+            args = parse_args()
+            
+            if not validate_priority(args.priority):
+                print(f"Error: Invalid priority '{args.priority}'")
+                return 1
+            
+            success = process_notification(args.user_id, args.message, args.priority)
+            return 0 if success else 1
+
+
+        if __name__ == "__main__":
+            exit(main())
+    cursor:
+      file: main.py
+      line: 45
+      column: 54
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str) -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+      main.py: |-
+        import argparse
+        import logging
+        from typing import Optional
+        from services import (
+            send_notification,
+            send_bulk_notifications,
+            get_notification_history,
+            clear_notification_queue,
+        )
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def parse_args():
+            parser = argparse.ArgumentParser(description="Notification CLI")
+            parser.add_argument("--user-id", type=int, required=True)
+            parser.add_argument("--message", type=str, required=True)
+            parser.add_argument("--priority", type=str, default="normal")
+            return parser.parse_args()
+
+
+        def validate_priority(priority: str) -> bool:
+            return priority in ("low", "normal", "high", "urgent")
+
+
+        def get_user_name(user_id: int) -> str:
+            names = {1: "Alice", 2: "Bob", 3: "Charlie"}
+            return names.get(user_id, "Unknown")
+
+
+        def log_notification_attempt(user_id: int, message: str, success: bool):
+            status = "succeeded" if success else "failed"
+            logger.info(f"Notification to user {user_id} {status}")
+
+
+        def process_notification(user_id: int, message: str, priority: str) -> bool:
+            if not validate_priority(priority):
+                logger.error(f"Invalid priority: {priority}")
+                return False
+            
+            name = get_user_name(user_id)
+            full_message = f"Hello {name}, {message}"
+            
+            success = send_notification(user_id, full_message, priority=priority)
+            log_notification_attempt(user_id, full_message, success)
+            return success
+
+
+        def process_bulk_notification(user_ids: list, message: str) -> dict:
+            results = send_bulk_notifications(user_ids, message)
+            for user_id, success in results.items():
+                log_notification_attempt(user_id, message, success)
+            return results
+
+
+        def show_history(user_id: int):
+            history = get_notification_history(user_id)
+            for item in history:
+                print(f"  {item['timestamp']}: {item['message']}")
+
+
+        def main():
+            args = parse_args()
+            
+            if not validate_priority(args.priority):
+                print(f"Error: Invalid priority '{args.priority}'")
+                return 1
+            
+            success = process_notification(args.user_id, args.message, args.priority)
+            return 0 if success else 1
+
+
+        if __name__ == "__main__":
+            exit(main())
+    cursor:
+      file: main.py
+      line: 45
+      column: 73
+  - step: 5
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model suggests navigating to services.py (the file where send_notification is defined)
+      - the viewport is centered around line 40 where send_notification is defined
+      - this is a NAVIGATION action (cat with viewport), not an edit action
+      - the correct file is being viewed (services.py, not main.py)
+      - the file is being catted with approx. the correct viewport (around lines 29-50)
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str) -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+      main.py: |-
+        import argparse
+        import logging
+        from typing import Optional
+        from services import (
+            send_notification,
+            send_bulk_notifications,
+            get_notification_history,
+            clear_notification_queue,
+        )
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def parse_args():
+            parser = argparse.ArgumentParser(description="Notification CLI")
+            parser.add_argument("--user-id", type=int, required=True)
+            parser.add_argument("--message", type=str, required=True)
+            parser.add_argument("--priority", type=str, default="normal")
+            return parser.parse_args()
+
+
+        def validate_priority(priority: str) -> bool:
+            return priority in ("low", "normal", "high", "urgent")
+
+
+        def get_user_name(user_id: int) -> str:
+            names = {1: "Alice", 2: "Bob", 3: "Charlie"}
+            return names.get(user_id, "Unknown")
+
+
+        def log_notification_attempt(user_id: int, message: str, success: bool):
+            status = "succeeded" if success else "failed"
+            logger.info(f"Notification to user {user_id} {status}")
+
+
+        def process_notification(user_id: int, message: str, priority: str) -> bool:
+            if not validate_priority(priority):
+                logger.error(f"Invalid priority: {priority}")
+                return False
+            
+            name = get_user_name(user_id)
+            full_message = f"Hello {name}, {message}"
+            
+            success = send_notification(user_id, full_message, priority=priority)
+            log_notification_attempt(user_id, full_message, success)
+            return success
+
+
+        def process_bulk_notification(user_ids: list, message: str) -> dict:
+            results = send_bulk_notifications(user_ids, message)
+            for user_id, success in results.items():
+                log_notification_attempt(user_id, message, success)
+            return results
+
+
+        def show_history(user_id: int):
+            history = get_notification_history(user_id)
+            for item in history:
+                print(f"  {item['timestamp']}: {item['message']}")
+
+
+        def main():
+            args = parse_args()
+            
+            if not validate_priority(args.priority):
+                print(f"Error: Invalid priority '{args.priority}'")
+                return 1
+            
+            success = process_notification(args.user_id, args.message, args.priority)
+            return 0 if success else 1
+
+
+        if __name__ == "__main__":
+            exit(main())
+    cursor:
+      file: services.py
+      line: 40
+      column: 58
+  - step: 6
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model adds the priority parameter to the send_notification function signature
+      - the parameter does not necessarily need a default value
+      - the parameter name matches what was used in the call (priority)
+      - the correct file is being edited (services.py)
+      - the file is being catted with approx. the correct viewport (around lines 29-50)
+    terminal: null
+    files:
+      services.py: |-
+        import smtplib
+        from email.mime.text import MIMEText
+        from typing import Optional, List, Dict
+        from datetime import datetime
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+
+        class NotificationService:
+            def __init__(self, smtp_host: str, smtp_port: int):
+                self.smtp_host = smtp_host
+                self.smtp_port = smtp_port
+                self._connection = None
+
+            def connect(self):
+                if self._connection is None:
+                    self._connection = smtplib.SMTP(self.smtp_host, self.smtp_port)
+                return self._connection
+
+            def disconnect(self):
+                if self._connection:
+                    self._connection.quit()
+                    self._connection = None
+
+
+        def get_user_email(user_id: int) -> Optional[str]:
+            users = {
+                1: "alice@example.com",
+                2: "bob@example.com",
+                3: "charlie@example.com",
+            }
+            return users.get(user_id)
+
+
+        def format_notification(message: str, timestamp: datetime) -> str:
+            return f"[{timestamp.strftime('%Y-%m-%d %H:%M')}] {message}"
+
+
+        def send_notification(user_id: int, message: str, priority: str = "normal") -> bool:
+            email = get_user_email(user_id)
+            if not email:
+                logger.warning(f"No email found for user {user_id}")
+                return False
+            
+            formatted = format_notification(message, datetime.now())
+            logger.info(f"Sending notification to {email}: {formatted}")
+            return True
+
+
+        def send_bulk_notifications(user_ids: List[int], message: str) -> Dict[int, bool]:
+            results = {}
+            for user_id in user_ids:
+                results[user_id] = send_notification(user_id, message)
+            return results
+
+
+        def get_notification_history(user_id: int) -> List[Dict]:
+            return []
+
+
+        def clear_notification_queue() -> int:
+            return 0
+      main.py: |-
+        import argparse
+        import logging
+        from typing import Optional
+        from services import (
+            send_notification,
+            send_bulk_notifications,
+            get_notification_history,
+            clear_notification_queue,
+        )
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def parse_args():
+            parser = argparse.ArgumentParser(description="Notification CLI")
+            parser.add_argument("--user-id", type=int, required=True)
+            parser.add_argument("--message", type=str, required=True)
+            parser.add_argument("--priority", type=str, default="normal")
+            return parser.parse_args()
+
+
+        def validate_priority(priority: str) -> bool:
+            return priority in ("low", "normal", "high", "urgent")
+
+
+        def get_user_name(user_id: int) -> str:
+            names = {1: "Alice", 2: "Bob", 3: "Charlie"}
+            return names.get(user_id, "Unknown")
+
+
+        def log_notification_attempt(user_id: int, message: str, success: bool):
+            status = "succeeded" if success else "failed"
+            logger.info(f"Notification to user {user_id} {status}")
+
+
+        def process_notification(user_id: int, message: str, priority: str) -> bool:
+            if not validate_priority(priority):
+                logger.error(f"Invalid priority: {priority}")
+                return False
+            
+            name = get_user_name(user_id)
+            full_message = f"Hello {name}, {message}"
+            
+            success = send_notification(user_id, full_message, priority=priority)
+            log_notification_attempt(user_id, full_message, success)
+            return success
+
+
+        def process_bulk_notification(user_ids: list, message: str) -> dict:
+            results = send_bulk_notifications(user_ids, message)
+            for user_id, success in results.items():
+                log_notification_attempt(user_id, message, success)
+            return results
+
+
+        def show_history(user_id: int):
+            history = get_notification_history(user_id)
+            for item in history:
+                print(f"  {item['timestamp']}: {item['message']}")
+
+
+        def main():
+            args = parse_args()
+            
+            if not validate_priority(args.priority):
+                print(f"Error: Invalid priority '{args.priority}'")
+                return 1
+            
+            success = process_notification(args.user_id, args.message, args.priority)
+            return 0 if success else 1
+
+
+        if __name__ == "__main__":
+            exit(main())
+    cursor:
+      file: services.py
+      line: 40
+      column: 84

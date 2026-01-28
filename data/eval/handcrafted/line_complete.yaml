@@ -1,313 +1,313 @@
 task_id: line_complete
-description: 'This eval tests completing partial lines in a data loader module.'
+description: This eval tests completing partial lines in a data loader module.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/data_loader.py: |
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/data_loader.py: |
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
 
-              return self.cache[filename]
+                return self.cache[filename]
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
-
-
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-  cursor:
-    file: src/data_loader.py
-    line: 1
-    column: 0
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/data_loader.py: |
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
-
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
-
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
-
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
-
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_
-              return self.cache[filename]
-
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
 
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-  cursor:
-    file: src/data_loader.py
-    line: 23
-    column: 38
-- step: 2
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the line is completed by adding `json(filename)` to finish the method call `self.load_json(filename)`
-    - the correct file is being edited (src/data_loader.py)
-    - the correct line is being edited (line 24)
-    - the completion makes semantic sense given the context (caching the result of load_json)
-    - the file is being catted with the approx. correct viewport (between line 13 and 33)
-  terminal: null
-  files:
-    src/data_loader.py: |
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+    cursor:
+      file: src/data_loader.py
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/data_loader.py: |
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_json(filename)
-              return self.cache[filename]
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_
+                return self.cache[filename]
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
 
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-  cursor:
-    file: src/data_loader.py
-    line: 23
-    column: 38
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/data_loader.py: |
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+    cursor:
+      file: src/data_loader.py
+      line: 24
+      column: 45
+  - step: 2
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the line is completed by adding `json(filename)` to finish the method call `self.load_json(filename)`
+      - the correct file is being edited (src/data_loader.py)
+      - the correct line is being edited (line 24)
+      - the completion makes semantic sense given the context (caching the result of load_json)
+      - the file is being catted with the approx. correct viewport (between line 13 and 34)
+    terminal: null
+    files:
+      src/data_loader.py: |
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_json(filename)
-              return self.cache[filename]
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_json(filename)
+                return self.cache[filename]
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
-              return [item for item in data if item.get(
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-  cursor:
-    file: src/data_loader.py
-    line: 25
-    column: 35
-- step: 4
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the line is completed by adding `key) == value]` to finish the list comprehension filter
-    - the correct file is being edited (src/data_loader.py)
-    - the correct line is being edited (line 28)
-    - the completion uses the function parameters `key` and `value` correctly
-    - the file is being catted with the approx. correct viewport (between line 13 and 33)
-  terminal: null
-  files:
-    src/data_loader.py: |
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+    cursor:
+      file: src/data_loader.py
+      line: 24
+      column: 59
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/data_loader.py: |
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_json(filename)
-              return self.cache[filename]
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
-              return [item for item in data if item.get(key) == value]
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_json(filename)
+                return self.cache[filename]
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-  cursor:
-    file: src/data_loader.py
-    line: 25
-    column: 35
-- step: 5
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/data_loader.py: |-
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+                return [item for item in data if item.get(
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+    cursor:
+      file: src/data_loader.py
+      line: 28
+      column: 50
+  - step: 4
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the line is completed by adding `key) == value]` to finish the list comprehension filter
+      - the correct file is being edited (src/data_loader.py)
+      - the correct line is being edited (line 28)
+      - the completion uses the function parameters `key` and `value` correctly
+      - the file is being catted with the approx. correct viewport (between line 17 and 33)
+    terminal: null
+    files:
+      src/data_loader.py: |
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_json(filename)
-              return self.cache[filename]
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
-              return [item for item in data if item.get(key) == value]
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_json(filename)
+                return self.cache[filename]
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-                  json.dump(data, f, indent=
-  cursor:
-    file: src/data_loader.py
-    line: 28
-    column: 64
-- step: 6
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the line is completed by adding a reasonable indent value (e.g., `2)` or `4)`) to finish the json.dump call
-    - the correct file is being edited (src/data_loader.py)
-    - the correct line is being edited (line 33)
-    - the parenthesis is closed properly
-    - the file is being catted with approx. the correct viewport (between line 13 and 33)
-  terminal: null
-  files:
-    src/data_loader.py: |-
-      import os
-      import json
-      from pathlib import Path
-      from typing import List, Dict, Optional
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+                return [item for item in data if item.get(key) == value]
 
-      class DataLoader:
-          def __init__(self, data_dir: str):
-              self.data_dir = Path(data_dir)
-              self.cache: Dict[str, any] = {}
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+    cursor:
+      file: src/data_loader.py
+      line: 28
+      column: 64
+  - step: 5
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/data_loader.py: |-
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
 
-          def load_json(self, filename: str) -> Dict:
-              filepath = self.data_dir / filename
-              with open(filepath, "r") as f:
-                  return json.load(f)
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
 
-          def load_all_files(self, extension: str = ".json") -> List[Dict]:
-              results = []
-              for file in self.data_dir.glob(f"*{extension}"):
-                  results.append(self.load_json(file.name))
-              return results
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
 
-          def get_cached_or_load(self, filename: str) -> Dict:
-              if filename not in self.cache:
-                  self.cache[filename] = self.load_json(filename)
-              return self.cache[filename]
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
 
-          def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
-              return [item for item in data if item.get(key) == value]
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_json(filename)
+                return self.cache[filename]
 
-          def save_json(self, data: Dict, filename: str) -> None:
-              filepath = self.data_dir / filename
-              with open(filepath, "w") as f:
-                  json.dump(data, f, indent=2)
-  cursor:
-    file: src/data_loader.py
-    line: 28
-    column: 64
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+                return [item for item in data if item.get(key) == value]
+
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+                    json.dump(data, f, indent=
+    cursor:
+      file: src/data_loader.py
+      line: 33
+      column: 38
+  - step: 6
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the line is completed by adding a reasonable indent value (e.g., `2)` or `4)`) to finish the json.dump call
+      - the correct file is being edited (src/data_loader.py)
+      - the correct line is being edited (line 33)
+      - the parenthesis is closed properly
+      - the file is being catted with approx. the correct viewport (between line 22 and 33)
+    terminal: null
+    files:
+      src/data_loader.py: |-
+        import os
+        import json
+        from pathlib import Path
+        from typing import List, Dict, Optional
+
+        class DataLoader:
+            def __init__(self, data_dir: str):
+                self.data_dir = Path(data_dir)
+                self.cache: Dict[str, any] = {}
+
+            def load_json(self, filename: str) -> Dict:
+                filepath = self.data_dir / filename
+                with open(filepath, "r") as f:
+                    return json.load(f)
+
+            def load_all_files(self, extension: str = ".json") -> List[Dict]:
+                results = []
+                for file in self.data_dir.glob(f"*{extension}"):
+                    results.append(self.load_json(file.name))
+                return results
+
+            def get_cached_or_load(self, filename: str) -> Dict:
+                if filename not in self.cache:
+                    self.cache[filename] = self.load_json(filename)
+                return self.cache[filename]
+
+            def filter_by_key(self, data: List[Dict], key: str, value: any) -> List[Dict]:
+                return [item for item in data if item.get(key) == value]
+
+            def save_json(self, data: Dict, filename: str) -> None:
+                filepath = self.data_dir / filename
+                with open(filepath, "w") as f:
+                    json.dump(data, f, indent=2)
+    cursor:
+      file: src/data_loader.py
+      line: 33
+      column: 40

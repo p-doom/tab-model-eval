@@ -1,298 +1,299 @@
 task_id: propagate_field
-description: 'This eval tests propagating a new field through class and serialization.'
+description: This eval tests propagating a new field through class and serialization.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 24
-      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      -rw-r--r-- 1 user user  523 Jan 19 09:58 user.py
-      -rw-r--r-- 1 user user  892 Jan 19 09:58 main.py
-      -rw-r--r-- 1 user user  456 Jan 19 09:58 utils.py
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age):
-              self.name = name
-              self.age = age
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 24
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user  523 Jan 19 09:58 user.py
+        -rw-r--r-- 1 user user  892 Jan 19 09:58 main.py
+        -rw-r--r-- 1 user user  456 Jan 19 09:58 utils.py
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age):
+                self.name = name
+                self.age = age
 
-          def get_name(self):
-              return self.name
+            def get_name(self):
+                return self.name
 
-          def is_adult(self):
-              return self.age >= 18
+            def is_adult(self):
+                return self.age >= 18
 
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
-
-
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-          }
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age):
-              self.name = name
-              self.age = age
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age):
+                self.name = name
+                self.age = age
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 11
-    column: 0
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age, email):
-              self.name = name
-              self.age = age
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 2
+      column: 32
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age, email):
+                self.name = name
+                self.age = age
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 6
-    column: 23
-- step: 4
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model adds the missing self.email = email assignment
-    - the new line follows the pattern of the existing assignments (self.name, self.age)
-    - the indentation matches the existing code (8 spaces)
-    - the correct file is being edited (user.py)
-    - the correct line is being edited (after line 4)
-    - the file is being catted with the approx. correct viewport (around lines 1-21)
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age, email):
-              self.name = name
-              self.age = age
-              self.email = email
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 2
+      column: 39
+  - step: 4
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model adds the missing self.email = email assignment
+      - the new line follows the pattern of the existing assignments (self.name, self.age)
+      - the indentation matches the existing code (8 spaces)
+      - the correct file is being edited (user.py)
+      - the correct line is being edited (line 5)
+      - the file is being catted with the approx. correct viewport (around lines 1-15)
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age, email):
+                self.name = name
+                self.age = age
+                self.email = email
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 8
-    column: 24
-- step: 5
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model propagates the email field to the user_to_dict function
-    - the new line follows the pattern of the existing dict entries ("name", "age")
-    - the indentation matches the existing code (8 spaces)
-    - the correct file is being edited (user.py)
-    - the correct line is being edited (after line 20, the "age" entry)
-    - the file is being catted with the approx. correct viewport (around lines 7-27)
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age, email):
-              self.name = name
-              self.age = age
-              self.email = email
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-              "email": user.email,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 5
+      column: 26
+  - step: 5
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model propagates the email field to the user_to_dict function
+      - the new line follows the pattern of the existing dict entries ("name", "age")
+      - the indentation matches the existing code (8 spaces)
+      - the correct file is being edited (user.py)
+      - the correct line is being edited (line 21, the "age" entry)
+      - the file is being catted with the approx. correct viewport (around lines 10-28)
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age, email):
+                self.name = name
+                self.age = age
+                self.email = email
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 19
-    column: 26
-- step: 6
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model navigates to the __main__ section to update the User instantiation
-    - the correct file is being viewed (user.py)
-    - the viewport shows the area around line 26 where User is instantiated
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age, email):
-              self.name = name
-              self.age = age
-              self.email = email
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+                "email": user.email,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-              "email": user.email,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 21
+      column: 28
+  - step: 6
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model navigates to the __main__ section to update the User instantiation
+      - the correct file is being viewed (user.py)
+      - the viewport shows the area around line 26 where User is instantiated
+      - it is also ok if the model edits line 26 directly adding a string for the email in the user instantiation.
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age, email):
+                self.name = name
+                self.age = age
+                self.email = email
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30)
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 18
-    column: 12
-- step: 7
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model updates the User instantiation to include the email argument
-    - the email value is a plausible email string
-    - the correct file is being edited (user.py)
-    - the correct line is being edited (line 26, the User instantiation)
-    - the file is being catted with the approx. correct viewport (around lines 8-28)
-  terminal: null
-  files:
-    user.py: |-
-      class User:
-          def __init__(self, name, age, email):
-              self.name = name
-              self.age = age
-              self.email = email
-
-          def get_name(self):
-              return self.name
-
-          def is_adult(self):
-              return self.age >= 18
-
-          def is_verified(self):
-              return self.age >= 18 and len(self.name) > 0
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+                "email": user.email,
+            }
 
 
-      def user_to_dict(user):
-          return {
-              "name": user.name,
-              "age": user.age,
-              "email": user.email,
-          }
+        if __name__ == "__main__":
+            user = User("Alice", 30)
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 26
+      column: 27
+  - step: 7
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model updates the User instantiation to include the email argument
+      - the email value is a plausible email string
+      - the correct file is being edited (user.py)
+      - the correct line is being edited (line 26, the User instantiation)
+      - the file is being catted with the approx. correct viewport (around lines 8-28)
+    terminal: null
+    files:
+      user.py: |-
+        class User:
+            def __init__(self, name, age, email):
+                self.name = name
+                self.age = age
+                self.email = email
+
+            def get_name(self):
+                return self.name
+
+            def is_adult(self):
+                return self.age >= 18
+
+            def is_verified(self):
+                return self.age >= 18 and len(self.name) > 0
 
 
-      if __name__ == "__main__":
-          user = User("Alice", 30, "alice@example.com")
-          print(user_to_dict(user))
-          print(f"Verified: {user.is_verified()}")
-  cursor:
-    file: user.py
-    line: 22
-    column: 5
+        def user_to_dict(user):
+            return {
+                "name": user.name,
+                "age": user.age,
+                "email": user.email,
+            }
+
+
+        if __name__ == "__main__":
+            user = User("Alice", 30, "alice@example.com")
+            print(user_to_dict(user))
+            print(f"Verified: {user.is_verified()}")
+    cursor:
+      file: user.py
+      line: 26
+      column: 48

@@ -1,131 +1,131 @@
 task_id: add_type_hints
-description: 'This eval tests adding float return type hints across math helpers.'
+description: This eval tests adding float return type hints across math helpers.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: mypy --strict src/utils/math.py
-    output: |-
-      src/utils/math.py:6: error: Function is missing a type annotation
-      src/utils/math.py:10: error: Function is missing a type annotation
-      src/utils/math.py:14: error: Function is missing a type annotation
-    exit_code: 1
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the complete contents of the files are catted using the cat command with the -n flag
-    - do not use grep or any other command to filter the output
-    - nothing is being modified at all
-  terminal: null
-  files:
-    src/utils/math.py: |-
-      import math
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: mypy --strict src/utils/math.py
+      output: |-
+        src/utils/math.py:6: error: Function is missing a type annotation
+        src/utils/math.py:10: error: Function is missing a type annotation
+        src/utils/math.py:14: error: Function is missing a type annotation
+      exit_code: 1
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the complete contents of the files are catted using the cat command with the -n flag
+      - do not use grep or any other command to filter the output
+      - nothing is being modified at all
+    terminal: null
+    files:
+      src/utils/math.py: |-
+        import math
 
-      # Constant for pi
-      PI = 3.14159
+        # Constant for pi
+        PI = 3.14159
 
-      def calculate_area(radius):
-          pi = PI
-          return pi * (radius ** 2)
+        def calculate_area(radius):
+            pi = PI
+            return pi * (radius ** 2)
 
-      def calculate_circumference(radius):
-          pi = PI
-          return 2 * pi * radius
+        def calculate_circumference(radius):
+            pi = PI
+            return 2 * pi * radius
 
-      def calculate_volume(radius):
-          return (4/3) * PI * (radius ** 3)
-  cursor:
-    file: src/utils/math.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the area function is being typed correctly with float as the return type
-    - nothing else is being modified at all (the circumference and volume functions should not be changed)
-    - make sure that part that was edited is being catted with the correct viewport (10 lines above and below the edited part between line 4 and 13)
-  terminal: null
-  files:
-    src/utils/math.py: |-
-      import math
+        def calculate_volume(radius):
+            return (4/3) * PI * (radius ** 3)
+    cursor:
+      file: src/utils/math.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the area function is being typed correctly with float as the return type
+      - nothing else is being modified at all (the circumference and volume functions should not be changed)
+      - make sure that part that was edited is being catted with the correct viewport (10 lines above and below the edited part between line 4 and 13)
+    terminal: null
+    files:
+      src/utils/math.py: |-
+        import math
 
-      # Constant for pi
-      PI = 3.14159
+        # Constant for pi
+        PI = 3.14159
 
-      def calculate_area(radius: float) -> float:
-          pi = PI
-          return pi * (radius ** 2)
+        def calculate_area(radius: float) -> float:
+            pi = PI
+            return pi * (radius ** 2)
 
-      def calculate_circumference(radius):
-          pi = PI
-          return 2 * pi * radius
+        def calculate_circumference(radius):
+            pi = PI
+            return 2 * pi * radius
 
-      def calculate_volume(radius):
-          return (4/3) * PI * (radius ** 3)
-  cursor:
-    file: src/utils/math.py
-    line: 8
-    column: 29
-- step: 3
-  eval: NO_EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the circumference function is being typed correctly with float as the return type
-    - nothing else is being modified at all (the area and volume functions should not be changed)
-    - make sure that part that was edited is being catted with the correct viewport (10 lines above and below the edited part between line 8 and 17)
-  terminal: null
-  files:
-    src/utils/math.py: |-
-      import math
+        def calculate_volume(radius):
+            return (4/3) * PI * (radius ** 3)
+    cursor:
+      file: src/utils/math.py
+      line: 6
+      column: 43
+  - step: 3
+    eval: NO_EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the circumference function is being typed correctly with float as the return type
+      - nothing else is being modified at all (the area and volume functions should not be changed)
+      - make sure that part that was edited is being catted with the correct viewport (10 lines above and below the edited part between line 8 and 17)
+    terminal: null
+    files:
+      src/utils/math.py: |-
+        import math
 
-      # Constant for pi
-      PI = 3.14159
+        # Constant for pi
+        PI = 3.14159
 
-      def calculate_area(radius: float) -> float:
-          pi = PI
-          return pi * (radius ** 2)
+        def calculate_area(radius: float) -> float:
+            pi = PI
+            return pi * (radius ** 2)
 
-      def calculate_circumference(radius: float) -> float:
-          pi = PI
-          return 2 * pi * radius
+        def calculate_circumference(radius: float) -> float:
+            pi = PI
+            return 2 * pi * radius
 
-      def calculate_volume(radius):
-          return (4/3) * PI * (radius ** 3)
-  cursor:
-    file: src/utils/math.py
-    line: 8
-    column: 29
-- step: 4
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the volume function is being typed correctly with float as the return type
-    - nothing else is being modified at all (the area and circumference functions should changed)
-    - make sure that part that was edited is being catted with the correct viewport (between line 10 and 15)
-  terminal: null
-  files:
-    src/utils/math.py: |-
-      import math
+        def calculate_volume(radius):
+            return (4/3) * PI * (radius ** 3)
+    cursor:
+      file: src/utils/math.py
+      line: 10
+      column: 52
+  - step: 4
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the volume function is being typed correctly with float as the return type
+      - nothing else is being modified at all (the area and circumference functions should changed)
+      - make sure that part that was edited is being catted with the correct viewport (between line 10 and 15)
+    terminal: null
+    files:
+      src/utils/math.py: |-
+        import math
 
-      # Constant for pi
-      PI = 3.14159
+        # Constant for pi
+        PI = 3.14159
 
-      def calculate_area(radius: float) -> float:
-          pi = PI
-          return pi * (radius ** 2)
+        def calculate_area(radius: float) -> float:
+            pi = PI
+            return pi * (radius ** 2)
 
-      def calculate_circumference(radius: float) -> float:
-          pi = PI
-          return 2 * pi * radius
+        def calculate_circumference(radius: float) -> float:
+            pi = PI
+            return 2 * pi * radius
 
-      def calculate_volume(radius: float) -> float:
-          return (4/3) * PI * (radius ** 3)
-  cursor:
-    file: src/utils/math.py
-    line: 9
-    column: 0
+        def calculate_volume(radius: float) -> float:
+            return (4/3) * PI * (radius ** 3)
+    cursor:
+      file: src/utils/math.py
+      line: 14
+      column: 45

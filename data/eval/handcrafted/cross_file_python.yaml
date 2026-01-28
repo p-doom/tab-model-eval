@@ -1,466 +1,476 @@
 task_id: cross_file_python
-description: 'This eval tests completing a call using context from an imported helper.'
+description: This eval tests completing a call using context from an imported helper.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 16
-      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      -rw-r--r-- 1 user user    0 Jan 19 10:00 main.py
-      -rw-r--r-- 1 user user 1456 Jan 19 09:58 utils.py
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-  cursor:
-    file: utils.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: ''
-  cursor:
-    file: main.py
-    line: 1
-    column: 0
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-  cursor:
-    file: main.py
-    line: 5
-    column: 11
-- step: 4
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-  cursor:
-    file: utils.py
-    line: 11
-    column: 44
-- step: 5
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-
-      # Scalar operations
-      scalar_sum = elementwise_add(scalar_a, scalar_b)
-      scalar_prod = elementwise_multiply(scalar_a, scalar_b)
-
-      # Vector operations
-      vec_sum = elementwise_add(vec_a, vec_b)
-      vec_prod = elementwise_multiply(vec_a, vec_b)
-  cursor:
-    file: main.py
-    line: 11
-    column: 0
-- step: 6
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-
-      # Scalar operations
-      scalar_sum = elementwise_add(scalar_a, scalar_b)
-      scalar_prod = elementwise_multiply(scalar_a, scalar_b)
-
-      # Vector operations
-      vec_sum = elementwise_add(vec_a, vec_b)
-      vec_prod = elementwise_multiply(vec_a, vec_b)
-  cursor:
-    file: utils.py
-    line: 22
-    column: 53
-- step: 7
-  eval: NO_EVAL
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-
-      # Scalar operations
-      scalar_sum = elementwise_add(scalar_a, scalar_b)
-      scalar_prod = elementwise_multiply(scalar_a, scalar_b)
-
-      # Vector operations
-      vec_sum = elementwise_add(vec_a, vec_b)
-      vec_prod = elementwise_multiply(vec_a, vec_b)
-
-      # Matrix operations
-      mat_sum = elementwise_add(mat_a, mat_b)
-      mat_prod = elementwise_multiply(mat_a, mat_b)
-
-      # Normalize the matrix
-      normalized_mat = norm
-  cursor:
-    file: main.py
-    line: 18
-    column: 45
-- step: 8
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the line is completed by calling `normalize(` with an appropriate argument
-    - the function name `normalize` is used (matching what was imported from utils and visible in the recent cat of utils.py)
-    - the argument should be one of the defined arrays (mat_a is most logical given the comment "Normalize the matrix")
-    - the correct file is being edited (main.py)
-    - the correct line is being edited (line 25)
-    - the file is being catted with approx. the correct viewport (around line 25)
-  terminal: null
-  files:
-    utils.py: |-
-      import numpy as np
-      from typing import Union, List
-
-
-      def elementwise_add(a: Union[int, float, List, np.ndarray],
-                          b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a + b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x + y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.add(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def elementwise_multiply(a: Union[int, float, List, np.ndarray],
-                               b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
-          """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
-          if isinstance(a, (int, float)) and isinstance(b, (int, float)):
-              return a * b
-          elif isinstance(a, list) and isinstance(b, list):
-              return [x * y for x, y in zip(a, b)]
-          elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-              return np.multiply(a, b)
-          raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
-
-
-      def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
-          """Normalize data to zero mean and unit variance."""
-          arr = np.array(data)
-          return (arr - arr.mean()) / arr.std()
-    main.py: |-
-      import numpy as np
-      from utils import elementwise_add, elementwise_multiply, normalize
-
-
-      # Test data
-      scalar_a, scalar_b = 5.0, 3.0
-      vec_a = [1.0, 2.0, 3.0, 4.0]
-      vec_b = [0.5, 1.5, 2.5, 3.5]
-      mat_a = np.array([[1, 2], [3, 4]])
-      mat_b = np.array([[5, 6], [7, 8]])
-
-      # Scalar operations
-      scalar_sum = elementwise_add(scalar_a, scalar_b)
-      scalar_prod = elementwise_multiply(scalar_a, scalar_b)
-
-      # Vector operations
-      vec_sum = elementwise_add(vec_a, vec_b)
-      vec_prod = elementwise_multiply(vec_a, vec_b)
-
-      # Matrix operations
-      mat_sum = elementwise_add(mat_a, mat_b)
-      mat_prod = elementwise_multiply(mat_a, mat_b)
-
-      # Normalize the matrix
-      normalized_mat = normalize(mat_a)
-  cursor:
-    file: main.py
-    line: 20
-    column: 19
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 16
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user    0 Jan 19 10:00 main.py
+        -rw-r--r-- 1 user user 1456 Jan 19 09:58 utils.py
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+    cursor:
+      file: utils.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+    cursor:
+      file: main.py
+      line: 1
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+    cursor:
+      file: utils.py
+      line: 5
+      column: 4
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+    cursor:
+      file: utils.py
+      line: 11
+      column: 44
+  - step: 5
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+
+        # Scalar operations
+        scalar_sum = elementwise_add(scalar_a, scalar_b)
+        scalar_prod = elementwise_multiply(scalar_a, scalar_b)
+
+        # Vector operations
+        vec_sum = elementwise_add(vec_a, vec_b)
+        vec_prod = elementwise_multiply(vec_a, vec_b)
+    cursor:
+      file: main.py
+      line: 18
+      column: 45
+  - step: 6
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+
+        # Scalar operations
+        scalar_sum = elementwise_add(scalar_a, scalar_b)
+        scalar_prod = elementwise_multiply(scalar_a, scalar_b)
+
+        # Vector operations
+        vec_sum = elementwise_add(vec_a, vec_b)
+        vec_prod = elementwise_multiply(vec_a, vec_b)
+    cursor:
+      file: utils.py
+      line: 22
+      column: 53
+  - step: 7
+    eval: NO_EVAL
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+
+        # Scalar operations
+        scalar_sum = elementwise_add(scalar_a, scalar_b)
+        scalar_prod = elementwise_multiply(scalar_a, scalar_b)
+
+        # Vector operations
+        vec_sum = elementwise_add(vec_a, vec_b)
+        vec_prod = elementwise_multiply(vec_a, vec_b)
+
+        # Matrix operations
+        mat_sum = elementwise_add(mat_a, mat_b)
+        mat_prod = elementwise_multiply(mat_a, mat_b)
+
+        # Normalize the matrix
+        normalized_mat = norma
+    cursor:
+      file: main.py
+      line: 25
+      column: 22
+  - step: 8
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the line is completed by calling `normalize(` with an appropriate argument
+      - the function name `normalize` is used (matching what was imported from utils and visible in the recent cat of utils.py)
+      - the argument should be one of the defined arrays (mat_a is most logical given the comment "Normalize the matrix")
+      - the correct file is being edited (main.py)
+      - the correct line is being edited (line 25)
+      - the file is being catted with approx. the correct viewport (around line 25)
+    terminal: null
+    files:
+      utils.py: |-
+        import numpy as np
+        from typing import Union, List
+
+
+        def elementwise_add(a: Union[int, float, List, np.ndarray],
+                            b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Add two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a + b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x + y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.add(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def elementwise_multiply(a: Union[int, float, List, np.ndarray],
+                                 b: Union[int, float, List, np.ndarray]) -> Union[int, float, List, np.ndarray]:
+            """Multiply two values element-wise. Supports scalars, lists, and numpy arrays."""
+            if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                return a * b
+            elif isinstance(a, list) and isinstance(b, list):
+                return [x * y for x, y in zip(a, b)]
+            elif isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+                return np.multiply(a, b)
+            raise TypeError(f"Unsupported types: {type(a)}, {type(b)}")
+
+
+        def normalize(data: Union[List, np.ndarray]) -> np.ndarray:
+            """Normalize data to zero mean and unit variance."""
+            arr = np.array(data)
+            return (arr - arr.mean()) / arr.std()
+      main.py: |-
+        import numpy as np
+        from utils import elementwise_add, elementwise_multiply, normalize
+
+
+        # Test data
+        scalar_a, scalar_b = 5.0, 3.0
+        vec_a = [1.0, 2.0, 3.0, 4.0]
+        vec_b = [0.5, 1.5, 2.5, 3.5]
+        mat_a = np.array([[1, 2], [3, 4]])
+        mat_b = np.array([[5, 6], [7, 8]])
+
+        # Scalar operations
+        scalar_sum = elementwise_add(scalar_a, scalar_b)
+        scalar_prod = elementwise_multiply(scalar_a, scalar_b)
+
+        # Vector operations
+        vec_sum = elementwise_add(vec_a, vec_b)
+        vec_prod = elementwise_multiply(vec_a, vec_b)
+
+        # Matrix operations
+        mat_sum = elementwise_add(mat_a, mat_b)
+        mat_prod = elementwise_multiply(mat_a, mat_b)
+
+        # Normalize the matrix
+        normalized_mat = normalize(mat_a)
+    cursor:
+      file: main.py
+      line: 25
+      column: 33
