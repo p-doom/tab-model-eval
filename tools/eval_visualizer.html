@@ -157,6 +157,12 @@
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .eval-badge:hover {
+            opacity: 0.8;
         }
 
         .eval-badge.eval {
@@ -968,7 +974,7 @@
             <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
         </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>s</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -1072,6 +1078,18 @@
         addStepBeforeBtn.addEventListener('click', () => addStep('before'));
         addStepAfterBtn.addEventListener('click', () => addStep('after'));
         deleteStepBtn.addEventListener('click', deleteCurrentStep);
+        
+        evalBadge.addEventListener('click', () => {
+            if (!evalData) return;
+            const currState = getState(currentStep);
+            if (currState.eval === 'EVAL') {
+                delete currState.eval;
+            } else {
+                currState.eval = 'EVAL';
+            }
+            markUnsaved();
+            updateEvalBadge();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (!evalData) return;
@@ -1267,6 +1285,20 @@
                     newCurrCode.scrollTop = currScrollTop;
                     newCurrCode.scrollLeft = currScrollLeft;
                 }
+                return;
+            }
+            
+            // Toggle eval with 'w'
+            if (e.key === 'w' && !editMode && !cursorMode) {
+                e.preventDefault();
+                const currState = getState(currentStep);
+                if (currState.eval === 'EVAL') {
+                    delete currState.eval;
+                } else {
+                    currState.eval = 'EVAL';
+                }
+                markUnsaved();
+                updateEvalBadge();
                 return;
             }
             
