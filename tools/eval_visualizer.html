@@ -426,6 +426,29 @@
             overflow: auto;
         }
 
+        .assertions-section.resizable {
+            height: 150px;
+            min-height: 80px;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .assertions-section.resizable .assertions-title {
+            padding: 8px 15px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .assertions-section.resizable .assertions-editor {
+            flex: 1;
+            margin: 0 15px 10px 15px;
+            min-height: 0;
+            resize: none;
+        }
+
         .assertions-title {
             font-size: 11px;
             font-weight: 600;
@@ -963,6 +986,7 @@
         let activeFile = null;
         let syncScroll = true;
         let terminalHeight = 200; // Persisted terminal height
+        let assertionsHeight = 150; // Persisted assertions height
         let editMode = false;
         let cursorMode = false;
         let hasUnsavedChanges = false;
@@ -2003,7 +2027,8 @@
                         ${renderTerminal(currState.terminal)}
                     </div>
                     ${editMode ? `
-                        <div class="assertions-section">
+                        <div class="resize-handle" data-panel="assertions"></div>
+                        <div class="assertions-section resizable" id="right-assertions">
                             <div class="assertions-title">Judge Assertions</div>
                             <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(currState.judge_assertions || '')}</textarea>
                         </div>
@@ -2201,10 +2226,12 @@
         function setupResizeHandles() {
             const leftTerminal = document.getElementById('left-terminal');
             const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
             
             // Apply persisted height
             if (leftTerminal) leftTerminal.style.height = terminalHeight + 'px';
             if (rightTerminal) rightTerminal.style.height = terminalHeight + 'px';
+            if (rightAssertions) rightAssertions.style.height = assertionsHeight + 'px';
             
             document.querySelectorAll('.resize-handle').forEach(handle => {
                 handle.addEventListener('mousedown', initResize);
@@ -2218,24 +2245,30 @@
             const panel = handle.dataset.panel;
             const leftTerminal = document.getElementById('left-terminal');
             const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
             
             const startY = e.clientY;
-            const startHeight = terminalHeight;
+            const isAssertions = panel === 'assertions';
+            const startHeight = isAssertions ? assertionsHeight : terminalHeight;
             
             // Disable text selection during drag
             document.body.style.userSelect = 'none';
             document.body.style.cursor = 'ns-resize';
             
             function onMouseMove(e) {
-                // Calculate new height (dragging up increases terminal height)
+                // Calculate new height (dragging up increases height)
                 const deltaY = startY - e.clientY;
                 const newHeight = Math.max(80, Math.min(window.innerHeight * 0.7, startHeight + deltaY));
                 
-                terminalHeight = newHeight;
-                
-                // Apply to both terminals to keep them in sync
-                if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
-                if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+                if (isAssertions) {
+                    assertionsHeight = newHeight;
+                    if (rightAssertions) rightAssertions.style.height = newHeight + 'px';
+                } else {
+                    terminalHeight = newHeight;
+                    // Apply to both terminals to keep them in sync
+                    if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
+                    if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+                }
             }
             
             function onMouseUp() {
