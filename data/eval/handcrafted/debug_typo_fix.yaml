@@ -365,8 +365,7 @@ states:
     eval: EVAL
     judge_assertions: |-
       Make sure that:
-      - the model navigates to the line containing the dataset path typo
-      - the viewport centers around line 22 where the typo is located
+      - the model navigates to the line containing the dataset path typo (around line 22)
       - the correct file is being viewed (train.sbatch)
       - if the model fixes the typo directly, that would also be correct
     terminal: null
@@ -412,7 +411,6 @@ states:
       - the model fixes the typo from trian_dataset to train_dataset
       - the correct file is being edited (train.sbatch)
       - the correct line is being edited (line 22)
-      - the file is being catted with approx. the correct viewport (around lines 12-32)
     terminal: null
     files:
       train.sbatch: |-

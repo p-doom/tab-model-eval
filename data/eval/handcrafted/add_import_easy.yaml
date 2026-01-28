@@ -22,8 +22,7 @@ states:
     eval: EVAL
     judge_assertions: |-
       Make sure that:
-      - the complete contents of the files are catted using the cat command with the -n flag
-      - we do not use grep or any other command to filter the output
+      - a new file is opened with the cursor position at the begining of `src/input_pipeline/validation_to_testcases.py`
       - nothing else is being modified or run at all
     terminal: null
     files:
@@ -96,7 +95,6 @@ states:
       Make sure that:
       - json is being imported
       - it can be imported either at the top, in between or at the end of the other import statements
-      - the part that was edited is being catted with the correct viewport (10 lines above and below the edited part)
     terminal: null
     files:
       src/input_pipeline/validation_to_testcases.py: |-

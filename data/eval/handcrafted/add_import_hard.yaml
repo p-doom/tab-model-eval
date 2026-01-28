@@ -1,6 +1,5 @@
 task_id: add_import_hard
-description: This eval tests adding a missing tyro import in a validation script.
-  This is actually not hard at all!!!!
+description: This eval tests adding a missing tyro import in a validation script. This is actually not hard at all!!!!
 states:
   - step: 0
     eval: NO_EVAL
@@ -20,9 +19,8 @@ states:
     eval: EVAL
     judge_assertions: |-
       Make sure that:
-      - the complete contents of the files are catted using the cat command with the -n flag
-      - do not use grep or any other command to filter the output
-      - nothing is being modified at all
+      - a new file is opened with the cursor at the start of `src/input_pipeline/validation_to_testcases.py`
+      - nothing is being modified or run at all
     terminal: null
     files:
       src/input_pipeline/validation_to_testcases.py: |-
@@ -94,7 +92,6 @@ states:
       Make sure that:
       - tyro is being imported
       - it can be imported either at the top, in between or at the end of the other import statements
-      - make sure that part that was edited is being catted with the correct viewport (between line 1 and 10)
     terminal: null
     files:
       src/input_pipeline/validation_to_testcases.py: |-

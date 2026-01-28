@@ -137,7 +137,6 @@ states:
       - toggleBtn.textContent is 'Switch to Dark' (opposite of 'Switch to Light')
       - the closing brace } is included
       - the correct file is being edited (theme.js)
-      - the file is being catted with approx. the correct viewport (around lines 1-21)
     terminal: null
     files:
       theme.js: |-

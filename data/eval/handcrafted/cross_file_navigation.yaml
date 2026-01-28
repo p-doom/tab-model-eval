@@ -538,10 +538,8 @@ states:
     judge_assertions: |-
       Make sure that:
       - the model suggests navigating to services.py (the file where send_notification is defined)
-      - the viewport is centered around line 40 where send_notification is defined
       - this is a NAVIGATION action (cat with viewport), not an edit action
       - the correct file is being viewed (services.py, not main.py)
-      - the file is being catted with approx. the correct viewport (around lines 29-50)
     terminal: null
     files:
       services.py: |-
@@ -696,7 +694,6 @@ states:
       - the parameter does not necessarily need a default value
       - the parameter name matches what was used in the call (priority)
       - the correct file is being edited (services.py)
-      - the file is being catted with approx. the correct viewport (around lines 29-50)
     terminal: null
     files:
       services.py: |-

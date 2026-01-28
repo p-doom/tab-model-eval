@@ -57,7 +57,6 @@ states:
       - the correct line is being edited (line 12)
       - the test is being fixed by changing the assertion from 5 to 4
       - nothing else is being modified at all
-      - the correct file is being catted with the correct viewport (between line 1 and 16)
     terminal: null
     files:
       tests/test_math.py: |-

@@ -91,7 +91,6 @@ states:
       - the correct file is being edited (src/data_loader.py)
       - the correct line is being edited (line 24)
       - the completion makes semantic sense given the context (caching the result of load_json)
-      - the file is being catted with the approx. correct viewport (between line 13 and 34)
     terminal: null
     files:
       src/data_loader.py: |
@@ -180,7 +179,6 @@ states:
       - the correct file is being edited (src/data_loader.py)
       - the correct line is being edited (line 28)
       - the completion uses the function parameters `key` and `value` correctly
-      - the file is being catted with the approx. correct viewport (between line 17 and 33)
     terminal: null
     files:
       src/data_loader.py: |
@@ -270,7 +268,6 @@ states:
       - the correct file is being edited (src/data_loader.py)
       - the correct line is being edited (line 33)
       - the parenthesis is closed properly
-      - the file is being catted with approx. the correct viewport (between line 22 and 33)
     terminal: null
     files:
       src/data_loader.py: |-

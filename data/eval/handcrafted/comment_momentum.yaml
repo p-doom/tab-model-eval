@@ -539,7 +539,6 @@ states:
       - the comment uses the same style (# at the original indentation level)
       - the correct file is being edited (transformer.py)
       - the correct lines is being edited (line 32 or more after that)
-      - the file is being catted with approx. the correct viewport (around lines 20-40)
       Note:
       - it is also okay if the model comments out the entire forward function in one go
     terminal: null
@@ -625,7 +624,6 @@ states:
       - the comment style is consistent with previous lines (# at the original indentation level)
       - the correct file is being edited (transformer.py)
       - the correct lines are being edited (lines 33-39)
-      - the file is being catted with the approx. correct viewport (around lines 20-40)
     terminal: null
     files:
       transformer.py: |-

@@ -524,7 +524,6 @@ states:
       - this matches the key name from .env.example (line 22: STRIPE_WEBHOOK_SECRET=whsec_your_secret_here)
       - the model follows the pattern of other getter functions in the file (check, raise, return)
       - the correct file is being edited (payments.py)
-      - the file is being catted with approx. the correct viewport (around lines 88-108)
     terminal: null
     files:
       .env.example: |-

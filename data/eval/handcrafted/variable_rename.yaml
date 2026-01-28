@@ -53,7 +53,6 @@ states:
       - the correct line is being edited (line 11)
       - the variable is being renamed from d to data
       - nothing else is being modified at all
-      - the correct file is being catted with the correct viewport (between line 1 and 16)
     terminal: null
     files:
       src/process.py: |-

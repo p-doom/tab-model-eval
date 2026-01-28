@@ -39,9 +39,8 @@ states:
     eval: NO_EVAL
     judge_assertions: |-
       Make sure that:
-      - the complete contents of the src/main.py are catted using the cat command with the -n flag
-      - do not use grep or any other command to filter the output
-      - nothing is being modified at all
+      - nothing is being modified or run at all
+      - a new file is opened with the cursor at the start of `src/main.py`
     terminal: null
     files:
       src/common/config_utils.py: |-
@@ -81,9 +80,7 @@ states:
     judge_assertions: |-
       Make sure that:
       - the import path is being changed to the correct path (from utils to common.config_utils)
-      - we edit the correct file
       - nothing else is being modified at all
-      - we cat the correct file with the correct viewport (between line 1 and 14)
     terminal: null
     files:
       src/common/config_utils.py: |-

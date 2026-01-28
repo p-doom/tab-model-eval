@@ -18,9 +18,8 @@ states:
     eval: EVAL
     judge_assertions: |-
       Make sure that:
-      - the complete contents of the files are catted using the cat command with the -n flag
-      - do not use grep or any other command to filter the output
-      - nothing is being modified at all
+      - nothing is being modified or run at all
+      - a new file is opened with the cursor at the start of `src/train.py`
     terminal: null
     files:
       src/train.py: |-
@@ -55,10 +54,8 @@ states:
     judge_assertions: |-
       Make sure that:
       - the syntax error is being fixed by closing the parentheses
-      - the correct file is being edited
       - the correct line is being edited (line 14)
       - nothing else is being modified at all
-      - the correct file is being catted with the correct viewport (between line 3 and 22)
     terminal: null
     files:
       src/train.py: |-

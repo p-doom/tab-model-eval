@@ -128,7 +128,6 @@ states:
       - the loop body calls `train_step` with the same `batch` variable (single batch overfitting)
       - the step counter is incremented
       - there is some form of logging/printing the loss periodically
-      - the file is being catted with approx. the correct viewport (around lines 33-47)
       Note:
       - is is also okay if a different logging frequency is used (e.g. 1000 steps instead of 100 steps)
       - it is okay if variable names differ as long as the logic of overfitting on a single batch is there

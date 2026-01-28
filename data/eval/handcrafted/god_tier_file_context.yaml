@@ -1,2133 +1,2132 @@
 task_id: god_tier_file_context
-description: 'This eval tests using an existing helper function instead of reimplementing.'
+description: This eval tests using an existing helper function instead of reimplementing.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 28
-      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      -rw-r--r-- 1 user user  234 Jan 19 09:58 config.py
-      -rw-r--r-- 1 user user 8923 Jan 19 09:58 helpers.py
-      -rw-r--r-- 1 user user 1234 Jan 19 09:58 main.py
-      -rw-r--r-- 1 user user  456 Jan 19 09:58 models.py
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    helpers.py: |-
-      """
-      Project utility functions for data processing, formatting, and validation.
-      """
-      import os
-      import re
-      import json
-      import hashlib
-      from datetime import datetime, timedelta
-      from typing import Any, Dict, List, Optional, Union
-      from pathlib import Path
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 28
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user  234 Jan 19 09:58 config.py
+        -rw-r--r-- 1 user user 8923 Jan 19 09:58 helpers.py
+        -rw-r--r-- 1 user user 1234 Jan 19 09:58 main.py
+        -rw-r--r-- 1 user user  456 Jan 19 09:58 models.py
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      helpers.py: |-
+        """
+        Project utility functions for data processing, formatting, and validation.
+        """
+        import os
+        import re
+        import json
+        import hashlib
+        from datetime import datetime, timedelta
+        from typing import Any, Dict, List, Optional, Union
+        from pathlib import Path
 
 
-      def get_env_var(name: str, default: str = "") -> str:
-          return os.environ.get(name, default)
+        def get_env_var(name: str, default: str = "") -> str:
+            return os.environ.get(name, default)
 
 
-      def ensure_dir(path: str) -> None:
-          Path(path).mkdir(parents=True, exist_ok=True)
+        def ensure_dir(path: str) -> None:
+            Path(path).mkdir(parents=True, exist_ok=True)
 
 
-      def read_json_file(filepath: str) -> Dict:
-          with open(filepath, 'r') as f:
-              return json.load(f)
+        def read_json_file(filepath: str) -> Dict:
+            with open(filepath, 'r') as f:
+                return json.load(f)
 
 
-      def write_json_file(filepath: str, data: Dict) -> None:
-          with open(filepath, 'w') as f:
-              json.dump(data, f, indent=2)
+        def write_json_file(filepath: str, data: Dict) -> None:
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
 
 
-      def generate_hash(content: str) -> str:
-          return hashlib.sha256(content.encode()).hexdigest()
+        def generate_hash(content: str) -> str:
+            return hashlib.sha256(content.encode()).hexdigest()
 
 
-      def truncate_string(s: str, max_len: int = 100) -> str:
-          if len(s) <= max_len:
-              return s
-          return s[:max_len - 3] + "..."
+        def truncate_string(s: str, max_len: int = 100) -> str:
+            if len(s) <= max_len:
+                return s
+            return s[:max_len - 3] + "..."
 
 
-      def sanitize_filename(filename: str) -> str:
-          return re.sub(r'[^\w\-_.]', '_', filename)
+        def sanitize_filename(filename: str) -> str:
+            return re.sub(r'[^\w\-_.]', '_', filename)
 
 
-      def _format_iso_date_to_human(iso_str: str) -> str:
-          dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
-          return dt.strftime("%B %d, %Y")
+        def _format_iso_date_to_human(iso_str: str) -> str:
+            dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+            return dt.strftime("%B %d, %Y")
 
 
-      def _format_timestamp_to_human(timestamp: float) -> str:
-          dt = datetime.fromtimestamp(timestamp)
-          return dt.strftime("%B %d, %Y at %I:%M %p")
+        def _format_timestamp_to_human(timestamp: float) -> str:
+            dt = datetime.fromtimestamp(timestamp)
+            return dt.strftime("%B %d, %Y at %I:%M %p")
 
 
-      def parse_date_string(date_str: str) -> datetime:
-          formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
-          for fmt in formats:
-              try:
-                  return datetime.strptime(date_str, fmt)
-              except ValueError:
-                  continue
-          raise ValueError(f"Unknown date format: {date_str}")
+        def parse_date_string(date_str: str) -> datetime:
+            formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+            raise ValueError(f"Unknown date format: {date_str}")
 
 
-      def days_between(date1: datetime, date2: datetime) -> int:
-          return abs((date2 - date1).days)
+        def days_between(date1: datetime, date2: datetime) -> int:
+            return abs((date2 - date1).days)
 
 
-      def is_valid_email(email: str) -> bool:
-          pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-          return bool(re.match(pattern, email))
+        def is_valid_email(email: str) -> bool:
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            return bool(re.match(pattern, email))
 
-
-      def is_valid_phone(phone: str) -> bool:
-          pattern = r'^\+?1?\d{9,15}$'
-          return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
+
+        def is_valid_phone(phone: str) -> bool:
+            pattern = r'^\+?1?\d{9,15}$'
+            return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
 
 
-      def normalize_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) == 10:
-              return f"+1{digits}"
-          return f"+{digits}"
-
-
-      def extract_domain(email: str) -> str:
-          if '@' not in email:
-              return ""
-          return email.split('@')[1]
-
-
-      def mask_email(email: str) -> str:
-          if '@' not in email:
-              return email
-          local, domain = email.split('@')
-          if len(local) <= 2:
-              return f"{local[0]}***@{domain}"
-          return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
-
-
-      def mask_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) < 4:
-              return phone
-          return '*' * (len(digits) - 4) + digits[-4:]
-
+        def normalize_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) == 10:
+                return f"+1{digits}"
+            return f"+{digits}"
+
+
+        def extract_domain(email: str) -> str:
+            if '@' not in email:
+                return ""
+            return email.split('@')[1]
+
+
+        def mask_email(email: str) -> str:
+            if '@' not in email:
+                return email
+            local, domain = email.split('@')
+            if len(local) <= 2:
+                return f"{local[0]}***@{domain}"
+            return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
+
+
+        def mask_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) < 4:
+                return phone
+            return '*' * (len(digits) - 4) + digits[-4:]
+
 
-      def bytes_to_human(size: int) -> str:
-          for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-              if size < 1024:
-                  return f"{size:.2f} {unit}"
-              size /= 1024
-          return f"{size:.2f} PB"
+        def bytes_to_human(size: int) -> str:
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024:
+                    return f"{size:.2f} {unit}"
+                size /= 1024
+            return f"{size:.2f} PB"
 
 
-      def human_to_bytes(size_str: str) -> int:
-          units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
-          match = re.match(r'([\d.]+)\s*(\w+)', size_str)
-          if not match:
-              raise ValueError(f"Invalid size string: {size_str}")
-          value, unit = match.groups()
-          return int(float(value) * units.get(unit.upper(), 1))
+        def human_to_bytes(size_str: str) -> int:
+            units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
+            match = re.match(r'([\d.]+)\s*(\w+)', size_str)
+            if not match:
+                raise ValueError(f"Invalid size string: {size_str}")
+            value, unit = match.groups()
+            return int(float(value) * units.get(unit.upper(), 1))
 
 
-      def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
-          items = []
-          for k, v in d.items():
-              new_key = f"{parent_key}{sep}{k}" if parent_key else k
-              if isinstance(v, dict):
-                  items.extend(flatten_dict(v, new_key, sep).items())
-              else:
-                  items.append((new_key, v))
-          return dict(items)
+        def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
+            items = []
+            for k, v in d.items():
+                new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                if isinstance(v, dict):
+                    items.extend(flatten_dict(v, new_key, sep).items())
+                else:
+                    items.append((new_key, v))
+            return dict(items)
 
 
-      def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
-          result = {}
-          for key, value in d.items():
-              parts = key.split(sep)
-              current = result
-              for part in parts[:-1]:
-                  current = current.setdefault(part, {})
-              current[parts[-1]] = value
-          return result
+        def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
+            result = {}
+            for key, value in d.items():
+                parts = key.split(sep)
+                current = result
+                for part in parts[:-1]:
+                    current = current.setdefault(part, {})
+                current[parts[-1]] = value
+            return result
 
 
-      def deep_merge(base: Dict, override: Dict) -> Dict:
-          result = base.copy()
-          for key, value in override.items():
-              if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                  result[key] = deep_merge(result[key], value)
-              else:
-                  result[key] = value
-          return result
+        def deep_merge(base: Dict, override: Dict) -> Dict:
+            result = base.copy()
+            for key, value in override.items():
+                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                    result[key] = deep_merge(result[key], value)
+                else:
+                    result[key] = value
+            return result
 
 
-      def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
-          keys = path.split('.')
-          current = d
-          for key in keys:
-              if isinstance(current, dict) and key in current:
-                  current = current[key]
-              else:
-                  return default
-          return current
+        def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
+            keys = path.split('.')
+            current = d
+            for key in keys:
+                if isinstance(current, dict) and key in current:
+                    current = current[key]
+                else:
+                    return default
+            return current
 
 
-      def set_nested_value(d: Dict, path: str, value: Any) -> None:
-          keys = path.split('.')
-          current = d
-          for key in keys[:-1]:
-              current = current.setdefault(key, {})
-          current[keys[-1]] = value
+        def set_nested_value(d: Dict, path: str, value: Any) -> None:
+            keys = path.split('.')
+            current = d
+            for key in keys[:-1]:
+                current = current.setdefault(key, {})
+            current[keys[-1]] = value
 
 
-      def chunk_list(lst: List, chunk_size: int) -> List[List]:
-          return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+        def chunk_list(lst: List, chunk_size: int) -> List[List]:
+            return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-      def deduplicate_list(lst: List) -> List:
-          seen = set()
-          result = []
-          for item in lst:
-              key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
-              if key not in seen:
-                  seen.add(key)
-                  result.append(item)
-          return result
+        def deduplicate_list(lst: List) -> List:
+            seen = set()
+            result = []
+            for item in lst:
+                key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
+                if key not in seen:
+                    seen.add(key)
+                    result.append(item)
+            return result
 
 
-      def safe_divide(a: float, b: float, default: float = 0.0) -> float:
-          if b == 0:
-              return default
-          return a / b
+        def safe_divide(a: float, b: float, default: float = 0.0) -> float:
+            if b == 0:
+                return default
+            return a / b
 
 
-      def clamp(value: float, min_val: float, max_val: float) -> float:
-          return max(min_val, min(max_val, value))
+        def clamp(value: float, min_val: float, max_val: float) -> float:
+            return max(min_val, min(max_val, value))
 
 
-      def percentage(part: float, whole: float, decimals: int = 2) -> float:
-          if whole == 0:
-              return 0.0
-          return round((part / whole) * 100, decimals)
+        def percentage(part: float, whole: float, decimals: int = 2) -> float:
+            if whole == 0:
+                return 0.0
+            return round((part / whole) * 100, decimals)
 
 
-      def round_to_nearest(value: float, nearest: float) -> float:
-          return round(value / nearest) * nearest
+        def round_to_nearest(value: float, nearest: float) -> float:
+            return round(value / nearest) * nearest
 
 
-      def snake_to_camel(s: str) -> str:
-          components = s.split('_')
-          return components[0] + ''.join(x.title() for x in components[1:])
+        def snake_to_camel(s: str) -> str:
+            components = s.split('_')
+            return components[0] + ''.join(x.title() for x in components[1:])
 
 
-      def camel_to_snake(s: str) -> str:
-          return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+        def camel_to_snake(s: str) -> str:
+            return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 
 
-      def slugify(text: str) -> str:
-          text = text.lower().strip()
-          text = re.sub(r'[^\w\s-]', '', text)
-          text = re.sub(r'[\s_-]+', '-', text)
-          return text
+        def slugify(text: str) -> str:
+            text = text.lower().strip()
+            text = re.sub(r'[^\w\s-]', '', text)
+            text = re.sub(r'[\s_-]+', '-', text)
+            return text
 
 
-      def title_case(s: str) -> str:
-          return ' '.join(word.capitalize() for word in s.split())
+        def title_case(s: str) -> str:
+            return ' '.join(word.capitalize() for word in s.split())
 
 
-      def pluralize(word: str, count: int) -> str:
-          if count == 1:
-              return word
-          if word.endswith('y'):
-              return word[:-1] + 'ies'
-          if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
-              return word + 'es'
-          return word + 's'
+        def pluralize(word: str, count: int) -> str:
+            if count == 1:
+                return word
+            if word.endswith('y'):
+                return word[:-1] + 'ies'
+            if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
+                return word + 'es'
+            return word + 's'
 
 
-      def strip_html_tags(html: str) -> str:
-          return re.sub(r'<[^>]+>', '', html)
+        def strip_html_tags(html: str) -> str:
+            return re.sub(r'<[^>]+>', '', html)
 
 
-      def escape_html(text: str) -> str:
-          return (text
-              .replace('&', '&amp;')
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
-              .replace('"', '&quot;')
-              .replace("'", '&#39;'))
+        def escape_html(text: str) -> str:
+            return (text
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('"', '&quot;')
+                .replace("'", '&#39;'))
 
 
-      def extract_numbers(text: str) -> List[float]:
-          return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
+        def extract_numbers(text: str) -> List[float]:
+            return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
 
 
-      def word_count(text: str) -> int:
-          return len(text.split())
+        def word_count(text: str) -> int:
+            return len(text.split())
 
 
-      def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
-          missing = []
-          for field in fields:
-              if field not in data or data[field] is None:
-                  missing.append(field)
-          return missing
+        def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
+            missing = []
+            for field in fields:
+                if field not in data or data[field] is None:
+                    missing.append(field)
+            return missing
 
 
-      def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k in keys}
+        def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k in keys}
 
 
-      def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k not in keys}
+        def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k not in keys}
 
 
-      def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
-          import time
-          for attempt in range(max_retries):
-              try:
-                  return func()
-              except Exception as e:
-                  if attempt == max_retries - 1:
-                      raise
-                  delay = base_delay * (2 ** attempt)
-                  time.sleep(delay)
+        def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
+            import time
+            for attempt in range(max_retries):
+                try:
+                    return func()
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    time.sleep(delay)
 
 
-      def timing_decorator(func):
-          import time
-          def wrapper(*args, **kwargs):
-              start = time.time()
-              result = func(*args, **kwargs)
-              elapsed = time.time() - start
-              print(f"{func.__name__} took {elapsed:.3f}s")
-              return result
-          return wrapper
+        def timing_decorator(func):
+            import time
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                result = func(*args, **kwargs)
+                elapsed = time.time() - start
+                print(f"{func.__name__} took {elapsed:.3f}s")
+                return result
+            return wrapper
 
 
-      def memoize(func):
-          cache = {}
-          def wrapper(*args):
-              if args not in cache:
-                  cache[args] = func(*args)
-              return cache[args]
-          return wrapper
+        def memoize(func):
+            cache = {}
+            def wrapper(*args):
+                if args not in cache:
+                    cache[args] = func(*args)
+                return cache[args]
+            return wrapper
 
 
-      def batch_process(items: List, processor, batch_size: int = 100) -> List:
-          results = []
-          for batch in chunk_list(items, batch_size):
-              results.extend(processor(batch))
-          return results
+        def batch_process(items: List, processor, batch_size: int = 100) -> List:
+            results = []
+            for batch in chunk_list(items, batch_size):
+                results.extend(processor(batch))
+            return results
 
 
-      def generate_uuid() -> str:
-          import uuid
-          return str(uuid.uuid4())
+        def generate_uuid() -> str:
+            import uuid
+            return str(uuid.uuid4())
 
 
-      def generate_short_id(length: int = 8) -> str:
-          import random
-          import string
-          chars = string.ascii_lowercase + string.digits
-          return ''.join(random.choice(chars) for _ in range(length))
+        def generate_short_id(length: int = 8) -> str:
+            import random
+            import string
+            chars = string.ascii_lowercase + string.digits
+            return ''.join(random.choice(chars) for _ in range(length))
 
 
-      def current_timestamp() -> float:
-          return datetime.now().timestamp()
+        def current_timestamp() -> float:
+            return datetime.now().timestamp()
 
 
-      def current_iso_string() -> str:
-          return datetime.now().isoformat()
+        def current_iso_string() -> str:
+            return datetime.now().isoformat()
 
 
-      def age_from_birthdate(birthdate: datetime) -> int:
-          today = datetime.now()
-          age = today.year - birthdate.year
-          if (today.month, today.day) < (birthdate.month, birthdate.day):
-              age -= 1
-          return age
+        def age_from_birthdate(birthdate: datetime) -> int:
+            today = datetime.now()
+            age = today.year - birthdate.year
+            if (today.month, today.day) < (birthdate.month, birthdate.day):
+                age -= 1
+            return age
 
 
-      def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
-          if progress <= 0:
-              return None
-          elapsed = (datetime.now() - start_time).total_seconds()
-          total_estimated = elapsed / progress
-          remaining = total_estimated - elapsed
-          return datetime.now() + timedelta(seconds=remaining)
+        def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
+            if progress <= 0:
+                return None
+            elapsed = (datetime.now() - start_time).total_seconds()
+            total_estimated = elapsed / progress
+            remaining = total_estimated - elapsed
+            return datetime.now() + timedelta(seconds=remaining)
 
 
-      def format_duration(seconds: float) -> str:
-          if seconds < 60:
-              return f"{seconds:.1f}s"
-          elif seconds < 3600:
-              minutes = seconds / 60
-              return f"{minutes:.1f}m"
-          else:
-              hours = seconds / 3600
-              return f"{hours:.1f}h"
+        def format_duration(seconds: float) -> str:
+            if seconds < 60:
+                return f"{seconds:.1f}s"
+            elif seconds < 3600:
+                minutes = seconds / 60
+                return f"{minutes:.1f}m"
+            else:
+                hours = seconds / 3600
+                return f"{hours:.1f}h"
 
 
-      def parse_boolean(value: Any) -> bool:
-          if isinstance(value, bool):
-              return value
-          if isinstance(value, str):
-              return value.lower() in ('true', 'yes', '1', 'on')
-          return bool(value)
+        def parse_boolean(value: Any) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.lower() in ('true', 'yes', '1', 'on')
+            return bool(value)
 
 
-      def safe_int(value: Any, default: int = 0) -> int:
-          try:
-              return int(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_int(value: Any, default: int = 0) -> int:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def safe_float(value: Any, default: float = 0.0) -> float:
-          try:
-              return float(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_float(value: Any, default: float = 0.0) -> float:
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def merge_lists(*lists: List) -> List:
-          result = []
-          for lst in lists:
-              result.extend(lst)
-          return result
+        def merge_lists(*lists: List) -> List:
+            result = []
+            for lst in lists:
+                result.extend(lst)
+            return result
 
 
-      def find_duplicates(lst: List) -> List:
-          seen = set()
-          duplicates = set()
-          for item in lst:
-              if item in seen:
-                  duplicates.add(item)
-              seen.add(item)
-          return list(duplicates)
+        def find_duplicates(lst: List) -> List:
+            seen = set()
+            duplicates = set()
+            for item in lst:
+                if item in seen:
+                    duplicates.add(item)
+                seen.add(item)
+            return list(duplicates)
 
 
-      def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
-          result = {}
-          for item in items:
-              k = item.get(key)
-              if k not in result:
-                  result[k] = []
-              result[k].append(item)
-          return result
+        def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
+            result = {}
+            for item in items:
+                k = item.get(key)
+                if k not in result:
+                    result[k] = []
+                result[k].append(item)
+            return result
 
 
-      def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
-          return sorted(items, key=lambda x: x.get(key), reverse=reverse)
+        def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
+            return sorted(items, key=lambda x: x.get(key), reverse=reverse)
 
 
-      def pick_random(items: List, count: int = 1) -> List:
-          import random
-          return random.sample(items, min(count, len(items)))
+        def pick_random(items: List, count: int = 1) -> List:
+            import random
+            return random.sample(items, min(count, len(items)))
 
 
-      def weighted_random(items: List, weights: List[float]) -> Any:
-          import random
-          return random.choices(items, weights=weights, k=1)[0]
+        def weighted_random(items: List, weights: List[float]) -> Any:
+            import random
+            return random.choices(items, weights=weights, k=1)[0]
 
 
-      def interpolate_string(template: str, values: Dict) -> str:
-          for key, value in values.items():
-              template = template.replace(f"{{{key}}}", str(value))
-          return template
+        def interpolate_string(template: str, values: Dict) -> str:
+            for key, value in values.items():
+                template = template.replace(f"{{{key}}}", str(value))
+            return template
 
 
-      def compress_whitespace(text: str) -> str:
-          return re.sub(r'\s+', ' ', text).strip()
+        def compress_whitespace(text: str) -> str:
+            return re.sub(r'\s+', ' ', text).strip()
 
 
-      def wrap_text(text: str, width: int = 80) -> str:
-          import textwrap
-          return textwrap.fill(text, width=width)
+        def wrap_text(text: str, width: int = 80) -> str:
+            import textwrap
+            return textwrap.fill(text, width=width)
 
 
-      def indent_text(text: str, spaces: int = 4) -> str:
-          prefix = ' ' * spaces
-          return '\n'.join(prefix + line for line in text.split('\n'))
+        def indent_text(text: str, spaces: int = 4) -> str:
+            prefix = ' ' * spaces
+            return '\n'.join(prefix + line for line in text.split('\n'))
 
 
-      def remove_comments(code: str, lang: str = 'python') -> str:
-          if lang == 'python':
-              return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
-          elif lang in ('javascript', 'java', 'c'):
-              code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
-              code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
-              return code
-          return code
+        def remove_comments(code: str, lang: str = 'python') -> str:
+            if lang == 'python':
+                return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
+            elif lang in ('javascript', 'java', 'c'):
+                code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
+                code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+                return code
+            return code
 
 
-      def extract_urls(text: str) -> List[str]:
-          pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-          return re.findall(pattern, text)
+        def extract_urls(text: str) -> List[str]:
+            pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            return re.findall(pattern, text)
 
 
-      def is_url(text: str) -> bool:
-          pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
-          return bool(re.match(pattern, text))
+        def is_url(text: str) -> bool:
+            pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
+            return bool(re.match(pattern, text))
 
 
-      def normalize_url(url: str) -> str:
-          url = url.strip().lower()
-          if not url.startswith(('http://', 'https://')):
-              url = 'https://' + url
-          return url.rstrip('/')
+        def normalize_url(url: str) -> str:
+            url = url.strip().lower()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            return url.rstrip('/')
 
 
-      def build_query_string(params: Dict) -> str:
-          from urllib.parse import urlencode
-          return urlencode(params)
+        def build_query_string(params: Dict) -> str:
+            from urllib.parse import urlencode
+            return urlencode(params)
 
 
-      def parse_query_string(query: str) -> Dict:
-          from urllib.parse import parse_qs
-          return {k: v[0] for k, v in parse_qs(query).items()}
+        def parse_query_string(query: str) -> Dict:
+            from urllib.parse import parse_qs
+            return {k: v[0] for k, v in parse_qs(query).items()}
 
 
-      def generate_pdf_report(data: Dict, output_path: str) -> str:
-          title = data.get('title', 'Report')
-          author = data.get('author', 'System')
-          created_at = data['metadata']['created_at']
-          sections = data.get('sections', [])
+        def generate_pdf_report(data: Dict, output_path: str) -> str:
+            title = data.get('title', 'Report')
+            author = data.get('author', 'System')
+            created_at = data['metadata']['created_at']
+            sections = data.get('sections', [])
 
-          content_lines = []
-          content_lines.append(f"# {title}")
-          content_lines.append(f"Author: {author}")
-          content_lines.append("")
+            content_lines = []
+            content_lines.append(f"# {title}")
+            content_lines.append(f"Author: {author}")
+            content_lines.append("")
 
-          for section in sections:
-              content_lines.append(f"## {section['title']}")
-              content_lines.append(section['content'])
-              content_lines.append("")
+            for section in sections:
+                content_lines.append(f"## {section['title']}")
+                content_lines.append(section['content'])
+                content_lines.append("")
 
-          full_content = '\n'.join(content_lines)
+            full_content = '\n'.join(content_lines)
 
-          with open(output_path, 'w') as f:
-              f.write(full_content)
+            with open(output_path, 'w') as f:
+                f.write(full_content)
 
-          return output_path
+            return output_path
 
 
-      def validate_report_data(data: Dict) -> List[str]:
-          errors = []
-          if 'title' not in data:
-              errors.append("Missing required field: title")
-          if 'metadata' not in data:
-              errors.append("Missing required field: metadata")
-          elif 'created_at' not in data.get('metadata', {}):
-              errors.append("Missing required field: metadata.created_at")
-          return errors
-  cursor:
-    file: helpers.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    helpers.py: |-
-      """
-      Project utility functions for data processing, formatting, and validation.
-      """
-      import os
-      import re
-      import json
-      import hashlib
-      from datetime import datetime, timedelta
-      from typing import Any, Dict, List, Optional, Union
-      from pathlib import Path
+        def validate_report_data(data: Dict) -> List[str]:
+            errors = []
+            if 'title' not in data:
+                errors.append("Missing required field: title")
+            if 'metadata' not in data:
+                errors.append("Missing required field: metadata")
+            elif 'created_at' not in data.get('metadata', {}):
+                errors.append("Missing required field: metadata.created_at")
+            return errors
+    cursor:
+      file: helpers.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      helpers.py: |-
+        """
+        Project utility functions for data processing, formatting, and validation.
+        """
+        import os
+        import re
+        import json
+        import hashlib
+        from datetime import datetime, timedelta
+        from typing import Any, Dict, List, Optional, Union
+        from pathlib import Path
 
 
-      def get_env_var(name: str, default: str = "") -> str:
-          return os.environ.get(name, default)
+        def get_env_var(name: str, default: str = "") -> str:
+            return os.environ.get(name, default)
 
 
-      def ensure_dir(path: str) -> None:
-          Path(path).mkdir(parents=True, exist_ok=True)
+        def ensure_dir(path: str) -> None:
+            Path(path).mkdir(parents=True, exist_ok=True)
 
 
-      def read_json_file(filepath: str) -> Dict:
-          with open(filepath, 'r') as f:
-              return json.load(f)
+        def read_json_file(filepath: str) -> Dict:
+            with open(filepath, 'r') as f:
+                return json.load(f)
 
 
-      def write_json_file(filepath: str, data: Dict) -> None:
-          with open(filepath, 'w') as f:
-              json.dump(data, f, indent=2)
+        def write_json_file(filepath: str, data: Dict) -> None:
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
 
 
-      def generate_hash(content: str) -> str:
-          return hashlib.sha256(content.encode()).hexdigest()
+        def generate_hash(content: str) -> str:
+            return hashlib.sha256(content.encode()).hexdigest()
 
 
-      def truncate_string(s: str, max_len: int = 100) -> str:
-          if len(s) <= max_len:
-              return s
-          return s[:max_len - 3] + "..."
+        def truncate_string(s: str, max_len: int = 100) -> str:
+            if len(s) <= max_len:
+                return s
+            return s[:max_len - 3] + "..."
 
 
-      def sanitize_filename(filename: str) -> str:
-          return re.sub(r'[^\w\-_.]', '_', filename)
+        def sanitize_filename(filename: str) -> str:
+            return re.sub(r'[^\w\-_.]', '_', filename)
 
 
-      def _format_iso_date_to_human(iso_str: str) -> str:
-          dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
-          return dt.strftime("%B %d, %Y")
+        def _format_iso_date_to_human(iso_str: str) -> str:
+            dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+            return dt.strftime("%B %d, %Y")
 
 
-      def _format_timestamp_to_human(timestamp: float) -> str:
-          dt = datetime.fromtimestamp(timestamp)
-          return dt.strftime("%B %d, %Y at %I:%M %p")
+        def _format_timestamp_to_human(timestamp: float) -> str:
+            dt = datetime.fromtimestamp(timestamp)
+            return dt.strftime("%B %d, %Y at %I:%M %p")
 
 
-      def parse_date_string(date_str: str) -> datetime:
-          formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
-          for fmt in formats:
-              try:
-                  return datetime.strptime(date_str, fmt)
-              except ValueError:
-                  continue
-          raise ValueError(f"Unknown date format: {date_str}")
+        def parse_date_string(date_str: str) -> datetime:
+            formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+            raise ValueError(f"Unknown date format: {date_str}")
 
 
-      def days_between(date1: datetime, date2: datetime) -> int:
-          return abs((date2 - date1).days)
+        def days_between(date1: datetime, date2: datetime) -> int:
+            return abs((date2 - date1).days)
 
 
-      def is_valid_email(email: str) -> bool:
-          pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-          return bool(re.match(pattern, email))
+        def is_valid_email(email: str) -> bool:
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            return bool(re.match(pattern, email))
 
 
-      def is_valid_phone(phone: str) -> bool:
-          pattern = r'^\+?1?\d{9,15}$'
-          return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
+        def is_valid_phone(phone: str) -> bool:
+            pattern = r'^\+?1?\d{9,15}$'
+            return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
 
 
-      def normalize_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) == 10:
-              return f"+1{digits}"
-          return f"+{digits}"
+        def normalize_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) == 10:
+                return f"+1{digits}"
+            return f"+{digits}"
 
 
-      def extract_domain(email: str) -> str:
-          if '@' not in email:
-              return ""
-          return email.split('@')[1]
+        def extract_domain(email: str) -> str:
+            if '@' not in email:
+                return ""
+            return email.split('@')[1]
 
 
-      def mask_email(email: str) -> str:
-          if '@' not in email:
-              return email
-          local, domain = email.split('@')
-          if len(local) <= 2:
-              return f"{local[0]}***@{domain}"
-          return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
+        def mask_email(email: str) -> str:
+            if '@' not in email:
+                return email
+            local, domain = email.split('@')
+            if len(local) <= 2:
+                return f"{local[0]}***@{domain}"
+            return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
 
 
-      def mask_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) < 4:
-              return phone
-          return '*' * (len(digits) - 4) + digits[-4:]
+        def mask_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) < 4:
+                return phone
+            return '*' * (len(digits) - 4) + digits[-4:]
 
 
-      def bytes_to_human(size: int) -> str:
-          for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-              if size < 1024:
-                  return f"{size:.2f} {unit}"
-              size /= 1024
-          return f"{size:.2f} PB"
+        def bytes_to_human(size: int) -> str:
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024:
+                    return f"{size:.2f} {unit}"
+                size /= 1024
+            return f"{size:.2f} PB"
 
 
-      def human_to_bytes(size_str: str) -> int:
-          units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
-          match = re.match(r'([\d.]+)\s*(\w+)', size_str)
-          if not match:
-              raise ValueError(f"Invalid size string: {size_str}")
-          value, unit = match.groups()
-          return int(float(value) * units.get(unit.upper(), 1))
+        def human_to_bytes(size_str: str) -> int:
+            units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
+            match = re.match(r'([\d.]+)\s*(\w+)', size_str)
+            if not match:
+                raise ValueError(f"Invalid size string: {size_str}")
+            value, unit = match.groups()
+            return int(float(value) * units.get(unit.upper(), 1))
 
 
-      def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
-          items = []
-          for k, v in d.items():
-              new_key = f"{parent_key}{sep}{k}" if parent_key else k
-              if isinstance(v, dict):
-                  items.extend(flatten_dict(v, new_key, sep).items())
-              else:
-                  items.append((new_key, v))
-          return dict(items)
+        def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
+            items = []
+            for k, v in d.items():
+                new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                if isinstance(v, dict):
+                    items.extend(flatten_dict(v, new_key, sep).items())
+                else:
+                    items.append((new_key, v))
+            return dict(items)
 
 
-      def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
-          result = {}
-          for key, value in d.items():
-              parts = key.split(sep)
-              current = result
-              for part in parts[:-1]:
-                  current = current.setdefault(part, {})
-              current[parts[-1]] = value
-          return result
+        def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
+            result = {}
+            for key, value in d.items():
+                parts = key.split(sep)
+                current = result
+                for part in parts[:-1]:
+                    current = current.setdefault(part, {})
+                current[parts[-1]] = value
+            return result
 
 
-      def deep_merge(base: Dict, override: Dict) -> Dict:
-          result = base.copy()
-          for key, value in override.items():
-              if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                  result[key] = deep_merge(result[key], value)
-              else:
-                  result[key] = value
-          return result
+        def deep_merge(base: Dict, override: Dict) -> Dict:
+            result = base.copy()
+            for key, value in override.items():
+                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                    result[key] = deep_merge(result[key], value)
+                else:
+                    result[key] = value
+            return result
 
 
-      def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
-          keys = path.split('.')
-          current = d
-          for key in keys:
-              if isinstance(current, dict) and key in current:
-                  current = current[key]
-              else:
-                  return default
-          return current
+        def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
+            keys = path.split('.')
+            current = d
+            for key in keys:
+                if isinstance(current, dict) and key in current:
+                    current = current[key]
+                else:
+                    return default
+            return current
 
 
-      def set_nested_value(d: Dict, path: str, value: Any) -> None:
-          keys = path.split('.')
-          current = d
-          for key in keys[:-1]:
-              current = current.setdefault(key, {})
-          current[keys[-1]] = value
+        def set_nested_value(d: Dict, path: str, value: Any) -> None:
+            keys = path.split('.')
+            current = d
+            for key in keys[:-1]:
+                current = current.setdefault(key, {})
+            current[keys[-1]] = value
 
 
-      def chunk_list(lst: List, chunk_size: int) -> List[List]:
-          return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+        def chunk_list(lst: List, chunk_size: int) -> List[List]:
+            return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-      def deduplicate_list(lst: List) -> List:
-          seen = set()
-          result = []
-          for item in lst:
-              key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
-              if key not in seen:
-                  seen.add(key)
-                  result.append(item)
-          return result
+        def deduplicate_list(lst: List) -> List:
+            seen = set()
+            result = []
+            for item in lst:
+                key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
+                if key not in seen:
+                    seen.add(key)
+                    result.append(item)
+            return result
 
 
-      def safe_divide(a: float, b: float, default: float = 0.0) -> float:
-          if b == 0:
-              return default
-          return a / b
+        def safe_divide(a: float, b: float, default: float = 0.0) -> float:
+            if b == 0:
+                return default
+            return a / b
 
 
-      def clamp(value: float, min_val: float, max_val: float) -> float:
-          return max(min_val, min(max_val, value))
+        def clamp(value: float, min_val: float, max_val: float) -> float:
+            return max(min_val, min(max_val, value))
 
 
-      def percentage(part: float, whole: float, decimals: int = 2) -> float:
-          if whole == 0:
-              return 0.0
-          return round((part / whole) * 100, decimals)
+        def percentage(part: float, whole: float, decimals: int = 2) -> float:
+            if whole == 0:
+                return 0.0
+            return round((part / whole) * 100, decimals)
 
 
-      def round_to_nearest(value: float, nearest: float) -> float:
-          return round(value / nearest) * nearest
+        def round_to_nearest(value: float, nearest: float) -> float:
+            return round(value / nearest) * nearest
 
 
-      def snake_to_camel(s: str) -> str:
-          components = s.split('_')
-          return components[0] + ''.join(x.title() for x in components[1:])
+        def snake_to_camel(s: str) -> str:
+            components = s.split('_')
+            return components[0] + ''.join(x.title() for x in components[1:])
 
 
-      def camel_to_snake(s: str) -> str:
-          return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+        def camel_to_snake(s: str) -> str:
+            return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 
 
-      def slugify(text: str) -> str:
-          text = text.lower().strip()
-          text = re.sub(r'[^\w\s-]', '', text)
-          text = re.sub(r'[\s_-]+', '-', text)
-          return text
+        def slugify(text: str) -> str:
+            text = text.lower().strip()
+            text = re.sub(r'[^\w\s-]', '', text)
+            text = re.sub(r'[\s_-]+', '-', text)
+            return text
 
 
-      def title_case(s: str) -> str:
-          return ' '.join(word.capitalize() for word in s.split())
+        def title_case(s: str) -> str:
+            return ' '.join(word.capitalize() for word in s.split())
 
 
-      def pluralize(word: str, count: int) -> str:
-          if count == 1:
-              return word
-          if word.endswith('y'):
-              return word[:-1] + 'ies'
-          if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
-              return word + 'es'
-          return word + 's'
+        def pluralize(word: str, count: int) -> str:
+            if count == 1:
+                return word
+            if word.endswith('y'):
+                return word[:-1] + 'ies'
+            if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
+                return word + 'es'
+            return word + 's'
 
 
-      def strip_html_tags(html: str) -> str:
-          return re.sub(r'<[^>]+>', '', html)
+        def strip_html_tags(html: str) -> str:
+            return re.sub(r'<[^>]+>', '', html)
 
 
-      def escape_html(text: str) -> str:
-          return (text
-              .replace('&', '&amp;')
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
-              .replace('"', '&quot;')
-              .replace("'", '&#39;'))
+        def escape_html(text: str) -> str:
+            return (text
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('"', '&quot;')
+                .replace("'", '&#39;'))
 
 
-      def extract_numbers(text: str) -> List[float]:
-          return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
+        def extract_numbers(text: str) -> List[float]:
+            return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
 
 
-      def word_count(text: str) -> int:
-          return len(text.split())
+        def word_count(text: str) -> int:
+            return len(text.split())
 
 
-      def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
-          missing = []
-          for field in fields:
-              if field not in data or data[field] is None:
-                  missing.append(field)
-          return missing
+        def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
+            missing = []
+            for field in fields:
+                if field not in data or data[field] is None:
+                    missing.append(field)
+            return missing
 
 
-      def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k in keys}
+        def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k in keys}
 
 
-      def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k not in keys}
+        def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k not in keys}
 
 
-      def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
-          import time
-          for attempt in range(max_retries):
-              try:
-                  return func()
-              except Exception as e:
-                  if attempt == max_retries - 1:
-                      raise
-                  delay = base_delay * (2 ** attempt)
-                  time.sleep(delay)
+        def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
+            import time
+            for attempt in range(max_retries):
+                try:
+                    return func()
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    time.sleep(delay)
 
 
-      def timing_decorator(func):
-          import time
-          def wrapper(*args, **kwargs):
-              start = time.time()
-              result = func(*args, **kwargs)
-              elapsed = time.time() - start
-              print(f"{func.__name__} took {elapsed:.3f}s")
-              return result
-          return wrapper
+        def timing_decorator(func):
+            import time
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                result = func(*args, **kwargs)
+                elapsed = time.time() - start
+                print(f"{func.__name__} took {elapsed:.3f}s")
+                return result
+            return wrapper
 
 
-      def memoize(func):
-          cache = {}
-          def wrapper(*args):
-              if args not in cache:
-                  cache[args] = func(*args)
-              return cache[args]
-          return wrapper
+        def memoize(func):
+            cache = {}
+            def wrapper(*args):
+                if args not in cache:
+                    cache[args] = func(*args)
+                return cache[args]
+            return wrapper
 
 
-      def batch_process(items: List, processor, batch_size: int = 100) -> List:
-          results = []
-          for batch in chunk_list(items, batch_size):
-              results.extend(processor(batch))
-          return results
+        def batch_process(items: List, processor, batch_size: int = 100) -> List:
+            results = []
+            for batch in chunk_list(items, batch_size):
+                results.extend(processor(batch))
+            return results
 
 
-      def generate_uuid() -> str:
-          import uuid
-          return str(uuid.uuid4())
+        def generate_uuid() -> str:
+            import uuid
+            return str(uuid.uuid4())
 
 
-      def generate_short_id(length: int = 8) -> str:
-          import random
-          import string
-          chars = string.ascii_lowercase + string.digits
-          return ''.join(random.choice(chars) for _ in range(length))
+        def generate_short_id(length: int = 8) -> str:
+            import random
+            import string
+            chars = string.ascii_lowercase + string.digits
+            return ''.join(random.choice(chars) for _ in range(length))
 
 
-      def current_timestamp() -> float:
-          return datetime.now().timestamp()
+        def current_timestamp() -> float:
+            return datetime.now().timestamp()
 
 
-      def current_iso_string() -> str:
-          return datetime.now().isoformat()
+        def current_iso_string() -> str:
+            return datetime.now().isoformat()
 
 
-      def age_from_birthdate(birthdate: datetime) -> int:
-          today = datetime.now()
-          age = today.year - birthdate.year
-          if (today.month, today.day) < (birthdate.month, birthdate.day):
-              age -= 1
-          return age
+        def age_from_birthdate(birthdate: datetime) -> int:
+            today = datetime.now()
+            age = today.year - birthdate.year
+            if (today.month, today.day) < (birthdate.month, birthdate.day):
+                age -= 1
+            return age
 
 
-      def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
-          if progress <= 0:
-              return None
-          elapsed = (datetime.now() - start_time).total_seconds()
-          total_estimated = elapsed / progress
-          remaining = total_estimated - elapsed
-          return datetime.now() + timedelta(seconds=remaining)
+        def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
+            if progress <= 0:
+                return None
+            elapsed = (datetime.now() - start_time).total_seconds()
+            total_estimated = elapsed / progress
+            remaining = total_estimated - elapsed
+            return datetime.now() + timedelta(seconds=remaining)
 
 
-      def format_duration(seconds: float) -> str:
-          if seconds < 60:
-              return f"{seconds:.1f}s"
-          elif seconds < 3600:
-              minutes = seconds / 60
-              return f"{minutes:.1f}m"
-          else:
-              hours = seconds / 3600
-              return f"{hours:.1f}h"
+        def format_duration(seconds: float) -> str:
+            if seconds < 60:
+                return f"{seconds:.1f}s"
+            elif seconds < 3600:
+                minutes = seconds / 60
+                return f"{minutes:.1f}m"
+            else:
+                hours = seconds / 3600
+                return f"{hours:.1f}h"
 
 
-      def parse_boolean(value: Any) -> bool:
-          if isinstance(value, bool):
-              return value
-          if isinstance(value, str):
-              return value.lower() in ('true', 'yes', '1', 'on')
-          return bool(value)
+        def parse_boolean(value: Any) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.lower() in ('true', 'yes', '1', 'on')
+            return bool(value)
 
 
-      def safe_int(value: Any, default: int = 0) -> int:
-          try:
-              return int(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_int(value: Any, default: int = 0) -> int:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def safe_float(value: Any, default: float = 0.0) -> float:
-          try:
-              return float(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_float(value: Any, default: float = 0.0) -> float:
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def merge_lists(*lists: List) -> List:
-          result = []
-          for lst in lists:
-              result.extend(lst)
-          return result
+        def merge_lists(*lists: List) -> List:
+            result = []
+            for lst in lists:
+                result.extend(lst)
+            return result
 
 
-      def find_duplicates(lst: List) -> List:
-          seen = set()
-          duplicates = set()
-          for item in lst:
-              if item in seen:
-                  duplicates.add(item)
-              seen.add(item)
-          return list(duplicates)
+        def find_duplicates(lst: List) -> List:
+            seen = set()
+            duplicates = set()
+            for item in lst:
+                if item in seen:
+                    duplicates.add(item)
+                seen.add(item)
+            return list(duplicates)
 
 
-      def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
-          result = {}
-          for item in items:
-              k = item.get(key)
-              if k not in result:
-                  result[k] = []
-              result[k].append(item)
-          return result
+        def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
+            result = {}
+            for item in items:
+                k = item.get(key)
+                if k not in result:
+                    result[k] = []
+                result[k].append(item)
+            return result
 
 
-      def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
-          return sorted(items, key=lambda x: x.get(key), reverse=reverse)
+        def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
+            return sorted(items, key=lambda x: x.get(key), reverse=reverse)
 
 
-      def pick_random(items: List, count: int = 1) -> List:
-          import random
-          return random.sample(items, min(count, len(items)))
+        def pick_random(items: List, count: int = 1) -> List:
+            import random
+            return random.sample(items, min(count, len(items)))
 
 
-      def weighted_random(items: List, weights: List[float]) -> Any:
-          import random
-          return random.choices(items, weights=weights, k=1)[0]
+        def weighted_random(items: List, weights: List[float]) -> Any:
+            import random
+            return random.choices(items, weights=weights, k=1)[0]
 
 
-      def interpolate_string(template: str, values: Dict) -> str:
-          for key, value in values.items():
-              template = template.replace(f"{{{key}}}", str(value))
-          return template
+        def interpolate_string(template: str, values: Dict) -> str:
+            for key, value in values.items():
+                template = template.replace(f"{{{key}}}", str(value))
+            return template
 
 
-      def compress_whitespace(text: str) -> str:
-          return re.sub(r'\s+', ' ', text).strip()
+        def compress_whitespace(text: str) -> str:
+            return re.sub(r'\s+', ' ', text).strip()
 
 
-      def wrap_text(text: str, width: int = 80) -> str:
-          import textwrap
-          return textwrap.fill(text, width=width)
+        def wrap_text(text: str, width: int = 80) -> str:
+            import textwrap
+            return textwrap.fill(text, width=width)
 
 
-      def indent_text(text: str, spaces: int = 4) -> str:
-          prefix = ' ' * spaces
-          return '\n'.join(prefix + line for line in text.split('\n'))
+        def indent_text(text: str, spaces: int = 4) -> str:
+            prefix = ' ' * spaces
+            return '\n'.join(prefix + line for line in text.split('\n'))
 
 
-      def remove_comments(code: str, lang: str = 'python') -> str:
-          if lang == 'python':
-              return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
-          elif lang in ('javascript', 'java', 'c'):
-              code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
-              code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
-              return code
-          return code
+        def remove_comments(code: str, lang: str = 'python') -> str:
+            if lang == 'python':
+                return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
+            elif lang in ('javascript', 'java', 'c'):
+                code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
+                code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+                return code
+            return code
 
 
-      def extract_urls(text: str) -> List[str]:
-          pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-          return re.findall(pattern, text)
+        def extract_urls(text: str) -> List[str]:
+            pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            return re.findall(pattern, text)
 
 
-      def is_url(text: str) -> bool:
-          pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
-          return bool(re.match(pattern, text))
+        def is_url(text: str) -> bool:
+            pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
+            return bool(re.match(pattern, text))
 
 
-      def normalize_url(url: str) -> str:
-          url = url.strip().lower()
-          if not url.startswith(('http://', 'https://')):
-              url = 'https://' + url
-          return url.rstrip('/')
+        def normalize_url(url: str) -> str:
+            url = url.strip().lower()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            return url.rstrip('/')
 
 
-      def build_query_string(params: Dict) -> str:
-          from urllib.parse import urlencode
-          return urlencode(params)
+        def build_query_string(params: Dict) -> str:
+            from urllib.parse import urlencode
+            return urlencode(params)
 
 
-      def parse_query_string(query: str) -> Dict:
-          from urllib.parse import parse_qs
-          return {k: v[0] for k, v in parse_qs(query).items()}
+        def parse_query_string(query: str) -> Dict:
+            from urllib.parse import parse_qs
+            return {k: v[0] for k, v in parse_qs(query).items()}
 
 
-      def generate_pdf_report(data: Dict, output_path: str) -> str:
-          title = data.get('title', 'Report')
-          author = data.get('author', 'System')
-          created_at = data['metadata']['created_at']
-          sections = data.get('sections', [])
+        def generate_pdf_report(data: Dict, output_path: str) -> str:
+            title = data.get('title', 'Report')
+            author = data.get('author', 'System')
+            created_at = data['metadata']['created_at']
+            sections = data.get('sections', [])
 
-          content_lines = []
-          content_lines.append(f"# {title}")
-          content_lines.append(f"Author: {author}")
-          content_lines.append("")
+            content_lines = []
+            content_lines.append(f"# {title}")
+            content_lines.append(f"Author: {author}")
+            content_lines.append("")
 
-          for section in sections:
-              content_lines.append(f"## {section['title']}")
-              content_lines.append(section['content'])
-              content_lines.append("")
+            for section in sections:
+                content_lines.append(f"## {section['title']}")
+                content_lines.append(section['content'])
+                content_lines.append("")
 
-          full_content = '\n'.join(content_lines)
+            full_content = '\n'.join(content_lines)
 
-          with open(output_path, 'w') as f:
-              f.write(full_content)
+            with open(output_path, 'w') as f:
+                f.write(full_content)
 
-          return output_path
+            return output_path
 
 
-      def validate_report_data(data: Dict) -> List[str]:
-          errors = []
-          if 'title' not in data:
-              errors.append("Missing required field: title")
-          if 'metadata' not in data:
-              errors.append("Missing required field: metadata")
-          elif 'created_at' not in data.get('metadata', {}):
-              errors.append("Missing required field: metadata.created_at")
-          return errors
-  cursor:
-    file: helpers.py
-    line: 488
-    column: 47
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    helpers.py: |-
-      """
-      Project utility functions for data processing, formatting, and validation.
-      """
-      import os
-      import re
-      import json
-      import hashlib
-      from datetime import datetime, timedelta
-      from typing import Any, Dict, List, Optional, Union
-      from pathlib import Path
+        def validate_report_data(data: Dict) -> List[str]:
+            errors = []
+            if 'title' not in data:
+                errors.append("Missing required field: title")
+            if 'metadata' not in data:
+                errors.append("Missing required field: metadata")
+            elif 'created_at' not in data.get('metadata', {}):
+                errors.append("Missing required field: metadata.created_at")
+            return errors
+    cursor:
+      file: helpers.py
+      line: 488
+      column: 47
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      helpers.py: |-
+        """
+        Project utility functions for data processing, formatting, and validation.
+        """
+        import os
+        import re
+        import json
+        import hashlib
+        from datetime import datetime, timedelta
+        from typing import Any, Dict, List, Optional, Union
+        from pathlib import Path
 
 
-      def get_env_var(name: str, default: str = "") -> str:
-          return os.environ.get(name, default)
+        def get_env_var(name: str, default: str = "") -> str:
+            return os.environ.get(name, default)
 
 
-      def ensure_dir(path: str) -> None:
-          Path(path).mkdir(parents=True, exist_ok=True)
+        def ensure_dir(path: str) -> None:
+            Path(path).mkdir(parents=True, exist_ok=True)
 
 
-      def read_json_file(filepath: str) -> Dict:
-          with open(filepath, 'r') as f:
-              return json.load(f)
+        def read_json_file(filepath: str) -> Dict:
+            with open(filepath, 'r') as f:
+                return json.load(f)
 
 
-      def write_json_file(filepath: str, data: Dict) -> None:
-          with open(filepath, 'w') as f:
-              json.dump(data, f, indent=2)
+        def write_json_file(filepath: str, data: Dict) -> None:
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
 
 
-      def generate_hash(content: str) -> str:
-          return hashlib.sha256(content.encode()).hexdigest()
+        def generate_hash(content: str) -> str:
+            return hashlib.sha256(content.encode()).hexdigest()
 
 
-      def truncate_string(s: str, max_len: int = 100) -> str:
-          if len(s) <= max_len:
-              return s
-          return s[:max_len - 3] + "..."
+        def truncate_string(s: str, max_len: int = 100) -> str:
+            if len(s) <= max_len:
+                return s
+            return s[:max_len - 3] + "..."
 
 
-      def sanitize_filename(filename: str) -> str:
-          return re.sub(r'[^\w\-_.]', '_', filename)
+        def sanitize_filename(filename: str) -> str:
+            return re.sub(r'[^\w\-_.]', '_', filename)
 
 
-      def _format_iso_date_to_human(iso_str: str) -> str:
-          dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
-          return dt.strftime("%B %d, %Y")
+        def _format_iso_date_to_human(iso_str: str) -> str:
+            dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+            return dt.strftime("%B %d, %Y")
 
 
-      def _format_timestamp_to_human(timestamp: float) -> str:
-          dt = datetime.fromtimestamp(timestamp)
-          return dt.strftime("%B %d, %Y at %I:%M %p")
+        def _format_timestamp_to_human(timestamp: float) -> str:
+            dt = datetime.fromtimestamp(timestamp)
+            return dt.strftime("%B %d, %Y at %I:%M %p")
 
 
-      def parse_date_string(date_str: str) -> datetime:
-          formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
-          for fmt in formats:
-              try:
-                  return datetime.strptime(date_str, fmt)
-              except ValueError:
-                  continue
-          raise ValueError(f"Unknown date format: {date_str}")
+        def parse_date_string(date_str: str) -> datetime:
+            formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+            raise ValueError(f"Unknown date format: {date_str}")
 
 
-      def days_between(date1: datetime, date2: datetime) -> int:
-          return abs((date2 - date1).days)
+        def days_between(date1: datetime, date2: datetime) -> int:
+            return abs((date2 - date1).days)
 
 
-      def is_valid_email(email: str) -> bool:
-          pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-          return bool(re.match(pattern, email))
+        def is_valid_email(email: str) -> bool:
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            return bool(re.match(pattern, email))
 
 
-      def is_valid_phone(phone: str) -> bool:
-          pattern = r'^\+?1?\d{9,15}$'
-          return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
+        def is_valid_phone(phone: str) -> bool:
+            pattern = r'^\+?1?\d{9,15}$'
+            return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
 
 
-      def normalize_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) == 10:
-              return f"+1{digits}"
-          return f"+{digits}"
+        def normalize_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) == 10:
+                return f"+1{digits}"
+            return f"+{digits}"
 
 
-      def extract_domain(email: str) -> str:
-          if '@' not in email:
-              return ""
-          return email.split('@')[1]
+        def extract_domain(email: str) -> str:
+            if '@' not in email:
+                return ""
+            return email.split('@')[1]
 
 
-      def mask_email(email: str) -> str:
-          if '@' not in email:
-              return email
-          local, domain = email.split('@')
-          if len(local) <= 2:
-              return f"{local[0]}***@{domain}"
-          return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
+        def mask_email(email: str) -> str:
+            if '@' not in email:
+                return email
+            local, domain = email.split('@')
+            if len(local) <= 2:
+                return f"{local[0]}***@{domain}"
+            return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
 
 
-      def mask_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) < 4:
-              return phone
-          return '*' * (len(digits) - 4) + digits[-4:]
+        def mask_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) < 4:
+                return phone
+            return '*' * (len(digits) - 4) + digits[-4:]
 
 
-      def bytes_to_human(size: int) -> str:
-          for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-              if size < 1024:
-                  return f"{size:.2f} {unit}"
-              size /= 1024
-          return f"{size:.2f} PB"
+        def bytes_to_human(size: int) -> str:
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024:
+                    return f"{size:.2f} {unit}"
+                size /= 1024
+            return f"{size:.2f} PB"
 
 
-      def human_to_bytes(size_str: str) -> int:
-          units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
-          match = re.match(r'([\d.]+)\s*(\w+)', size_str)
-          if not match:
-              raise ValueError(f"Invalid size string: {size_str}")
-          value, unit = match.groups()
-          return int(float(value) * units.get(unit.upper(), 1))
+        def human_to_bytes(size_str: str) -> int:
+            units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
+            match = re.match(r'([\d.]+)\s*(\w+)', size_str)
+            if not match:
+                raise ValueError(f"Invalid size string: {size_str}")
+            value, unit = match.groups()
+            return int(float(value) * units.get(unit.upper(), 1))
 
 
-      def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
-          items = []
-          for k, v in d.items():
-              new_key = f"{parent_key}{sep}{k}" if parent_key else k
-              if isinstance(v, dict):
-                  items.extend(flatten_dict(v, new_key, sep).items())
-              else:
-                  items.append((new_key, v))
-          return dict(items)
+        def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
+            items = []
+            for k, v in d.items():
+                new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                if isinstance(v, dict):
+                    items.extend(flatten_dict(v, new_key, sep).items())
+                else:
+                    items.append((new_key, v))
+            return dict(items)
 
 
-      def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
-          result = {}
-          for key, value in d.items():
-              parts = key.split(sep)
-              current = result
-              for part in parts[:-1]:
-                  current = current.setdefault(part, {})
-              current[parts[-1]] = value
-          return result
+        def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
+            result = {}
+            for key, value in d.items():
+                parts = key.split(sep)
+                current = result
+                for part in parts[:-1]:
+                    current = current.setdefault(part, {})
+                current[parts[-1]] = value
+            return result
 
 
-      def deep_merge(base: Dict, override: Dict) -> Dict:
-          result = base.copy()
-          for key, value in override.items():
-              if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                  result[key] = deep_merge(result[key], value)
-              else:
-                  result[key] = value
-          return result
+        def deep_merge(base: Dict, override: Dict) -> Dict:
+            result = base.copy()
+            for key, value in override.items():
+                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                    result[key] = deep_merge(result[key], value)
+                else:
+                    result[key] = value
+            return result
 
 
-      def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
-          keys = path.split('.')
-          current = d
-          for key in keys:
-              if isinstance(current, dict) and key in current:
-                  current = current[key]
-              else:
-                  return default
-          return current
+        def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
+            keys = path.split('.')
+            current = d
+            for key in keys:
+                if isinstance(current, dict) and key in current:
+                    current = current[key]
+                else:
+                    return default
+            return current
 
 
-      def set_nested_value(d: Dict, path: str, value: Any) -> None:
-          keys = path.split('.')
-          current = d
-          for key in keys[:-1]:
-              current = current.setdefault(key, {})
-          current[keys[-1]] = value
+        def set_nested_value(d: Dict, path: str, value: Any) -> None:
+            keys = path.split('.')
+            current = d
+            for key in keys[:-1]:
+                current = current.setdefault(key, {})
+            current[keys[-1]] = value
 
 
-      def chunk_list(lst: List, chunk_size: int) -> List[List]:
-          return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+        def chunk_list(lst: List, chunk_size: int) -> List[List]:
+            return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-      def deduplicate_list(lst: List) -> List:
-          seen = set()
-          result = []
-          for item in lst:
-              key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
-              if key not in seen:
-                  seen.add(key)
-                  result.append(item)
-          return result
+        def deduplicate_list(lst: List) -> List:
+            seen = set()
+            result = []
+            for item in lst:
+                key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
+                if key not in seen:
+                    seen.add(key)
+                    result.append(item)
+            return result
 
 
-      def safe_divide(a: float, b: float, default: float = 0.0) -> float:
-          if b == 0:
-              return default
-          return a / b
+        def safe_divide(a: float, b: float, default: float = 0.0) -> float:
+            if b == 0:
+                return default
+            return a / b
 
 
-      def clamp(value: float, min_val: float, max_val: float) -> float:
-          return max(min_val, min(max_val, value))
+        def clamp(value: float, min_val: float, max_val: float) -> float:
+            return max(min_val, min(max_val, value))
 
 
-      def percentage(part: float, whole: float, decimals: int = 2) -> float:
-          if whole == 0:
-              return 0.0
-          return round((part / whole) * 100, decimals)
+        def percentage(part: float, whole: float, decimals: int = 2) -> float:
+            if whole == 0:
+                return 0.0
+            return round((part / whole) * 100, decimals)
 
 
-      def round_to_nearest(value: float, nearest: float) -> float:
-          return round(value / nearest) * nearest
+        def round_to_nearest(value: float, nearest: float) -> float:
+            return round(value / nearest) * nearest
 
 
-      def snake_to_camel(s: str) -> str:
-          components = s.split('_')
-          return components[0] + ''.join(x.title() for x in components[1:])
+        def snake_to_camel(s: str) -> str:
+            components = s.split('_')
+            return components[0] + ''.join(x.title() for x in components[1:])
 
 
-      def camel_to_snake(s: str) -> str:
-          return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+        def camel_to_snake(s: str) -> str:
+            return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 
 
-      def slugify(text: str) -> str:
-          text = text.lower().strip()
-          text = re.sub(r'[^\w\s-]', '', text)
-          text = re.sub(r'[\s_-]+', '-', text)
-          return text
+        def slugify(text: str) -> str:
+            text = text.lower().strip()
+            text = re.sub(r'[^\w\s-]', '', text)
+            text = re.sub(r'[\s_-]+', '-', text)
+            return text
 
 
-      def title_case(s: str) -> str:
-          return ' '.join(word.capitalize() for word in s.split())
+        def title_case(s: str) -> str:
+            return ' '.join(word.capitalize() for word in s.split())
 
 
-      def pluralize(word: str, count: int) -> str:
-          if count == 1:
-              return word
-          if word.endswith('y'):
-              return word[:-1] + 'ies'
-          if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
-              return word + 'es'
-          return word + 's'
+        def pluralize(word: str, count: int) -> str:
+            if count == 1:
+                return word
+            if word.endswith('y'):
+                return word[:-1] + 'ies'
+            if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
+                return word + 'es'
+            return word + 's'
 
 
-      def strip_html_tags(html: str) -> str:
-          return re.sub(r'<[^>]+>', '', html)
+        def strip_html_tags(html: str) -> str:
+            return re.sub(r'<[^>]+>', '', html)
 
 
-      def escape_html(text: str) -> str:
-          return (text
-              .replace('&', '&amp;')
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
-              .replace('"', '&quot;')
-              .replace("'", '&#39;'))
+        def escape_html(text: str) -> str:
+            return (text
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('"', '&quot;')
+                .replace("'", '&#39;'))
 
 
-      def extract_numbers(text: str) -> List[float]:
-          return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
+        def extract_numbers(text: str) -> List[float]:
+            return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
 
 
-      def word_count(text: str) -> int:
-          return len(text.split())
+        def word_count(text: str) -> int:
+            return len(text.split())
 
 
-      def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
-          missing = []
-          for field in fields:
-              if field not in data or data[field] is None:
-                  missing.append(field)
-          return missing
+        def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
+            missing = []
+            for field in fields:
+                if field not in data or data[field] is None:
+                    missing.append(field)
+            return missing
 
 
-      def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k in keys}
+        def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k in keys}
 
 
-      def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k not in keys}
+        def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k not in keys}
 
 
-      def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
-          import time
-          for attempt in range(max_retries):
-              try:
-                  return func()
-              except Exception as e:
-                  if attempt == max_retries - 1:
-                      raise
-                  delay = base_delay * (2 ** attempt)
-                  time.sleep(delay)
+        def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
+            import time
+            for attempt in range(max_retries):
+                try:
+                    return func()
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    time.sleep(delay)
 
 
-      def timing_decorator(func):
-          import time
-          def wrapper(*args, **kwargs):
-              start = time.time()
-              result = func(*args, **kwargs)
-              elapsed = time.time() - start
-              print(f"{func.__name__} took {elapsed:.3f}s")
-              return result
-          return wrapper
+        def timing_decorator(func):
+            import time
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                result = func(*args, **kwargs)
+                elapsed = time.time() - start
+                print(f"{func.__name__} took {elapsed:.3f}s")
+                return result
+            return wrapper
 
 
-      def memoize(func):
-          cache = {}
-          def wrapper(*args):
-              if args not in cache:
-                  cache[args] = func(*args)
-              return cache[args]
-          return wrapper
+        def memoize(func):
+            cache = {}
+            def wrapper(*args):
+                if args not in cache:
+                    cache[args] = func(*args)
+                return cache[args]
+            return wrapper
 
 
-      def batch_process(items: List, processor, batch_size: int = 100) -> List:
-          results = []
-          for batch in chunk_list(items, batch_size):
-              results.extend(processor(batch))
-          return results
+        def batch_process(items: List, processor, batch_size: int = 100) -> List:
+            results = []
+            for batch in chunk_list(items, batch_size):
+                results.extend(processor(batch))
+            return results
 
 
-      def generate_uuid() -> str:
-          import uuid
-          return str(uuid.uuid4())
+        def generate_uuid() -> str:
+            import uuid
+            return str(uuid.uuid4())
 
 
-      def generate_short_id(length: int = 8) -> str:
-          import random
-          import string
-          chars = string.ascii_lowercase + string.digits
-          return ''.join(random.choice(chars) for _ in range(length))
+        def generate_short_id(length: int = 8) -> str:
+            import random
+            import string
+            chars = string.ascii_lowercase + string.digits
+            return ''.join(random.choice(chars) for _ in range(length))
 
 
-      def current_timestamp() -> float:
-          return datetime.now().timestamp()
+        def current_timestamp() -> float:
+            return datetime.now().timestamp()
 
 
-      def current_iso_string() -> str:
-          return datetime.now().isoformat()
+        def current_iso_string() -> str:
+            return datetime.now().isoformat()
 
 
-      def age_from_birthdate(birthdate: datetime) -> int:
-          today = datetime.now()
-          age = today.year - birthdate.year
-          if (today.month, today.day) < (birthdate.month, birthdate.day):
-              age -= 1
-          return age
+        def age_from_birthdate(birthdate: datetime) -> int:
+            today = datetime.now()
+            age = today.year - birthdate.year
+            if (today.month, today.day) < (birthdate.month, birthdate.day):
+                age -= 1
+            return age
 
 
-      def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
-          if progress <= 0:
-              return None
-          elapsed = (datetime.now() - start_time).total_seconds()
-          total_estimated = elapsed / progress
-          remaining = total_estimated - elapsed
-          return datetime.now() + timedelta(seconds=remaining)
+        def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
+            if progress <= 0:
+                return None
+            elapsed = (datetime.now() - start_time).total_seconds()
+            total_estimated = elapsed / progress
+            remaining = total_estimated - elapsed
+            return datetime.now() + timedelta(seconds=remaining)
 
 
-      def format_duration(seconds: float) -> str:
-          if seconds < 60:
-              return f"{seconds:.1f}s"
-          elif seconds < 3600:
-              minutes = seconds / 60
-              return f"{minutes:.1f}m"
-          else:
-              hours = seconds / 3600
-              return f"{hours:.1f}h"
+        def format_duration(seconds: float) -> str:
+            if seconds < 60:
+                return f"{seconds:.1f}s"
+            elif seconds < 3600:
+                minutes = seconds / 60
+                return f"{minutes:.1f}m"
+            else:
+                hours = seconds / 3600
+                return f"{hours:.1f}h"
 
 
-      def parse_boolean(value: Any) -> bool:
-          if isinstance(value, bool):
-              return value
-          if isinstance(value, str):
-              return value.lower() in ('true', 'yes', '1', 'on')
-          return bool(value)
+        def parse_boolean(value: Any) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.lower() in ('true', 'yes', '1', 'on')
+            return bool(value)
 
 
-      def safe_int(value: Any, default: int = 0) -> int:
-          try:
-              return int(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_int(value: Any, default: int = 0) -> int:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def safe_float(value: Any, default: float = 0.0) -> float:
-          try:
-              return float(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_float(value: Any, default: float = 0.0) -> float:
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def merge_lists(*lists: List) -> List:
-          result = []
-          for lst in lists:
-              result.extend(lst)
-          return result
+        def merge_lists(*lists: List) -> List:
+            result = []
+            for lst in lists:
+                result.extend(lst)
+            return result
 
 
-      def find_duplicates(lst: List) -> List:
-          seen = set()
-          duplicates = set()
-          for item in lst:
-              if item in seen:
-                  duplicates.add(item)
-              seen.add(item)
-          return list(duplicates)
+        def find_duplicates(lst: List) -> List:
+            seen = set()
+            duplicates = set()
+            for item in lst:
+                if item in seen:
+                    duplicates.add(item)
+                seen.add(item)
+            return list(duplicates)
 
 
-      def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
-          result = {}
-          for item in items:
-              k = item.get(key)
-              if k not in result:
-                  result[k] = []
-              result[k].append(item)
-          return result
+        def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
+            result = {}
+            for item in items:
+                k = item.get(key)
+                if k not in result:
+                    result[k] = []
+                result[k].append(item)
+            return result
 
 
-      def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
-          return sorted(items, key=lambda x: x.get(key), reverse=reverse)
+        def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
+            return sorted(items, key=lambda x: x.get(key), reverse=reverse)
 
 
-      def pick_random(items: List, count: int = 1) -> List:
-          import random
-          return random.sample(items, min(count, len(items)))
+        def pick_random(items: List, count: int = 1) -> List:
+            import random
+            return random.sample(items, min(count, len(items)))
 
 
-      def weighted_random(items: List, weights: List[float]) -> Any:
-          import random
-          return random.choices(items, weights=weights, k=1)[0]
+        def weighted_random(items: List, weights: List[float]) -> Any:
+            import random
+            return random.choices(items, weights=weights, k=1)[0]
 
 
-      def interpolate_string(template: str, values: Dict) -> str:
-          for key, value in values.items():
-              template = template.replace(f"{{{key}}}", str(value))
-          return template
+        def interpolate_string(template: str, values: Dict) -> str:
+            for key, value in values.items():
+                template = template.replace(f"{{{key}}}", str(value))
+            return template
 
 
-      def compress_whitespace(text: str) -> str:
-          return re.sub(r'\s+', ' ', text).strip()
+        def compress_whitespace(text: str) -> str:
+            return re.sub(r'\s+', ' ', text).strip()
 
 
-      def wrap_text(text: str, width: int = 80) -> str:
-          import textwrap
-          return textwrap.fill(text, width=width)
+        def wrap_text(text: str, width: int = 80) -> str:
+            import textwrap
+            return textwrap.fill(text, width=width)
 
 
-      def indent_text(text: str, spaces: int = 4) -> str:
-          prefix = ' ' * spaces
-          return '\n'.join(prefix + line for line in text.split('\n'))
+        def indent_text(text: str, spaces: int = 4) -> str:
+            prefix = ' ' * spaces
+            return '\n'.join(prefix + line for line in text.split('\n'))
 
 
-      def remove_comments(code: str, lang: str = 'python') -> str:
-          if lang == 'python':
-              return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
-          elif lang in ('javascript', 'java', 'c'):
-              code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
-              code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
-              return code
-          return code
+        def remove_comments(code: str, lang: str = 'python') -> str:
+            if lang == 'python':
+                return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
+            elif lang in ('javascript', 'java', 'c'):
+                code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
+                code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+                return code
+            return code
 
 
-      def extract_urls(text: str) -> List[str]:
-          pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-          return re.findall(pattern, text)
+        def extract_urls(text: str) -> List[str]:
+            pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            return re.findall(pattern, text)
 
 
-      def is_url(text: str) -> bool:
-          pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
-          return bool(re.match(pattern, text))
+        def is_url(text: str) -> bool:
+            pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
+            return bool(re.match(pattern, text))
 
 
-      def normalize_url(url: str) -> str:
-          url = url.strip().lower()
-          if not url.startswith(('http://', 'https://')):
-              url = 'https://' + url
-          return url.rstrip('/')
+        def normalize_url(url: str) -> str:
+            url = url.strip().lower()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            return url.rstrip('/')
 
 
-      def build_query_string(params: Dict) -> str:
-          from urllib.parse import urlencode
-          return urlencode(params)
+        def build_query_string(params: Dict) -> str:
+            from urllib.parse import urlencode
+            return urlencode(params)
 
 
-      def parse_query_string(query: str) -> Dict:
-          from urllib.parse import parse_qs
-          return {k: v[0] for k, v in parse_qs(query).items()}
+        def parse_query_string(query: str) -> Dict:
+            from urllib.parse import parse_qs
+            return {k: v[0] for k, v in parse_qs(query).items()}
 
 
-      def generate_pdf_report(data: Dict, output_path: str) -> str:
-          title = data.get('title', 'Report')
-          author = data.get('author', 'System')
-          created_at = data['metadata']['created_at']
-          report_date = _format
-          sections = data.get('sections', [])
+        def generate_pdf_report(data: Dict, output_path: str) -> str:
+            title = data.get('title', 'Report')
+            author = data.get('author', 'System')
+            created_at = data['metadata']['created_at']
+            report_date = _format
+            sections = data.get('sections', [])
 
-          content_lines = []
-          content_lines.append(f"# {title}")
-          content_lines.append(f"Author: {author}")
-          content_lines.append("")
+            content_lines = []
+            content_lines.append(f"# {title}")
+            content_lines.append(f"Author: {author}")
+            content_lines.append("")
 
-          for section in sections:
-              content_lines.append(f"## {section['title']}")
-              content_lines.append(section['content'])
-              content_lines.append("")
+            for section in sections:
+                content_lines.append(f"## {section['title']}")
+                content_lines.append(section['content'])
+                content_lines.append("")
 
-          full_content = '\n'.join(content_lines)
+            full_content = '\n'.join(content_lines)
 
-          with open(output_path, 'w') as f:
-              f.write(full_content)
+            with open(output_path, 'w') as f:
+                f.write(full_content)
 
-          return output_path
+            return output_path
 
 
-      def validate_report_data(data: Dict) -> List[str]:
-          errors = []
-          if 'title' not in data:
-              errors.append("Missing required field: title")
-          if 'metadata' not in data:
-              errors.append("Missing required field: metadata")
-          elif 'created_at' not in data.get('metadata', {}):
-              errors.append("Missing required field: metadata.created_at")
-          return errors
-  cursor:
-    file: helpers.py
-    line: 489
-    column: 25
-- step: 4
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the model completes with _format_iso_date_to_human(created_at)
-    - the model uses the project's existing helper function (defined ~440 lines above)
-    - the model does NOT re-invent the wheel with datetime.strptime or manual parsing
-    - the argument is 'created_at' (the variable from the previous line)
-    - the correct file is being edited (helpers.py)
-    - the file is being catted with approx. the correct viewport (around lines 479-499)
-  terminal: null
-  files:
-    helpers.py: |-
-      """
-      Project utility functions for data processing, formatting, and validation.
-      """
-      import os
-      import re
-      import json
-      import hashlib
-      from datetime import datetime, timedelta
-      from typing import Any, Dict, List, Optional, Union
-      from pathlib import Path
+        def validate_report_data(data: Dict) -> List[str]:
+            errors = []
+            if 'title' not in data:
+                errors.append("Missing required field: title")
+            if 'metadata' not in data:
+                errors.append("Missing required field: metadata")
+            elif 'created_at' not in data.get('metadata', {}):
+                errors.append("Missing required field: metadata.created_at")
+            return errors
+    cursor:
+      file: helpers.py
+      line: 489
+      column: 25
+  - step: 4
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model completes with _format_iso_date_to_human(created_at)
+      - the model uses the project's existing helper function (defined ~440 lines above)
+      - the model does NOT re-invent the wheel with datetime.strptime or manual parsing
+      - the argument is 'created_at' (the variable from the previous line)
+      - the correct file is being edited (helpers.py)
+    terminal: null
+    files:
+      helpers.py: |-
+        """
+        Project utility functions for data processing, formatting, and validation.
+        """
+        import os
+        import re
+        import json
+        import hashlib
+        from datetime import datetime, timedelta
+        from typing import Any, Dict, List, Optional, Union
+        from pathlib import Path
 
 
-      def get_env_var(name: str, default: str = "") -> str:
-          return os.environ.get(name, default)
+        def get_env_var(name: str, default: str = "") -> str:
+            return os.environ.get(name, default)
 
 
-      def ensure_dir(path: str) -> None:
-          Path(path).mkdir(parents=True, exist_ok=True)
+        def ensure_dir(path: str) -> None:
+            Path(path).mkdir(parents=True, exist_ok=True)
 
 
-      def read_json_file(filepath: str) -> Dict:
-          with open(filepath, 'r') as f:
-              return json.load(f)
+        def read_json_file(filepath: str) -> Dict:
+            with open(filepath, 'r') as f:
+                return json.load(f)
 
 
-      def write_json_file(filepath: str, data: Dict) -> None:
-          with open(filepath, 'w') as f:
-              json.dump(data, f, indent=2)
+        def write_json_file(filepath: str, data: Dict) -> None:
+            with open(filepath, 'w') as f:
+                json.dump(data, f, indent=2)
 
 
-      def generate_hash(content: str) -> str:
-          return hashlib.sha256(content.encode()).hexdigest()
+        def generate_hash(content: str) -> str:
+            return hashlib.sha256(content.encode()).hexdigest()
 
 
-      def truncate_string(s: str, max_len: int = 100) -> str:
-          if len(s) <= max_len:
-              return s
-          return s[:max_len - 3] + "..."
+        def truncate_string(s: str, max_len: int = 100) -> str:
+            if len(s) <= max_len:
+                return s
+            return s[:max_len - 3] + "..."
 
 
-      def sanitize_filename(filename: str) -> str:
-          return re.sub(r'[^\w\-_.]', '_', filename)
+        def sanitize_filename(filename: str) -> str:
+            return re.sub(r'[^\w\-_.]', '_', filename)
 
 
-      def _format_iso_date_to_human(iso_str: str) -> str:
-          dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
-          return dt.strftime("%B %d, %Y")
+        def _format_iso_date_to_human(iso_str: str) -> str:
+            dt = datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+            return dt.strftime("%B %d, %Y")
 
 
-      def _format_timestamp_to_human(timestamp: float) -> str:
-          dt = datetime.fromtimestamp(timestamp)
-          return dt.strftime("%B %d, %Y at %I:%M %p")
+        def _format_timestamp_to_human(timestamp: float) -> str:
+            dt = datetime.fromtimestamp(timestamp)
+            return dt.strftime("%B %d, %Y at %I:%M %p")
 
 
-      def parse_date_string(date_str: str) -> datetime:
-          formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
-          for fmt in formats:
-              try:
-                  return datetime.strptime(date_str, fmt)
-              except ValueError:
-                  continue
-          raise ValueError(f"Unknown date format: {date_str}")
+        def parse_date_string(date_str: str) -> datetime:
+            formats = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+            raise ValueError(f"Unknown date format: {date_str}")
 
 
-      def days_between(date1: datetime, date2: datetime) -> int:
-          return abs((date2 - date1).days)
+        def days_between(date1: datetime, date2: datetime) -> int:
+            return abs((date2 - date1).days)
 
 
-      def is_valid_email(email: str) -> bool:
-          pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-          return bool(re.match(pattern, email))
+        def is_valid_email(email: str) -> bool:
+            pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            return bool(re.match(pattern, email))
 
 
-      def is_valid_phone(phone: str) -> bool:
-          pattern = r'^\+?1?\d{9,15}$'
-          return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
+        def is_valid_phone(phone: str) -> bool:
+            pattern = r'^\+?1?\d{9,15}$'
+            return bool(re.match(pattern, phone.replace(" ", "").replace("-", "")))
 
 
-      def normalize_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) == 10:
-              return f"+1{digits}"
-          return f"+{digits}"
+        def normalize_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) == 10:
+                return f"+1{digits}"
+            return f"+{digits}"
 
 
-      def extract_domain(email: str) -> str:
-          if '@' not in email:
-              return ""
-          return email.split('@')[1]
+        def extract_domain(email: str) -> str:
+            if '@' not in email:
+                return ""
+            return email.split('@')[1]
 
 
-      def mask_email(email: str) -> str:
-          if '@' not in email:
-              return email
-          local, domain = email.split('@')
-          if len(local) <= 2:
-              return f"{local[0]}***@{domain}"
-          return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
+        def mask_email(email: str) -> str:
+            if '@' not in email:
+                return email
+            local, domain = email.split('@')
+            if len(local) <= 2:
+                return f"{local[0]}***@{domain}"
+            return f"{local[0]}{'*' * (len(local) - 2)}{local[-1]}@{domain}"
 
 
-      def mask_phone(phone: str) -> str:
-          digits = re.sub(r'\D', '', phone)
-          if len(digits) < 4:
-              return phone
-          return '*' * (len(digits) - 4) + digits[-4:]
+        def mask_phone(phone: str) -> str:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) < 4:
+                return phone
+            return '*' * (len(digits) - 4) + digits[-4:]
 
 
-      def bytes_to_human(size: int) -> str:
-          for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-              if size < 1024:
-                  return f"{size:.2f} {unit}"
-              size /= 1024
-          return f"{size:.2f} PB"
+        def bytes_to_human(size: int) -> str:
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if size < 1024:
+                    return f"{size:.2f} {unit}"
+                size /= 1024
+            return f"{size:.2f} PB"
 
 
-      def human_to_bytes(size_str: str) -> int:
-          units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
-          match = re.match(r'([\d.]+)\s*(\w+)', size_str)
-          if not match:
-              raise ValueError(f"Invalid size string: {size_str}")
-          value, unit = match.groups()
-          return int(float(value) * units.get(unit.upper(), 1))
+        def human_to_bytes(size_str: str) -> int:
+            units = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
+            match = re.match(r'([\d.]+)\s*(\w+)', size_str)
+            if not match:
+                raise ValueError(f"Invalid size string: {size_str}")
+            value, unit = match.groups()
+            return int(float(value) * units.get(unit.upper(), 1))
 
 
-      def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
-          items = []
-          for k, v in d.items():
-              new_key = f"{parent_key}{sep}{k}" if parent_key else k
-              if isinstance(v, dict):
-                  items.extend(flatten_dict(v, new_key, sep).items())
-              else:
-                  items.append((new_key, v))
-          return dict(items)
+        def flatten_dict(d: Dict, parent_key: str = '', sep: str = '.') -> Dict:
+            items = []
+            for k, v in d.items():
+                new_key = f"{parent_key}{sep}{k}" if parent_key else k
+                if isinstance(v, dict):
+                    items.extend(flatten_dict(v, new_key, sep).items())
+                else:
+                    items.append((new_key, v))
+            return dict(items)
 
 
-      def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
-          result = {}
-          for key, value in d.items():
-              parts = key.split(sep)
-              current = result
-              for part in parts[:-1]:
-                  current = current.setdefault(part, {})
-              current[parts[-1]] = value
-          return result
+        def unflatten_dict(d: Dict, sep: str = '.') -> Dict:
+            result = {}
+            for key, value in d.items():
+                parts = key.split(sep)
+                current = result
+                for part in parts[:-1]:
+                    current = current.setdefault(part, {})
+                current[parts[-1]] = value
+            return result
 
 
-      def deep_merge(base: Dict, override: Dict) -> Dict:
-          result = base.copy()
-          for key, value in override.items():
-              if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                  result[key] = deep_merge(result[key], value)
-              else:
-                  result[key] = value
-          return result
+        def deep_merge(base: Dict, override: Dict) -> Dict:
+            result = base.copy()
+            for key, value in override.items():
+                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                    result[key] = deep_merge(result[key], value)
+                else:
+                    result[key] = value
+            return result
 
 
-      def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
-          keys = path.split('.')
-          current = d
-          for key in keys:
-              if isinstance(current, dict) and key in current:
-                  current = current[key]
-              else:
-                  return default
-          return current
+        def get_nested_value(d: Dict, path: str, default: Any = None) -> Any:
+            keys = path.split('.')
+            current = d
+            for key in keys:
+                if isinstance(current, dict) and key in current:
+                    current = current[key]
+                else:
+                    return default
+            return current
 
 
-      def set_nested_value(d: Dict, path: str, value: Any) -> None:
-          keys = path.split('.')
-          current = d
-          for key in keys[:-1]:
-              current = current.setdefault(key, {})
-          current[keys[-1]] = value
+        def set_nested_value(d: Dict, path: str, value: Any) -> None:
+            keys = path.split('.')
+            current = d
+            for key in keys[:-1]:
+                current = current.setdefault(key, {})
+            current[keys[-1]] = value
 
 
-      def chunk_list(lst: List, chunk_size: int) -> List[List]:
-          return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+        def chunk_list(lst: List, chunk_size: int) -> List[List]:
+            return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 
-      def deduplicate_list(lst: List) -> List:
-          seen = set()
-          result = []
-          for item in lst:
-              key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
-              if key not in seen:
-                  seen.add(key)
-                  result.append(item)
-          return result
+        def deduplicate_list(lst: List) -> List:
+            seen = set()
+            result = []
+            for item in lst:
+                key = json.dumps(item, sort_keys=True) if isinstance(item, dict) else item
+                if key not in seen:
+                    seen.add(key)
+                    result.append(item)
+            return result
 
 
-      def safe_divide(a: float, b: float, default: float = 0.0) -> float:
-          if b == 0:
-              return default
-          return a / b
+        def safe_divide(a: float, b: float, default: float = 0.0) -> float:
+            if b == 0:
+                return default
+            return a / b
 
 
-      def clamp(value: float, min_val: float, max_val: float) -> float:
-          return max(min_val, min(max_val, value))
+        def clamp(value: float, min_val: float, max_val: float) -> float:
+            return max(min_val, min(max_val, value))
 
 
-      def percentage(part: float, whole: float, decimals: int = 2) -> float:
-          if whole == 0:
-              return 0.0
-          return round((part / whole) * 100, decimals)
+        def percentage(part: float, whole: float, decimals: int = 2) -> float:
+            if whole == 0:
+                return 0.0
+            return round((part / whole) * 100, decimals)
 
 
-      def round_to_nearest(value: float, nearest: float) -> float:
-          return round(value / nearest) * nearest
+        def round_to_nearest(value: float, nearest: float) -> float:
+            return round(value / nearest) * nearest
 
 
-      def snake_to_camel(s: str) -> str:
-          components = s.split('_')
-          return components[0] + ''.join(x.title() for x in components[1:])
+        def snake_to_camel(s: str) -> str:
+            components = s.split('_')
+            return components[0] + ''.join(x.title() for x in components[1:])
 
 
-      def camel_to_snake(s: str) -> str:
-          return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
+        def camel_to_snake(s: str) -> str:
+            return re.sub(r'(?<!^)(?=[A-Z])', '_', s).lower()
 
 
-      def slugify(text: str) -> str:
-          text = text.lower().strip()
-          text = re.sub(r'[^\w\s-]', '', text)
-          text = re.sub(r'[\s_-]+', '-', text)
-          return text
+        def slugify(text: str) -> str:
+            text = text.lower().strip()
+            text = re.sub(r'[^\w\s-]', '', text)
+            text = re.sub(r'[\s_-]+', '-', text)
+            return text
 
 
-      def title_case(s: str) -> str:
-          return ' '.join(word.capitalize() for word in s.split())
+        def title_case(s: str) -> str:
+            return ' '.join(word.capitalize() for word in s.split())
 
 
-      def pluralize(word: str, count: int) -> str:
-          if count == 1:
-              return word
-          if word.endswith('y'):
-              return word[:-1] + 'ies'
-          if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
-              return word + 'es'
-          return word + 's'
+        def pluralize(word: str, count: int) -> str:
+            if count == 1:
+                return word
+            if word.endswith('y'):
+                return word[:-1] + 'ies'
+            if word.endswith(('s', 'x', 'z', 'ch', 'sh')):
+                return word + 'es'
+            return word + 's'
 
 
-      def strip_html_tags(html: str) -> str:
-          return re.sub(r'<[^>]+>', '', html)
+        def strip_html_tags(html: str) -> str:
+            return re.sub(r'<[^>]+>', '', html)
 
 
-      def escape_html(text: str) -> str:
-          return (text
-              .replace('&', '&amp;')
-              .replace('<', '&lt;')
-              .replace('>', '&gt;')
-              .replace('"', '&quot;')
-              .replace("'", '&#39;'))
+        def escape_html(text: str) -> str:
+            return (text
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('"', '&quot;')
+                .replace("'", '&#39;'))
 
 
-      def extract_numbers(text: str) -> List[float]:
-          return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
+        def extract_numbers(text: str) -> List[float]:
+            return [float(x) for x in re.findall(r'-?\d+\.?\d*', text)]
 
 
-      def word_count(text: str) -> int:
-          return len(text.split())
+        def word_count(text: str) -> int:
+            return len(text.split())
 
 
-      def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
-          missing = []
-          for field in fields:
-              if field not in data or data[field] is None:
-                  missing.append(field)
-          return missing
+        def validate_required_fields(data: Dict, fields: List[str]) -> List[str]:
+            missing = []
+            for field in fields:
+                if field not in data or data[field] is None:
+                    missing.append(field)
+            return missing
 
 
-      def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k in keys}
+        def filter_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k in keys}
 
 
-      def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
-          return {k: v for k, v in d.items() if k not in keys}
+        def exclude_dict_keys(d: Dict, keys: List[str]) -> Dict:
+            return {k: v for k, v in d.items() if k not in keys}
 
 
-      def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
-          import time
-          for attempt in range(max_retries):
-              try:
-                  return func()
-              except Exception as e:
-                  if attempt == max_retries - 1:
-                      raise
-                  delay = base_delay * (2 ** attempt)
-                  time.sleep(delay)
+        def retry_with_backoff(func, max_retries: int = 3, base_delay: float = 1.0):
+            import time
+            for attempt in range(max_retries):
+                try:
+                    return func()
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    time.sleep(delay)
 
 
-      def timing_decorator(func):
-          import time
-          def wrapper(*args, **kwargs):
-              start = time.time()
-              result = func(*args, **kwargs)
-              elapsed = time.time() - start
-              print(f"{func.__name__} took {elapsed:.3f}s")
-              return result
-          return wrapper
+        def timing_decorator(func):
+            import time
+            def wrapper(*args, **kwargs):
+                start = time.time()
+                result = func(*args, **kwargs)
+                elapsed = time.time() - start
+                print(f"{func.__name__} took {elapsed:.3f}s")
+                return result
+            return wrapper
 
 
-      def memoize(func):
-          cache = {}
-          def wrapper(*args):
-              if args not in cache:
-                  cache[args] = func(*args)
-              return cache[args]
-          return wrapper
+        def memoize(func):
+            cache = {}
+            def wrapper(*args):
+                if args not in cache:
+                    cache[args] = func(*args)
+                return cache[args]
+            return wrapper
 
 
-      def batch_process(items: List, processor, batch_size: int = 100) -> List:
-          results = []
-          for batch in chunk_list(items, batch_size):
-              results.extend(processor(batch))
-          return results
+        def batch_process(items: List, processor, batch_size: int = 100) -> List:
+            results = []
+            for batch in chunk_list(items, batch_size):
+                results.extend(processor(batch))
+            return results
 
 
-      def generate_uuid() -> str:
-          import uuid
-          return str(uuid.uuid4())
+        def generate_uuid() -> str:
+            import uuid
+            return str(uuid.uuid4())
 
 
-      def generate_short_id(length: int = 8) -> str:
-          import random
-          import string
-          chars = string.ascii_lowercase + string.digits
-          return ''.join(random.choice(chars) for _ in range(length))
+        def generate_short_id(length: int = 8) -> str:
+            import random
+            import string
+            chars = string.ascii_lowercase + string.digits
+            return ''.join(random.choice(chars) for _ in range(length))
 
 
-      def current_timestamp() -> float:
-          return datetime.now().timestamp()
+        def current_timestamp() -> float:
+            return datetime.now().timestamp()
 
 
-      def current_iso_string() -> str:
-          return datetime.now().isoformat()
+        def current_iso_string() -> str:
+            return datetime.now().isoformat()
 
 
-      def age_from_birthdate(birthdate: datetime) -> int:
-          today = datetime.now()
-          age = today.year - birthdate.year
-          if (today.month, today.day) < (birthdate.month, birthdate.day):
-              age -= 1
-          return age
+        def age_from_birthdate(birthdate: datetime) -> int:
+            today = datetime.now()
+            age = today.year - birthdate.year
+            if (today.month, today.day) < (birthdate.month, birthdate.day):
+                age -= 1
+            return age
 
 
-      def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
-          if progress <= 0:
-              return None
-          elapsed = (datetime.now() - start_time).total_seconds()
-          total_estimated = elapsed / progress
-          remaining = total_estimated - elapsed
-          return datetime.now() + timedelta(seconds=remaining)
+        def calculate_eta(start_time: datetime, progress: float) -> Optional[datetime]:
+            if progress <= 0:
+                return None
+            elapsed = (datetime.now() - start_time).total_seconds()
+            total_estimated = elapsed / progress
+            remaining = total_estimated - elapsed
+            return datetime.now() + timedelta(seconds=remaining)
 
 
-      def format_duration(seconds: float) -> str:
-          if seconds < 60:
-              return f"{seconds:.1f}s"
-          elif seconds < 3600:
-              minutes = seconds / 60
-              return f"{minutes:.1f}m"
-          else:
-              hours = seconds / 3600
-              return f"{hours:.1f}h"
+        def format_duration(seconds: float) -> str:
+            if seconds < 60:
+                return f"{seconds:.1f}s"
+            elif seconds < 3600:
+                minutes = seconds / 60
+                return f"{minutes:.1f}m"
+            else:
+                hours = seconds / 3600
+                return f"{hours:.1f}h"
 
 
-      def parse_boolean(value: Any) -> bool:
-          if isinstance(value, bool):
-              return value
-          if isinstance(value, str):
-              return value.lower() in ('true', 'yes', '1', 'on')
-          return bool(value)
+        def parse_boolean(value: Any) -> bool:
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str):
+                return value.lower() in ('true', 'yes', '1', 'on')
+            return bool(value)
 
 
-      def safe_int(value: Any, default: int = 0) -> int:
-          try:
-              return int(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_int(value: Any, default: int = 0) -> int:
+            try:
+                return int(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def safe_float(value: Any, default: float = 0.0) -> float:
-          try:
-              return float(value)
-          except (ValueError, TypeError):
-              return default
+        def safe_float(value: Any, default: float = 0.0) -> float:
+            try:
+                return float(value)
+            except (ValueError, TypeError):
+                return default
 
 
-      def merge_lists(*lists: List) -> List:
-          result = []
-          for lst in lists:
-              result.extend(lst)
-          return result
+        def merge_lists(*lists: List) -> List:
+            result = []
+            for lst in lists:
+                result.extend(lst)
+            return result
 
 
-      def find_duplicates(lst: List) -> List:
-          seen = set()
-          duplicates = set()
-          for item in lst:
-              if item in seen:
-                  duplicates.add(item)
-              seen.add(item)
-          return list(duplicates)
+        def find_duplicates(lst: List) -> List:
+            seen = set()
+            duplicates = set()
+            for item in lst:
+                if item in seen:
+                    duplicates.add(item)
+                seen.add(item)
+            return list(duplicates)
 
 
-      def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
-          result = {}
-          for item in items:
-              k = item.get(key)
-              if k not in result:
-                  result[k] = []
-              result[k].append(item)
-          return result
+        def group_by(items: List[Dict], key: str) -> Dict[str, List[Dict]]:
+            result = {}
+            for item in items:
+                k = item.get(key)
+                if k not in result:
+                    result[k] = []
+                result[k].append(item)
+            return result
 
 
-      def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
-          return sorted(items, key=lambda x: x.get(key), reverse=reverse)
+        def sort_by_key(items: List[Dict], key: str, reverse: bool = False) -> List[Dict]:
+            return sorted(items, key=lambda x: x.get(key), reverse=reverse)
 
 
-      def pick_random(items: List, count: int = 1) -> List:
-          import random
-          return random.sample(items, min(count, len(items)))
+        def pick_random(items: List, count: int = 1) -> List:
+            import random
+            return random.sample(items, min(count, len(items)))
 
 
-      def weighted_random(items: List, weights: List[float]) -> Any:
-          import random
-          return random.choices(items, weights=weights, k=1)[0]
+        def weighted_random(items: List, weights: List[float]) -> Any:
+            import random
+            return random.choices(items, weights=weights, k=1)[0]
 
 
-      def interpolate_string(template: str, values: Dict) -> str:
-          for key, value in values.items():
-              template = template.replace(f"{{{key}}}", str(value))
-          return template
+        def interpolate_string(template: str, values: Dict) -> str:
+            for key, value in values.items():
+                template = template.replace(f"{{{key}}}", str(value))
+            return template
 
 
-      def compress_whitespace(text: str) -> str:
-          return re.sub(r'\s+', ' ', text).strip()
+        def compress_whitespace(text: str) -> str:
+            return re.sub(r'\s+', ' ', text).strip()
 
 
-      def wrap_text(text: str, width: int = 80) -> str:
-          import textwrap
-          return textwrap.fill(text, width=width)
+        def wrap_text(text: str, width: int = 80) -> str:
+            import textwrap
+            return textwrap.fill(text, width=width)
 
 
-      def indent_text(text: str, spaces: int = 4) -> str:
-          prefix = ' ' * spaces
-          return '\n'.join(prefix + line for line in text.split('\n'))
+        def indent_text(text: str, spaces: int = 4) -> str:
+            prefix = ' ' * spaces
+            return '\n'.join(prefix + line for line in text.split('\n'))
 
 
-      def remove_comments(code: str, lang: str = 'python') -> str:
-          if lang == 'python':
-              return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
-          elif lang in ('javascript', 'java', 'c'):
-              code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
-              code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
-              return code
-          return code
+        def remove_comments(code: str, lang: str = 'python') -> str:
+            if lang == 'python':
+                return re.sub(r'#.*$', '', code, flags=re.MULTILINE)
+            elif lang in ('javascript', 'java', 'c'):
+                code = re.sub(r'//.*$', '', code, flags=re.MULTILINE)
+                code = re.sub(r'/\*.*?\*/', '', code, flags=re.DOTALL)
+                return code
+            return code
 
 
-      def extract_urls(text: str) -> List[str]:
-          pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-          return re.findall(pattern, text)
+        def extract_urls(text: str) -> List[str]:
+            pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            return re.findall(pattern, text)
 
 
-      def is_url(text: str) -> bool:
-          pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
-          return bool(re.match(pattern, text))
+        def is_url(text: str) -> bool:
+            pattern = r'^https?://[^\s<>"{}|\\^`\[\]]+$'
+            return bool(re.match(pattern, text))
 
 
-      def normalize_url(url: str) -> str:
-          url = url.strip().lower()
-          if not url.startswith(('http://', 'https://')):
-              url = 'https://' + url
-          return url.rstrip('/')
+        def normalize_url(url: str) -> str:
+            url = url.strip().lower()
+            if not url.startswith(('http://', 'https://')):
+                url = 'https://' + url
+            return url.rstrip('/')
 
 
-      def build_query_string(params: Dict) -> str:
-          from urllib.parse import urlencode
-          return urlencode(params)
+        def build_query_string(params: Dict) -> str:
+            from urllib.parse import urlencode
+            return urlencode(params)
 
 
-      def parse_query_string(query: str) -> Dict:
-          from urllib.parse import parse_qs
-          return {k: v[0] for k, v in parse_qs(query).items()}
+        def parse_query_string(query: str) -> Dict:
+            from urllib.parse import parse_qs
+            return {k: v[0] for k, v in parse_qs(query).items()}
 
 
-      def generate_pdf_report(data: Dict, output_path: str) -> str:
-          title = data.get('title', 'Report')
-          author = data.get('author', 'System')
-          created_at = data['metadata']['created_at']
-          report_date = _format_iso_date_to_human(created_at)
-          sections = data.get('sections', [])
+        def generate_pdf_report(data: Dict, output_path: str) -> str:
+            title = data.get('title', 'Report')
+            author = data.get('author', 'System')
+            created_at = data['metadata']['created_at']
+            report_date = _format_iso_date_to_human(created_at)
+            sections = data.get('sections', [])
 
-          content_lines = []
-          content_lines.append(f"# {title}")
-          content_lines.append(f"Author: {author}")
-          content_lines.append("")
+            content_lines = []
+            content_lines.append(f"# {title}")
+            content_lines.append(f"Author: {author}")
+            content_lines.append("")
 
-          for section in sections:
-              content_lines.append(f"## {section['title']}")
-              content_lines.append(section['content'])
-              content_lines.append("")
+            for section in sections:
+                content_lines.append(f"## {section['title']}")
+                content_lines.append(section['content'])
+                content_lines.append("")
 
-          full_content = '\n'.join(content_lines)
+            full_content = '\n'.join(content_lines)
 
-          with open(output_path, 'w') as f:
-              f.write(full_content)
+            with open(output_path, 'w') as f:
+                f.write(full_content)
 
-          return output_path
+            return output_path
 
 
-      def validate_report_data(data: Dict) -> List[str]:
-          errors = []
-          if 'title' not in data:
-              errors.append("Missing required field: title")
-          if 'metadata' not in data:
-              errors.append("Missing required field: metadata")
-          elif 'created_at' not in data.get('metadata', {}):
-              errors.append("Missing required field: metadata.created_at")
-          return errors
-  cursor:
-    file: helpers.py
-    line: 489
-    column: 55
+        def validate_report_data(data: Dict) -> List[str]:
+            errors = []
+            if 'title' not in data:
+                errors.append("Missing required field: title")
+            if 'metadata' not in data:
+                errors.append("Missing required field: metadata")
+            elif 'created_at' not in data.get('metadata', {}):
+                errors.append("Missing required field: metadata.created_at")
+            return errors
+    cursor:
+      file: helpers.py
+      line: 489
+      column: 55

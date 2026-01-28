@@ -836,7 +836,6 @@ states:
       - the correct line is being edited (line 63)
       - it is also ok if the following `return logits` at line 65 is edited to `return logits_BTV` as well
       - it is also ok if the any of the next `breakpoint()` are also deleted
-      - the file is being catted with approx. the correct viewport (between line 52 and 73)
     terminal: null
     files:
       src/model.py: |-
@@ -924,7 +923,6 @@ states:
       - this follows the pattern of renaming established in previous edits
       - the correct file is being edited (src/model.py)
       - the correct line is being edited (line 65)
-      - the file is being catted with approx. the correct viewport (between line 54 and 75)
     terminal: null
     files:
       src/model.py: |-
@@ -1359,7 +1357,6 @@ states:
       - the correct line is being deleted (line 60 which contains breakpoint())
       - this continues the pattern of cleaning up breakpoints after debugging
       - it is also ok if the next `breakpoint()` at line 62 is also deleted
-      - the file is being catted with approx. the correct viewport (between line 49 and 70)
     terminal: null
     files:
       src/model.py: |-
@@ -1444,7 +1441,6 @@ states:
       - the correct file is being edited (src/model.py)
       - the correct line is being deleted (line 61 which contains breakpoint())
       - after this deletion, all breakpoints should be removed from the forward method
-      - the file is being catted with approx. the correct viewport (between line 50 and 68)
     terminal: null
     files:
       src/model.py: |-

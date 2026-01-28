@@ -130,7 +130,6 @@ states:
       - the indentation matches the existing code (8 spaces)
       - the correct file is being edited (user.py)
       - the correct line is being edited (line 5)
-      - the file is being catted with the approx. correct viewport (around lines 1-15)
     terminal: null
     files:
       user.py: |-
@@ -174,7 +173,6 @@ states:
       - the indentation matches the existing code (8 spaces)
       - the correct file is being edited (user.py)
       - the correct line is being edited (line 21, the "age" entry)
-      - the file is being catted with the approx. correct viewport (around lines 10-28)
     terminal: null
     files:
       user.py: |-
@@ -261,7 +259,6 @@ states:
       - the email value is a plausible email string
       - the correct file is being edited (user.py)
       - the correct line is being edited (line 26, the User instantiation)
-      - the file is being catted with the approx. correct viewport (around lines 8-28)
     terminal: null
     files:
       user.py: |-

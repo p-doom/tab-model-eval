@@ -604,7 +604,6 @@ states:
       - the model completes the json.loads(line) call
       - the correct file is being edited (process_data.py)
       - the correct line is being edited (line 8)
-      - the file is being catted with approx. the correct viewport (around lines 1-21)
     terminal: null
     files:
       products.jsonl: |-
@@ -772,7 +771,6 @@ states:
       Make sure that:
       - the model navigates to the top of the file to add the missing import
       - the correct file is being viewed (process_data.py)
-      - the viewport shows line 1 where the import needs to be added
       Note:
       - it is also okay if the model adds the import directly without first navigating to the top of the file
     terminal: null
@@ -941,9 +939,8 @@ states:
     judge_assertions: |-
       Make sure that:
       - the model adds import json at the top of the file
-      - the import is added before the existing imports (line 1)
+      - the import is added before, between or after the existing imports
       - the correct file is being edited (process_data.py)
-      - the file is being catted with the approx. correct viewport (around lines 1-21)
     terminal: null
     files:
       products.jsonl: |-
