@@ -565,25 +565,98 @@
             cursor: not-allowed;
         }
 
-        /* Editable code textarea */
-        .code-editor {
+        /* Editable code container */
+        .code-editor-wrapper {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .code-editor-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .code-editor-line-numbers {
+            min-width: 45px;
+            padding: 0;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .code-editor-line-numbers .line-num {
+            display: block;
+            padding: 0 8px;
+            text-align: right;
+            color: var(--text-secondary);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            height: 19.5px; /* Match line height of 13px * 1.5 */
+        }
+
+        .code-editor-content {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            min-height: fit-content;
+        }
+
+        .code-editor-backdrop {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 0 8px;
+            white-space: pre;
+        }
+
+        .code-editor-backdrop .highlighted-line {
+            display: block;
+            min-height: 19.5px;
+        }
+
+        .code-editor-backdrop code {
+            background: transparent !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            white-space: pre !important;
+        }
+
+        .code-editor-textarea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            background: transparent;
+            color: transparent;
+            caret-color: var(--cursor-color);
             border: none;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 13px;
             line-height: 1.5;
-            padding: 10px;
+            padding: 0 8px;
+            margin: 0;
             resize: none;
             outline: none;
             white-space: pre;
-            overflow: auto;
+            overflow: hidden;
             tab-size: 4;
+            z-index: 1;
         }
 
-        .code-editor:focus {
+        .code-editor-textarea:focus {
+            outline: none;
+        }
+
+        .code-editor-wrapper:focus-within {
             outline: 1px solid var(--accent);
         }
 
@@ -872,7 +945,7 @@
             <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
         </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>i</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -935,7 +1008,27 @@
             editMode = e.target.checked;
             evalSelector.style.display = editMode ? 'block' : 'none';
             stepEditor.style.display = editMode ? 'flex' : 'none';
+            // Preserve scroll position
+            const prevCode = document.getElementById('prev-code');
+            const currCode = document.getElementById('curr-code');
+            const prevScrollTop = prevCode?.scrollTop || 0;
+            const prevScrollLeft = prevCode?.scrollLeft || 0;
+            const currScrollTop = currCode?.scrollTop || 0;
+            const currScrollLeft = currCode?.scrollLeft || 0;
             renderStep();
+            // Restore scroll position
+            const newPrevCode = document.getElementById('prev-code');
+            const newCurrCode = document.getElementById('curr-code');
+            // For edit mode, the current side uses code-editor-container for scrolling
+            const newCurrScroll = document.getElementById('code-editor-container') || newCurrCode;
+            if (newPrevCode) {
+                newPrevCode.scrollTop = prevScrollTop;
+                newPrevCode.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
+            }
         });
         
         saveBtn.addEventListener('click', saveYaml);
@@ -968,13 +1061,49 @@
                 if (cursorMode) {
                     cursorMode = false;
                     cursorModeIndicator.classList.add('hidden');
+                    // Save scroll positions before re-render
+                    const prevCode = document.getElementById('prev-code');
+                    const currCode = document.getElementById('curr-code');
+                    const prevScrollTop = prevCode?.scrollTop || 0;
+                    const prevScrollLeft = prevCode?.scrollLeft || 0;
+                    const currScrollTop = currCode?.scrollTop || 0;
+                    const currScrollLeft = currCode?.scrollLeft || 0;
                     renderStep();
+                    // Restore scroll positions after re-render
+                    const newPrevCode = document.getElementById('prev-code');
+                    const newCurrCode = document.getElementById('curr-code');
+                    if (newPrevCode) {
+                        newPrevCode.scrollTop = prevScrollTop;
+                        newPrevCode.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrCode) {
+                        newCurrCode.scrollTop = currScrollTop;
+                        newCurrCode.scrollLeft = currScrollLeft;
+                    }
                 } else if (editMode) {
                     editMode = false;
                     editModeCheckbox.checked = false;
                     evalSelector.style.display = 'none';
                     stepEditor.style.display = 'none';
+                    // Preserve scroll position
+                    const prevCode = document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevCode?.scrollTop || 0;
+                    const prevScrollLeft = prevCode?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
                     renderStep();
+                    // Restore scroll position
+                    const newPrevCode = document.getElementById('prev-code');
+                    const newCurrCode = document.getElementById('curr-code');
+                    if (newPrevCode) {
+                        newPrevCode.scrollTop = prevScrollTop;
+                        newPrevCode.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrCode) {
+                        newCurrCode.scrollTop = currScrollTop;
+                        newCurrCode.scrollLeft = currScrollLeft;
+                    }
                 }
                 return;
             }
@@ -998,6 +1127,27 @@
                     const currentCol = currState.cursor.column;
                     const currentLineContent = lines[currentLine - 1] || '';
                     
+                    // Helper to render while preserving scroll position
+                    const renderPreservingScroll = () => {
+                        const prevCode = document.getElementById('prev-code');
+                        const currCode = document.getElementById('curr-code');
+                        const prevScrollTop = prevCode?.scrollTop || 0;
+                        const prevScrollLeft = prevCode?.scrollLeft || 0;
+                        const currScrollTop = currCode?.scrollTop || 0;
+                        const currScrollLeft = currCode?.scrollLeft || 0;
+                        renderStep();
+                        const newPrevCode = document.getElementById('prev-code');
+                        const newCurrCode = document.getElementById('curr-code');
+                        if (newPrevCode) {
+                            newPrevCode.scrollTop = prevScrollTop;
+                            newPrevCode.scrollLeft = prevScrollLeft;
+                        }
+                        if (newCurrCode) {
+                            newCurrCode.scrollTop = currScrollTop;
+                            newCurrCode.scrollLeft = currScrollLeft;
+                        }
+                    };
+
                     if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         if (currentLine > 1) {
@@ -1006,7 +1156,7 @@
                             const newLineContent = lines[currentLine - 2] || '';
                             currState.cursor.column = Math.min(currentCol, newLineContent.length);
                             markUnsaved();
-                            renderStep();
+                            renderPreservingScroll();
                         }
                         return;
                     }
@@ -1018,7 +1168,7 @@
                             const newLineContent = lines[currentLine] || '';
                             currState.cursor.column = Math.min(currentCol, newLineContent.length);
                             markUnsaved();
-                            renderStep();
+                            renderPreservingScroll();
                         }
                         return;
                     }
@@ -1032,7 +1182,7 @@
                             currState.cursor.column = (lines[currentLine - 2] || '').length;
                         }
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     if (e.key === 'ArrowRight') {
@@ -1045,7 +1195,7 @@
                             currState.cursor.column = 0;
                         }
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     // Home/End for line start/end
@@ -1053,14 +1203,14 @@
                         e.preventDefault();
                         currState.cursor.column = 0;
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     if (e.key === 'End') {
                         e.preventDefault();
                         currState.cursor.column = currentLineContent.length;
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                 }
@@ -1074,25 +1224,61 @@
                 e.preventDefault();
                 cursorMode = true;
                 cursorModeIndicator.classList.remove('hidden');
+                // Save scroll positions before re-render
+                const prevCode = document.getElementById('prev-code');
+                const currCode = document.getElementById('curr-code');
+                const prevScrollTop = prevCode?.scrollTop || 0;
+                const prevScrollLeft = prevCode?.scrollLeft || 0;
+                const currScrollTop = currCode?.scrollTop || 0;
+                const currScrollLeft = currCode?.scrollLeft || 0;
                 renderStep();
+                // Restore scroll positions after re-render
+                const newPrevCode = document.getElementById('prev-code');
+                const newCurrCode = document.getElementById('curr-code');
+                if (newPrevCode) {
+                    newPrevCode.scrollTop = prevScrollTop;
+                    newPrevCode.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrCode) {
+                    newCurrCode.scrollTop = currScrollTop;
+                    newCurrCode.scrollLeft = currScrollLeft;
+                }
                 return;
             }
             
-            // Toggle edit mode with 'i' (enter)
-            if (e.key === 'i' && !editMode && !cursorMode) {
+            // Toggle edit mode with 'i' or 'e' (enter)
+            if ((e.key === 'i' || e.key === 'e') && !editMode && !cursorMode) {
                 e.preventDefault();
                 editMode = true;
                 editModeCheckbox.checked = true;
                 evalSelector.style.display = 'block';
                 stepEditor.style.display = 'flex';
+                // Preserve scroll position
+                const prevCode = document.getElementById('prev-code');
+                const currCode = document.getElementById('curr-code');
+                const prevScrollTop = prevCode?.scrollTop || 0;
+                const prevScrollLeft = prevCode?.scrollLeft || 0;
+                const currScrollTop = currCode?.scrollTop || 0;
+                const currScrollLeft = currCode?.scrollLeft || 0;
                 renderStep();
+                // Restore scroll position
+                const newPrevCode = document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevCode) {
+                    newPrevCode.scrollTop = prevScrollTop;
+                    newPrevCode.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
+                }
                 return;
             }
             
             // Navigation shortcuts only work when not in cursor mode
             if (!cursorMode) {
-                if (e.key === 'ArrowLeft') { e.preventDefault(); goToStep(currentStep - 1); }
-                if (e.key === 'ArrowRight') { e.preventDefault(); goToStep(currentStep + 1); }
+                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); goToStep(currentStep - 1); }
+                if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); goToStep(currentStep + 1); }
                 if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
                 if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
             }
@@ -1362,9 +1548,25 @@
                 Math.round((clickX - paddingLeft) / charWidth)
             ));
             
-            // Update cursor
+            // Update cursor and render while preserving scroll position
             updateCursor(activeFile, lineNumber, column);
+            const prevCode = document.getElementById('prev-code');
+            const currCode = document.getElementById('curr-code');
+            const prevScrollTop = prevCode?.scrollTop || 0;
+            const prevScrollLeft = prevCode?.scrollLeft || 0;
+            const currScrollTop = currCode?.scrollTop || 0;
+            const currScrollLeft = currCode?.scrollLeft || 0;
             renderStep();
+            const newPrevCode = document.getElementById('prev-code');
+            const newCurrCode = document.getElementById('curr-code');
+            if (newPrevCode) {
+                newPrevCode.scrollTop = prevScrollTop;
+                newPrevCode.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrCode) {
+                newCurrCode.scrollTop = currScrollTop;
+                newCurrCode.scrollLeft = currScrollLeft;
+            }
         }
 
         function goToStep(step) {
@@ -1441,6 +1643,31 @@
             } catch (e) {
                 return escapeHtml(line);
             }
+        }
+
+        function renderEditableCode(content, filename) {
+            const lines = content.split('\n');
+            const language = getLanguageFromFilename(filename);
+            
+            let lineNumbersHtml = '';
+            let backdropHtml = '';
+            
+            lines.forEach((line, idx) => {
+                const lineNum = idx + 1;
+                const highlightedLine = highlightLine(line, language);
+                lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+            });
+            
+            return `<div class="code-editor-wrapper" id="code-editor-wrapper">
+                <div class="code-editor-container" id="code-editor-container">
+                    <div class="code-editor-line-numbers" id="code-editor-line-numbers">${lineNumbersHtml}</div>
+                    <div class="code-editor-content">
+                        <div class="code-editor-backdrop" id="code-editor-backdrop">${backdropHtml}</div>
+                        <textarea class="code-editor-textarea" id="code-editor" spellcheck="false">${escapeHtml(content)}</textarea>
+                    </div>
+                </div>
+            </div>`;
         }
 
         function renderCodeWithCursor(content, cursor, filename) {
@@ -1712,12 +1939,12 @@
             let prevHtml, currHtml;
             
             if (editMode) {
-                // In edit mode, show editable textarea for current state
+                // In edit mode, show editable code with syntax highlighting
                 prevHtml = activeFile 
                     ? renderCodeWithCursor(prevContent, prevCursor, activeFile)
                     : '<div class="no-content">No file selected</div>';
                 currHtml = activeFile 
-                    ? `<textarea class="code-editor" id="code-editor">${escapeHtml(currContent || '')}</textarea>`
+                    ? renderEditableCode(currContent || '', activeFile)
                     : '<div class="no-content">No file selected</div>';
             } else {
                 const diffResult = activeFile 
@@ -1818,9 +2045,63 @@
             
             // Code editor handler
             const codeEditor = document.getElementById('code-editor');
-            if (codeEditor) {
+            const codeEditorContainer = document.getElementById('code-editor-container');
+            const codeEditorBackdrop = document.getElementById('code-editor-backdrop');
+            const codeEditorLineNumbers = document.getElementById('code-editor-line-numbers');
+            
+            if (codeEditor && codeEditorContainer && codeEditorBackdrop && codeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const currState = getState(currentStep);
+                if (currState.cursor && currState.cursor.file === activeFile) {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = currState.cursor.line;
+                    const targetCol = currState.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Set cursor position and focus
+                    codeEditor.focus();
+                    codeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updateBackdrop = () => {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    codeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    codeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
                 codeEditor.addEventListener('input', (e) => {
                     updateFileContent(e.target.value);
+                    updateBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                codeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    codeEditor.scrollTop = codeEditorContainer.scrollTop;
+                    codeEditor.scrollLeft = codeEditorContainer.scrollLeft;
                 });
                 
                 // Handle tab key in editor
@@ -1832,6 +2113,7 @@
                         codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
                         codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
                         updateFileContent(codeEditor.value);
+                        updateBackdrop();
                     }
                 });
             }
@@ -1910,9 +2192,7 @@
                 if (currState.cursor?.file === activeFile && !cursorMode) {
                     const cursorLine = currCode.querySelector('.cursor-line');
                     if (cursorLine) {
-                        setTimeout(() => {
-                            cursorLine.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                        }, 100);
+                        cursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
                     }
                 }
             }
