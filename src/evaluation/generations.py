@@ -25,6 +25,8 @@ from .types import (
     TestCaseWithYaml,
 )
 
+from .formats import FormatConverter, SEDConverter, ZetaConverter
+
 
 @dataclass
 class Args:
@@ -76,8 +78,6 @@ def load_yaml_files(yaml_dir: str, limit: int = -1) -> List[Dict[str, Any]]:
 
     return results
 
-
-from .formats import FormatConverter, SEDConverter, ZetaConverter
 
 _CONVERTERS: Dict[InputFormat, FormatConverter] = {
     InputFormat.SED: SEDConverter(),
