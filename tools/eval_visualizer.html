@@ -739,10 +739,10 @@
             background: transparent;
             border: 1px dashed var(--border);
             color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 1px 1px;
+            border-radius: 2px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 8px;
             margin-left: 5px;
         }
 
@@ -932,7 +932,12 @@
             <label for="yaml-file">Load YAML File</label>
             <input type="file" id="yaml-file" accept=".yaml,.yml">
         </div>
+        <div class="file-input-wrapper">
+            <label for="yaml-directory">Load Directory</label>
+            <input type="file" id="yaml-directory" webkitdirectory directory accept=".yaml,.yml">
+        </div>
         <span id="file-name" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <span id="file-nav-info" style="color: var(--text-secondary); font-size: 12px; margin-left: 10px;"></span>
         <div class="edit-mode-toggle" id="edit-mode-toggle" style="display: none;">
             <input type="checkbox" id="edit-mode-checkbox">
             <label for="edit-mode-checkbox">Edit Mode</label>
@@ -974,7 +979,7 @@
             <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
         </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>s</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>Shift+A</kbd>/<kbd>Shift+D</kbd> Files <kbd>w</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -997,9 +1002,15 @@
         let cursorMode = false;
         let hasUnsavedChanges = false;
         let originalFileName = '';
+        
+        // Directory navigation state
+        let directoryFiles = []; // Array of {name, content} objects
+        let currentFileIndex = -1;
 
         const fileInput = document.getElementById('yaml-file');
+        const directoryInput = document.getElementById('yaml-directory');
         const fileNameEl = document.getElementById('file-name');
+        const fileNavInfo = document.getElementById('file-nav-info');
         const taskInfo = document.getElementById('task-info');
         const taskIdEl = document.getElementById('task-id');
         const descriptionEl = document.getElementById('description');
@@ -1028,6 +1039,7 @@
         const btnLast = document.getElementById('btn-last');
 
         fileInput.addEventListener('change', handleFileLoad);
+        directoryInput.addEventListener('change', handleDirectoryLoad);
         btnFirst.addEventListener('click', () => goToStep(0));
         btnPrev.addEventListener('click', () => goToStep(currentStep - 1));
         btnNext.addEventListener('click', () => goToStep(currentStep + 1));
@@ -1038,22 +1050,21 @@
             editMode = e.target.checked;
             evalSelector.style.display = editMode ? 'block' : 'none';
             stepEditor.style.display = editMode ? 'flex' : 'none';
-            // Preserve scroll position
-            const prevCode = document.getElementById('prev-code');
-            const currCode = document.getElementById('curr-code');
-            const prevScrollTop = prevCode?.scrollTop || 0;
-            const prevScrollLeft = prevCode?.scrollLeft || 0;
-            const currScrollTop = currCode?.scrollTop || 0;
-            const currScrollLeft = currCode?.scrollLeft || 0;
+            // Preserve scroll position - use editor containers if they exist (when leaving edit mode)
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
             renderStep();
             // Restore scroll position
-            const newPrevCode = document.getElementById('prev-code');
-            const newCurrCode = document.getElementById('curr-code');
-            // For edit mode, the current side uses code-editor-container for scrolling
-            const newCurrScroll = document.getElementById('code-editor-container') || newCurrCode;
-            if (newPrevCode) {
-                newPrevCode.scrollTop = prevScrollTop;
-                newPrevCode.scrollLeft = prevScrollLeft;
+            // For edit mode, use code-editor-container for scrolling on both sides
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
             }
             if (newCurrScroll) {
                 newCurrScroll.scrollTop = currScrollTop;
@@ -1104,47 +1115,47 @@
                     cursorMode = false;
                     cursorModeIndicator.classList.add('hidden');
                     // Save scroll positions before re-render
-                    const prevCode = document.getElementById('prev-code');
-                    const currCode = document.getElementById('curr-code');
-                    const prevScrollTop = prevCode?.scrollTop || 0;
-                    const prevScrollLeft = prevCode?.scrollLeft || 0;
-                    const currScrollTop = currCode?.scrollTop || 0;
-                    const currScrollLeft = currCode?.scrollLeft || 0;
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
                     renderStep();
                     // Restore scroll positions after re-render
-                    const newPrevCode = document.getElementById('prev-code');
-                    const newCurrCode = document.getElementById('curr-code');
-                    if (newPrevCode) {
-                        newPrevCode.scrollTop = prevScrollTop;
-                        newPrevCode.scrollLeft = prevScrollLeft;
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
                     }
-                    if (newCurrCode) {
-                        newCurrCode.scrollTop = currScrollTop;
-                        newCurrCode.scrollLeft = currScrollLeft;
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
                     }
                 } else if (editMode) {
                     editMode = false;
                     editModeCheckbox.checked = false;
                     evalSelector.style.display = 'none';
                     stepEditor.style.display = 'none';
-                    // Preserve scroll position
-                    const prevCode = document.getElementById('prev-code');
+                    // Preserve scroll position - use editor containers when leaving edit mode
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
                     const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
-                    const prevScrollTop = prevCode?.scrollTop || 0;
-                    const prevScrollLeft = prevCode?.scrollLeft || 0;
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
                     const currScrollTop = currScroll?.scrollTop || 0;
                     const currScrollLeft = currScroll?.scrollLeft || 0;
                     renderStep();
                     // Restore scroll position
-                    const newPrevCode = document.getElementById('prev-code');
-                    const newCurrCode = document.getElementById('curr-code');
-                    if (newPrevCode) {
-                        newPrevCode.scrollTop = prevScrollTop;
-                        newPrevCode.scrollLeft = prevScrollLeft;
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
                     }
-                    if (newCurrCode) {
-                        newCurrCode.scrollTop = currScrollTop;
-                        newCurrCode.scrollLeft = currScrollLeft;
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
                     }
                 }
                 return;
@@ -1171,22 +1182,22 @@
                     
                     // Helper to render while preserving scroll position
                     const renderPreservingScroll = () => {
-                        const prevCode = document.getElementById('prev-code');
-                        const currCode = document.getElementById('curr-code');
-                        const prevScrollTop = prevCode?.scrollTop || 0;
-                        const prevScrollLeft = prevCode?.scrollLeft || 0;
-                        const currScrollTop = currCode?.scrollTop || 0;
-                        const currScrollLeft = currCode?.scrollLeft || 0;
+                        const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        const prevScrollTop = prevScroll?.scrollTop || 0;
+                        const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                        const currScrollTop = currScroll?.scrollTop || 0;
+                        const currScrollLeft = currScroll?.scrollLeft || 0;
                         renderStep();
-                        const newPrevCode = document.getElementById('prev-code');
-                        const newCurrCode = document.getElementById('curr-code');
-                        if (newPrevCode) {
-                            newPrevCode.scrollTop = prevScrollTop;
-                            newPrevCode.scrollLeft = prevScrollLeft;
+                        const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        if (newPrevScroll) {
+                            newPrevScroll.scrollTop = prevScrollTop;
+                            newPrevScroll.scrollLeft = prevScrollLeft;
                         }
-                        if (newCurrCode) {
-                            newCurrCode.scrollTop = currScrollTop;
-                            newCurrCode.scrollLeft = currScrollLeft;
+                        if (newCurrScroll) {
+                            newCurrScroll.scrollTop = currScrollTop;
+                            newCurrScroll.scrollLeft = currScrollLeft;
                         }
                     };
 
@@ -1261,29 +1272,41 @@
             // Don't process other shortcuts if typing
             if (isTyping) return;
             
+            // File navigation with Shift+A (previous) and Shift+D (next)
+            if (e.shiftKey && (e.key === 'A' || e.key === 'a') && directoryFiles.length > 0) {
+                e.preventDefault();
+                goToPreviousFile();
+                return;
+            }
+            if (e.shiftKey && (e.key === 'D' || e.key === 'd') && directoryFiles.length > 0) {
+                e.preventDefault();
+                goToNextFile();
+                return;
+            }
+            
             // Toggle cursor mode with 'v'
             if (e.key === 'v' && !cursorMode && !editMode) {
                 e.preventDefault();
                 cursorMode = true;
                 cursorModeIndicator.classList.remove('hidden');
                 // Save scroll positions before re-render
-                const prevCode = document.getElementById('prev-code');
-                const currCode = document.getElementById('curr-code');
-                const prevScrollTop = prevCode?.scrollTop || 0;
-                const prevScrollLeft = prevCode?.scrollLeft || 0;
-                const currScrollTop = currCode?.scrollTop || 0;
-                const currScrollLeft = currCode?.scrollLeft || 0;
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
                 renderStep();
                 // Restore scroll positions after re-render
-                const newPrevCode = document.getElementById('prev-code');
-                const newCurrCode = document.getElementById('curr-code');
-                if (newPrevCode) {
-                    newPrevCode.scrollTop = prevScrollTop;
-                    newPrevCode.scrollLeft = prevScrollLeft;
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
                 }
-                if (newCurrCode) {
-                    newCurrCode.scrollTop = currScrollTop;
-                    newCurrCode.scrollLeft = currScrollLeft;
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
                 }
                 return;
             }
@@ -1310,19 +1333,19 @@
                 evalSelector.style.display = 'block';
                 stepEditor.style.display = 'flex';
                 // Preserve scroll position
-                const prevCode = document.getElementById('prev-code');
-                const currCode = document.getElementById('curr-code');
-                const prevScrollTop = prevCode?.scrollTop || 0;
-                const prevScrollLeft = prevCode?.scrollLeft || 0;
-                const currScrollTop = currCode?.scrollTop || 0;
-                const currScrollLeft = currCode?.scrollLeft || 0;
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
                 renderStep();
                 // Restore scroll position
-                const newPrevCode = document.getElementById('prev-code');
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
                 const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
-                if (newPrevCode) {
-                    newPrevCode.scrollTop = prevScrollTop;
-                    newPrevCode.scrollLeft = prevScrollLeft;
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
                 }
                 if (newCurrScroll) {
                     newCurrScroll.scrollTop = currScrollTop;
@@ -1345,6 +1368,10 @@
             if (!file) return;
             originalFileName = file.name;
             fileNameEl.textContent = file.name;
+            // Clear directory state when loading single file
+            directoryFiles = [];
+            currentFileIndex = -1;
+            updateFileNavInfo();
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
@@ -1359,6 +1386,108 @@
                 }
             };
             reader.readAsText(file);
+        }
+        
+        function handleDirectoryLoad(e) {
+            const files = Array.from(e.target.files);
+            if (!files || files.length === 0) return;
+            
+            // Filter for YAML files only
+            const yamlFiles = files.filter(f => 
+                f.name.endsWith('.yaml') || f.name.endsWith('.yml')
+            ).sort((a, b) => a.name.localeCompare(b.name));
+            
+            if (yamlFiles.length === 0) {
+                alert('No YAML files found in the selected directory.');
+                return;
+            }
+            
+            // Read all YAML files
+            directoryFiles = [];
+            let loadedCount = 0;
+            
+            yamlFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    directoryFiles[idx] = {
+                        name: file.name,
+                        content: event.target.result
+                    };
+                    loadedCount++;
+                    
+                    // When all files are loaded, initialize with the first one
+                    if (loadedCount === yamlFiles.length) {
+                        currentFileIndex = 0;
+                        loadCurrentDirectoryFile();
+                    }
+                };
+                reader.onerror = () => {
+                    loadedCount++;
+                    directoryFiles[idx] = null; // Mark as failed
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        function loadCurrentDirectoryFile() {
+            if (currentFileIndex < 0 || currentFileIndex >= directoryFiles.length) return;
+            
+            const fileData = directoryFiles[currentFileIndex];
+            if (!fileData) {
+                alert('Failed to load file at index ' + currentFileIndex);
+                return;
+            }
+            
+            originalFileName = fileData.name;
+            fileNameEl.textContent = fileData.name;
+            updateFileNavInfo();
+            
+            try {
+                evalData = jsyaml.load(fileData.content);
+                currentStep = 0;
+                activeFile = null;
+                hasUnsavedChanges = false;
+                updateSaveButton();
+                initializeReplayer();
+            } catch (err) {
+                alert('Error parsing YAML (' + fileData.name + '): ' + err.message);
+            }
+        }
+        
+        function goToPreviousFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function goToNextFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex < directoryFiles.length - 1) {
+                currentFileIndex++;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function updateFileNavInfo() {
+            if (directoryFiles.length > 0) {
+                fileNavInfo.textContent = `[File ${currentFileIndex + 1} / ${directoryFiles.length}]`;
+            } else {
+                fileNavInfo.textContent = '';
+            }
         }
 
         function initializeReplayer() {
@@ -1548,6 +1677,23 @@
             markUnsaved();
         }
         
+        function updatePrevFileContent(content) {
+            if (!evalData || !activeFile) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            if (!prevState.files) prevState.files = {};
+            prevState.files[activeFile] = content;
+            markUnsaved();
+        }
+        
+        function updatePrevCursor(file, line, column) {
+            if (!evalData) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            prevState.cursor = { file, line, column };
+            markUnsaved();
+        }
+        
         function updateCursor(file, line, column) {
             if (!evalData) return;
             const currState = getState(currentStep);
@@ -1606,22 +1752,22 @@
             
             // Update cursor and render while preserving scroll position
             updateCursor(activeFile, lineNumber, column);
-            const prevCode = document.getElementById('prev-code');
-            const currCode = document.getElementById('curr-code');
-            const prevScrollTop = prevCode?.scrollTop || 0;
-            const prevScrollLeft = prevCode?.scrollLeft || 0;
-            const currScrollTop = currCode?.scrollTop || 0;
-            const currScrollLeft = currCode?.scrollLeft || 0;
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
             renderStep();
-            const newPrevCode = document.getElementById('prev-code');
-            const newCurrCode = document.getElementById('curr-code');
-            if (newPrevCode) {
-                newPrevCode.scrollTop = prevScrollTop;
-                newPrevCode.scrollLeft = prevScrollLeft;
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
             }
-            if (newCurrCode) {
-                newCurrCode.scrollTop = currScrollTop;
-                newCurrCode.scrollLeft = currScrollLeft;
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
             }
         }
 
@@ -1701,7 +1847,7 @@
             }
         }
 
-        function renderEditableCode(content, filename) {
+        function renderEditableCode(content, filename, idPrefix = '') {
             const lines = content.split('\n');
             const language = getLanguageFromFilename(filename);
             
@@ -1715,12 +1861,13 @@
                 backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
             });
             
-            return `<div class="code-editor-wrapper" id="code-editor-wrapper">
-                <div class="code-editor-container" id="code-editor-container">
-                    <div class="code-editor-line-numbers" id="code-editor-line-numbers">${lineNumbersHtml}</div>
+            const prefix = idPrefix ? idPrefix + '-' : '';
+            return `<div class="code-editor-wrapper" id="${prefix}code-editor-wrapper">
+                <div class="code-editor-container" id="${prefix}code-editor-container">
+                    <div class="code-editor-line-numbers" id="${prefix}code-editor-line-numbers">${lineNumbersHtml}</div>
                     <div class="code-editor-content">
-                        <div class="code-editor-backdrop" id="code-editor-backdrop">${backdropHtml}</div>
-                        <textarea class="code-editor-textarea" id="code-editor" spellcheck="false">${escapeHtml(content)}</textarea>
+                        <div class="code-editor-backdrop" id="${prefix}code-editor-backdrop">${backdropHtml}</div>
+                        <textarea class="code-editor-textarea" id="${prefix}code-editor" spellcheck="false">${escapeHtml(content)}</textarea>
                     </div>
                 </div>
             </div>`;
@@ -1995,10 +2142,10 @@
             let prevHtml, currHtml;
             
             if (editMode) {
-                // In edit mode, show editable code with syntax highlighting
-                prevHtml = activeFile 
-                    ? renderCodeWithCursor(prevContent, prevCursor, activeFile)
-                    : '<div class="no-content">No file selected</div>';
+                // In edit mode, show editable code with syntax highlighting on both sides
+                prevHtml = activeFile && currentStep > 0
+                    ? renderEditableCode(prevContent || '', activeFile, 'prev')
+                    : '<div class="no-content">No previous step to edit</div>';
                 currHtml = activeFile 
                     ? renderEditableCode(currContent || '', activeFile)
                     : '<div class="no-content">No file selected</div>';
@@ -2010,7 +2157,7 @@
                 currHtml = diffResult.currHtml;
             }
             
-            // Cursor editor for edit mode
+            // Cursor editor for edit mode (current step)
             const cursorEditorHtml = editMode ? `
                 <div class="cursor-editor">
                     <label>Cursor File:</label>
@@ -2025,12 +2172,28 @@
                 </div>
             ` : '';
             
+            // Cursor editor for edit mode (previous step)
+            const prevCursorEditorHtml = editMode && currentStep > 0 ? `
+                <div class="cursor-editor">
+                    <label>Cursor File:</label>
+                    <select id="prev-cursor-file-select">
+                        <option value="">-- None --</option>
+                        ${allFiles.map(f => `<option value="${f}" ${prevState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                    </select>
+                    <label>Line:</label>
+                    <input type="number" id="prev-cursor-line-input" min="1" value="${prevState?.cursor?.line || 1}">
+                    <label>Column:</label>
+                    <input type="number" id="prev-cursor-col-input" min="0" value="${prevState?.cursor?.column || 0}">
+                </div>
+            ` : '';
+            
             mainContent.innerHTML = `
                 <div class="left-panel">
                     <div class="panel-label prev">Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})</div>
                     <div class="files-section">
-                        <div class="section-header">Files</div>
+                        <div class="section-header">Files ${prevState?.cursor ? `| Cursor: ${prevState.cursor.file}:${prevState.cursor.line}:${prevState.cursor.column}` : ''}</div>
                         <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
+                        ${prevCursorEditorHtml}
                         <div class="code-container" id="prev-code">${prevHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="left"></div>
@@ -2100,7 +2263,7 @@
                 addFileBtnEl.addEventListener('click', addNewFile);
             }
             
-            // Code editor handler
+            // Code editor handler (current step - right side)
             const codeEditor = document.getElementById('code-editor');
             const codeEditorContainer = document.getElementById('code-editor-container');
             const codeEditorBackdrop = document.getElementById('code-editor-backdrop');
@@ -2175,7 +2338,81 @@
                 });
             }
             
-            // Cursor editor handlers
+            // Code editor handler (previous step - left side)
+            const prevCodeEditor = document.getElementById('prev-code-editor');
+            const prevCodeEditorContainer = document.getElementById('prev-code-editor-container');
+            const prevCodeEditorBackdrop = document.getElementById('prev-code-editor-backdrop');
+            const prevCodeEditorLineNumbers = document.getElementById('prev-code-editor-line-numbers');
+            
+            if (prevCodeEditor && prevCodeEditorContainer && prevCodeEditorBackdrop && prevCodeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const prevState = getState(currentStep - 1);
+                if (prevState?.cursor && prevState.cursor.file === activeFile) {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = prevState.cursor.line;
+                    const targetCol = prevState.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Don't auto-focus the prev editor - let the user decide which to edit
+                    prevCodeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updatePrevBackdrop = () => {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    prevCodeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    prevCodeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
+                prevCodeEditor.addEventListener('input', (e) => {
+                    updatePrevFileContent(e.target.value);
+                    updatePrevBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                prevCodeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    prevCodeEditor.scrollTop = prevCodeEditorContainer.scrollTop;
+                    prevCodeEditor.scrollLeft = prevCodeEditorContainer.scrollLeft;
+                });
+                
+                // Handle tab key in editor
+                prevCodeEditor.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = prevCodeEditor.selectionStart;
+                        const end = prevCodeEditor.selectionEnd;
+                        prevCodeEditor.value = prevCodeEditor.value.substring(0, start) + '    ' + prevCodeEditor.value.substring(end);
+                        prevCodeEditor.selectionStart = prevCodeEditor.selectionEnd = start + 4;
+                        updatePrevFileContent(prevCodeEditor.value);
+                        updatePrevBackdrop();
+                    }
+                });
+            }
+            
+            // Cursor editor handlers (current step)
             const cursorFileSelect = document.getElementById('cursor-file-select');
             const cursorLineInput = document.getElementById('cursor-line-input');
             const cursorColInput = document.getElementById('cursor-col-input');
@@ -2198,6 +2435,33 @@
                 cursorFileSelect.addEventListener('change', updateCursorFromInputs);
                 cursorLineInput.addEventListener('change', updateCursorFromInputs);
                 cursorColInput.addEventListener('change', updateCursorFromInputs);
+            }
+            
+            // Cursor editor handlers (previous step)
+            const prevCursorFileSelect = document.getElementById('prev-cursor-file-select');
+            const prevCursorLineInput = document.getElementById('prev-cursor-line-input');
+            const prevCursorColInput = document.getElementById('prev-cursor-col-input');
+            
+            if (prevCursorFileSelect && prevCursorLineInput && prevCursorColInput) {
+                const updatePrevCursorFromInputs = () => {
+                    const file = prevCursorFileSelect.value;
+                    const line = parseInt(prevCursorLineInput.value) || 1;
+                    const column = parseInt(prevCursorColInput.value) || 0;
+                    if (file) {
+                        updatePrevCursor(file, line, column);
+                    } else {
+                        // Clear cursor if no file selected
+                        const prevState = getState(currentStep - 1);
+                        if (prevState) {
+                            delete prevState.cursor;
+                            markUnsaved();
+                        }
+                    }
+                };
+                
+                prevCursorFileSelect.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorLineInput.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorColInput.addEventListener('change', updatePrevCursorFromInputs);
             }
             
             // Assertions editor handler
