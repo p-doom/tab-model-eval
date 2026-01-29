@@ -5,12 +5,20 @@ from typing import Any, Dict, List, Optional
 
 import tyro
 import yaml
+import wandb
 
 from .yaml_output import load_generation_yaml
 
 
 @dataclass
 class Args:
+    wandb_project: str = "tab-model-eval"
+    wandb_name: str = "metrics_eval"
+    wandb_eval_type: str = "metrics_eval"
+    wandb_tags: list[str] = field(default_factory=list)
+    wandb_id: Optional[str] = None
+    wandb_group: str = "evals"
+
     generations_file: str = "data/eval/generations/generations.yaml"
     metrics_file: str = "data/eval/metrics/metrics.yaml"
     eval_step: int = 0
@@ -159,6 +167,8 @@ def run_metrics_eval(
     metrics_file: str,
     eval_step: int,
     limit: int = -1,
+    wandb_run: Optional[wandb.sdk.wandb_run.Run] = None,
+    wandb_eval_type: str = "metrics_eval",
 ) -> Dict[str, Any]:
     print(f"\n{'='*60}")
     print(f"Evaluating: {generations_file}")
@@ -225,6 +235,21 @@ def run_metrics_eval(
     print(f"Avg Similarity: {avg_similarity*100:.1f}%")
     print(f"Output: {metrics_file}")
 
+    if wandb_run is not None:
+        wandb_run.log(
+            {
+                "eval_step": eval_step,
+                f"{wandb_eval_type}/total_tasks": num_tasks,
+                f"{wandb_eval_type}/total_samples": total_samples,
+                f"{wandb_eval_type}/total_file_exact_match": total_file_exact,
+                f"{wandb_eval_type}/total_pass_at_1": total_pass_at_1,
+                f"{wandb_eval_type}/avg_file_exact_match_rate": avg_file_exact_rate,
+                f"{wandb_eval_type}/avg_similarity": avg_similarity,
+                f"{wandb_eval_type}/pass_at_1_rate": scores["pass_at_1_rate"],
+                f"{wandb_eval_type}/empty_rate": scores["empty_rate"],
+            }
+        )
+
     return scores
 
 
@@ -233,9 +258,26 @@ def main():
     jobs = args.get_eval_jobs()
     print(f"Running {len(jobs)} evaluation job(s)")
 
+    wandb_run = wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        id=args.wandb_id,
+        resume="allow" if args.wandb_id else None,
+        group=args.wandb_group,
+        tags=args.wandb_tags,
+        config={"eval_type": args.wandb_eval_type},
+    )
+
     all_results = []
     for gen_file, met_file, step in jobs:
-        result = run_metrics_eval(gen_file, met_file, step, args.limit)
+        result = run_metrics_eval(
+            gen_file,
+            met_file,
+            step,
+            args.limit,
+            wandb_run=wandb_run,
+            wandb_eval_type=args.wandb_eval_type,
+        )
         all_results.append(result)
 
     if len(all_results) > 1:
@@ -246,6 +288,9 @@ def main():
             print(
                 f"  Step {job[2]}: Pass@1={result['pass_at_1_rate']*100:.1f}%, Similarity={result['avg_similarity']*100:.1f}%"
             )
+
+    if wandb_run is not None:
+        wandb_run.finish()
 
     print("\nDone")
 

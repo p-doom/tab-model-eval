@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 import httpx
 import tyro
 import yaml
+import wandb
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
@@ -17,6 +18,13 @@ from .yaml_output import load_generation_yaml
 
 @dataclass
 class Args:
+    wandb_project: str = "tab-model-eval"
+    wandb_name: str = "judge_eval"
+    wandb_eval_type: str = "judge_eval"
+    wandb_tags: Optional[List[str]] = None
+    wandb_id: Optional[str] = None
+    wandb_group: str = "evals"
+
     generations_file: str = "data/eval/generations/generations.yaml"
     evaluations_file: str = "data/eval/evaluations/evaluations.yaml"
     eval_step: int = 0
@@ -297,6 +305,16 @@ async def run_judge_eval(args: Args, base_url: str):
     print(f"\n{'='*60}")
     print(f"Judge Evaluation: {args.generations_file}")
     print(f"Output: {args.evaluations_file}")
+
+    wandb_run = wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        id=args.wandb_id,
+        resume="allow" if args.wandb_id else None,
+        group=args.wandb_group,
+        tags=args.wandb_tags,
+        config={"eval_type": args.wandb_eval_type},
+    )
     print(f"{'='*60}")
 
     system_prompt = load_prompt_file(args.judge_system_prompt_file, "judge-system-prompt-file")
@@ -376,6 +394,21 @@ async def run_judge_eval(args: Args, base_url: str):
     print(f"Equivalent: {total_equivalent}/{total_samples} ({avg_equivalent_rate*100:.1f}%)")
     print(f"Pass@1: {total_pass_at_1}/{num_tasks} ({scores['pass_at_1_rate']*100:.1f}%)")
     print(f"Output: {args.evaluations_file}")
+
+    if wandb_run is not None:
+        wandb_run.log(
+            {
+                "eval_step": args.eval_step,
+                f"{args.wandb_eval_type}/total_tasks": num_tasks,
+                f"{args.wandb_eval_type}/total_samples": total_samples,
+                f"{args.wandb_eval_type}/total_judged": total_judged,
+                f"{args.wandb_eval_type}/total_skipped": total_skipped,
+                f"{args.wandb_eval_type}/total_equivalent": total_equivalent,
+                f"{args.wandb_eval_type}/pass_at_1_rate": scores["pass_at_1_rate"],
+                f"{args.wandb_eval_type}/equivalent_rate": avg_equivalent_rate,
+            }
+        )
+        wandb_run.finish()
 
     return scores
 

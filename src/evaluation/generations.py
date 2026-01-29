@@ -2,6 +2,7 @@ import asyncio
 import glob
 import os
 import re
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -57,9 +58,11 @@ class Args:
     mem_fraction_static: float = 0.95
     api_key: str = "EMPTY"
     tp_size: int = 1
+    dp_size: int = 1
     lora_paths: Optional[List[str]] = None
     launch_server: bool = True
     extra_server_args: Optional[List[str]] = None
+    extra_server_args_str: str = ""
 
     concurrency: int = 16
     max_connections: int = 256
@@ -657,11 +660,16 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
         str(args.mem_fraction_static),
         "--tp-size",
         str(args.tp_size),
+        "--dp-size",
+        str(args.dp_size),
     ]
 
     if args.lora_paths:
         cmd.append("--lora-paths")
         cmd.extend(args.lora_paths)
+
+    if args.extra_server_args_str:
+        cmd.extend(shlex.split(args.extra_server_args_str))
 
     if args.extra_server_args:
         cmd.extend(args.extra_server_args)
