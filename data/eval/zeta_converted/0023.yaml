@@ -1,0 +1,609 @@
+task_id: "0023"
+description: "Converted from zeta eval: 0023"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                } else {
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    dbg!(multi_buffer_row,);
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+
+            cx.stop_propagation();
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                } else {
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+
+            cx.stop_propagation();
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 40
+      column: 12
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                } else {
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+
+
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 53
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                } else {
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 52
+      column: 4
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                    cx.stop_propagation();
+                } else {
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 32
+      column: 34
+  - step: 5
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                    cx.stop_propagation();
+                } else {
+                    // TODO kb belongs to a methods
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+                    // TODO kb belongs to a methods
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 34
+      column: 43
+  - step: 6
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                    cx.stop_propagation();
+                } else {
+                    // TODO kb extract common code around this module into method/functi
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 34
+      column: 80
+  - step: 7
+    eval: EVAL
+    terminal: null
+    files:
+      crates/editor/src/element.rs: |-
+        goal_column: point_for_position.exact_unclipped.column(),
+                            },
+                            cx,
+                        );
+                    } else if modifiers.shift
+                        && !modifiers.control
+                        && !modifiers.alt
+                        && !modifiers.secondary()
+                    {
+                        editor.select(
+                            SelectPhase::Extend {
+                                position,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    } else {
+                        let multi_cursor_setting = EditorSettings::get_global(cx).multi_cursor_modifier;
+                        let multi_cursor_modifier = match multi_cursor_setting {
+                            MultiCursorModifier::Alt => modifiers.alt,
+                            MultiCursorModifier::CmdOrCtrl => modifiers.secondary(),
+                        };
+                        editor.select(
+                            SelectPhase::Begin {
+                                position,
+                                add: multi_cursor_modifier,
+                                click_count,
+                            },
+                            cx,
+                        );
+                    }
+                    cx.stop_propagation();
+                } else {
+                    // TODO kb extract common code around this module into method/function
+                    let display_row = (((event.position - gutter_hitbox.bounds.origin).y
+                        + position_map.scroll_pixel_position.y)
+                        / position_map.line_height) as u32;
+                    let multi_buffer_row = position_map
+                        .snapshot
+                        .display_point_to_point(DisplayPoint::new(DisplayRow(display_row), 0), Bias::Right)
+                        .row;
+                    if let Some(hit_box) = line_numbers_hitboxes.get(&MultiBufferRow(multi_buffer_row)) {
+                        if hit_box.contains(&event.position) {
+                            editor.open_excerpts_common(
+                                Some(JumpData::MultiBufferRow(MultiBufferRow(multi_buffer_row))),
+                                modifiers.alt == true,
+                                cx,
+                            );
+                            cx.stop_propagation();
+                        }
+                    }
+                }
+            }
+            fn mouse_right_down(
+                editor: &mut Editor,
+                event: &MouseDownEvent,
+                position_map: &PositionMap,
+                text_hitbox: &Hitbox,
+                cx: &mut ViewContext<Editor>,
+            ) {
+                if !text_hitbox.is_hovered(cx) {
+                    return;
+                }
+                let point_for_position =
+                    position_map.point_for_position(text_hitbox.bounds, event.position);
+                mouse_context_menu::deploy_context_menu(
+    cursor:
+      file: crates/editor/src/element.rs
+      line: 34
+      column: 82
+    judge_assertions: Ensure the code contains the comment `// TODO kb extract common code around this module into method/function`
+labels: local-edit,infer-refactor

@@ -1,0 +1,124 @@
+task_id: "0013"
+description: "Converted from zeta eval: 0013"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            /// Use `path:line:row` syntax to open a file at a specific location.
+            /// Non-existing paths and directories will ignore `:line:row` suffix.
+            paths_with_position: Vec<String>,
+            /// Print Zed's version and the app path.
+            #[arg(short, long)]
+            version: bool,
+            /// Run zed in the foreground (useful for debugging)
+            #[arg(long)]
+            foreground: bool,
+            /// Custom path to Zed.app or the zed binary
+            #[arg(long)]
+            zed: Option<PathBuf>,
+            /// Run zed in dev-server mode
+            #[arg(long)]
+            dev_server_token: Option<String>,
+            /// Only update the Zed instance
+            
+        }
+
+        fn parse_path_with_position(argument_str: &str) -> anyhow::Result<String> {
+            let canonicalized = match Path::new(argument_str).canonicalize() {
+                Ok(existing_path) => PathWithPosition::from_path(existing_path),
+                Err(_) => {
+                    let path = PathWithPosition::parse_str(argument_str);
+                    let curdir = env::current_dir().context("reteiving current directory")?;
+                    path.map_path(|path| match fs::canonicalize(&path) {
+                        Ok(path) => Ok(path),
+                        Err(e) => {
+                            if let Some(mut parent) = path.parent() {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            /// Use `path:line:row` syntax to open a file at a specific location.
+            /// Non-existing paths and directories will ignore `:line:row` suffix.
+            paths_with_position: Vec<String>,
+            /// Print Zed's version and the app path.
+            #[arg(short, long)]
+            version: bool,
+            /// Run zed in the foreground (useful for debugging)
+            #[arg(long)]
+            foreground: bool,
+            /// Custom path to Zed.app or the zed binary
+            #[arg(long)]
+            zed: Option<PathBuf>,
+            /// Run zed in dev-server mode
+            #[arg(long)]
+            dev_server_token: Option<String>,
+            /// Only update the Zed instance
+            
+        }
+
+        fn parse_path_with_position(argument_str: &str) -> anyhow::Result<String> {
+            let canonicalized = match Path::new(argument_str).canonicalize() {
+                Ok(existing_path) => PathWithPosition::from_path(existing_path),
+                Err(_) => {
+                    let path = PathWithPosition::parse_str(argument_str);
+                    let curdir = env::current_dir().context("reteiving current directory")?;
+                    path.map_path(|path| match fs::canonicalize(&path) {
+                        Ok(path) => Ok(path),
+                        Err(e) => {
+                            if let Some(mut parent) = path.parent() {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 17
+      column: 4
+  - step: 2
+    eval: EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            /// Use `path:line:row` syntax to open a file at a specific location.
+            /// Non-existing paths and directories will ignore `:line:row` suffix.
+            paths_with_position: Vec<String>,
+            /// Print Zed's version and the app path.
+            #[arg(short, long)]
+            version: bool,
+            /// Run zed in the foreground (useful for debugging)
+            #[arg(long)]
+            foreground: bool,
+            /// Custom path to Zed.app or the zed binary
+            #[arg(long)]
+            zed: Option<PathBuf>,
+            /// Run zed in dev-server mode
+            #[arg(long)]
+            dev_server_token: Option<String>,
+            /// Only update the Zed instance
+            #[arg(long)]
+            update: bool,
+        }
+
+        fn parse_path_with_position(argument_str: &str) -> anyhow::Result<String> {
+            let canonicalized = match Path::new(argument_str).canonicalize() {
+                Ok(existing_path) => PathWithPosition::from_path(existing_path),
+                Err(_) => {
+                    let path = PathWithPosition::parse_str(argument_str);
+                    let curdir = env::current_dir().context("reteiving current directory")?;
+                    path.map_path(|path| match fs::canonicalize(&path) {
+                        Ok(path) => Ok(path),
+                        Err(e) => {
+                            if let Some(mut parent) = path.parent() {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 18
+      column: 17
+    judge_assertions: |-
+      Ensure a new boolean field has been added to the `Args` struct to control whether to do an update or not.
+      Ensure the field also has an `#[arg]` attribute macro.
+      Ideally, it has the `#[arg(long)]` attribute macro.
+      Ideally, the field name is `update` (but if it's not called that, that's fine too).
+labels: local-edit,complete-pattern

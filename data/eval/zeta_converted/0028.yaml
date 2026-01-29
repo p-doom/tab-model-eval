@@ -1,0 +1,573 @@
+task_id: 0028
+description: 'Converted from zeta eval: 0028'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  \n## Stretch\n  - [ ] Reflect what a collaborator\
+      \ can actually do in the UI\n    - If read only buttons should look disabled\
+      \ for example\n    - add something like `GitPanel::is_read_only`\n  - [ ] Make\
+      \ sure conflicts are sufficiently visible\n    - Mark with a ! at the end of\
+      \ the entry\n  - [ ] Add collaboration/remote development support\n    - [ ]\
+      \ collaborator can see leader's listing in git panel\n    - [ ] remote development:\
+      \ show state of repo on remote machine\n  - [ ] [@cole] Add the diff line numbers\
+      \ to the status information\n  - [ ] panel header buttons -> act on selected\
+      \ entry, modifier swaps to \"all\" variants\n  - [ ] Track when at top or bottom\
+      \ of list (scroll-position wise), add gradient overlay\n  - [@kirill] Query\
+      \ for collaborators git.email\n      - check collaborators' .gitconfig for e-mails,\
+      \ user names, etc.\n          `$ git config user.email`\n      -  ? consider\
+      \ collab metadata?\n      -  ? ask the user for it?\n\n## Later / Idea dump\
+      \   \n\n- Add \"CommitAllModified\"\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add commit all (except untracked) button/shortcut\n- [ ] Add\
+      \ a revert all command / button\n- [ ] Show a striped background for non-staged\
+      \ hunks, and a solid background for staged ones\n- [ ] Make sure there's a 'suggest\
+      \ a commit message' button somewhere if AI is enabled\n- [ ] Create the unified\
+      \ diff view UI\n    \n  - [x] [@cole] Add the ability to create commits\n  \
+      \  - [x] [@Disable commiting when no message\n    - [x] Disable commiting when\
+      \ there are no changes\n    - [x] Disable commiting when nothing is staged (not\
+      \ for CommitAllChanges)"
+  cursor:
+    file: untitled
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [@kirill] Query for collaborators git.email\n  \
+      \    - check collaborators' .gitconfig for e-mails, user names, etc.\n     \
+      \     `$ git config user.email`\n      -  ? consider collab metadata?\n    \
+      \  -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- Add \"CommitAllModified\"\
+      \n- [ ] Overflow menu for git top level actions (`...` menu)\n- [ ] Context\
+      \ menu for selected entry\n- [ ] Overflow menu for selected entry\n- [ ] [@cole]\
+      \ Restore the on-click behavior for specific status lines\n- [ ] Add commit\
+      \ all (except untracked) button/shortcut\n- [ ] Add a revert all command / button\n\
+      - [ ] Show a striped background for non-staged hunks, and a solid background\
+      \ for staged ones\n- [ ] Make sure there's a 'suggest a commit message' button\
+      \ somewhere if AI is enabled\n- [ ] Create the unified diff view UI\n    \n\
+      \  - [x] [@cole] Add the ability to create commits\n    - [x] [@Disable commiting\
+      \ when no message\n    - [x] Disable commiting when there are no changes\n \
+      \   - [x] Disable commiting when nothing is staged (not for CommitAllChanges)"
+  cursor:
+    file: untitled
+    line: 35
+    column: 43
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- Add \"CommitAllModified\"\
+      \n- [ ] Overflow menu for git top level actions (`...` menu)\n- [ ] Context\
+      \ menu for selected entry\n- [ ] Overflow menu for selected entry\n- [ ] [@cole]\
+      \ Restore the on-click behavior for specific status lines\n- [ ] Add commit\
+      \ all (except untracked) button/shortcut\n- [ ] Add a revert all command / button\n\
+      - [ ] Show a striped background for non-staged hunks, and a solid background\
+      \ for staged ones\n- [ ] Make sure there's a 'suggest a commit message' button\
+      \ somewhere if AI is enabled\n- [ ] Create the unified diff view UI\n    \n\
+      \  - [x] [@cole] Add the ability to create commits\n    - [x] [@Disable commiting\
+      \ when no message\n    - [x] Disable commiting when there are no changes\n \
+      \   - [x] Disable commiting when nothing is staged (not for CommitAllChanges)"
+  cursor:
+    file: untitled
+    line: 49
+    column: 51
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- Add \"CommitAllModified\"\
+      \n- [ ] Overflow menu for git top level actions (`...` menu)\n- [ ] Context\
+      \ menu for selected entry\n- [ ] Overflow menu for selected entry\n- [ ] [@cole]\
+      \ Restore the on-click behavior for specific status lines\n- [ ] Add commit\
+      \ all (except untracked) button/shortcut\n- [ ] Add a revert all command / button\n\
+      - [ ] Show a striped background for non-staged hunks, and a solid background\
+      \ for staged ones\n- [ ] Make sure there's a 'suggest a commit message' button\
+      \ somewhere if AI is enabled\n- [ ] Create the unified diff view UI\n    "
+  cursor:
+    file: untitled
+    line: 1
+    column: 5
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- Add \"CommitAllModified\"\
+      \n- [ ] Overflow menu for git top level actions (`...` menu)\n- [ ] Context\
+      \ menu for selected entry\n- [ ] Overflow menu for selected entry\n- [ ] [@cole]\
+      \ Restore the on-click behavior for specific status lines\n- [ ] Add commit\
+      \ all (except untracked) button/shortcut\n- [ ] Add a revert all command / button\n\
+      - [ ] Show a striped background for non-staged hunks, and a solid background\
+      \ for staged ones\n- [ ] Make sure there's a 'suggest a commit message' button\
+      \ somewhere if AI is enabled\n- [ ] Create the unified diff view UI\n    \n\
+      ## Done"
+  cursor:
+    file: untitled
+    line: 68
+    column: 7
+- step: 5
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add commit all (except untracked) button/shortcut\n- [ ] Add\
+      \ a revert all command / button\n- [ ] Show a striped background for non-staged\
+      \ hunks, and a solid background for staged ones\n- [ ] Make sure there's a 'suggest\
+      \ a commit message' button somewhere if AI is enabled\n- [ ] Create the unified\
+      \ diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 57
+    column: 60
+- step: 6
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add a revert all command / button\n- [ ] Show a striped background\
+      \ for non-staged hunks, and a solid background for staged ones\n- [ ] Make sure\
+      \ there's a 'suggest a commit message' button somewhere if AI is enabled\n-\
+      \ [ ] Create the unified diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 62
+    column: 39
+- step: 7
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add a revert all command / button\n- [ ] Show a striped background\
+      \ for non-staged hunks, and a solid background for staged ones\n- [ ] Make sure\
+      \ there's a 'suggest a commit message' button somewhere if AI is enabled\n-\
+      \ [ ] Create the unified diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 12
+    column: 2
+- step: 8
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n\n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add a revert all command / button\n- [ ] Show a striped background\
+      \ for non-staged hunks, and a solid background for staged ones\n- [ ] Make sure\
+      \ there's a 'suggest a commit message' button somewhere if AI is enabled\n-\
+      \ [ ] Create the unified diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 12
+    column: 0
+- step: 9
+  eval: NO_EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add a revert all command / button\n- [ ] Show a striped background\
+      \ for non-staged hunks, and a solid background for staged ones\n- [ ] Make sure\
+      \ there's a 'suggest a commit message' button somewhere if AI is enabled\n-\
+      \ [ ] Create the unified diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 12
+    column: 0
+- step: 10
+  eval: EVAL
+  terminal: null
+  files:
+    untitled: "# Git\n\nOverall goals: Keep people in Zed, do something for everyone,\
+      \ build a git client we are proud of.\n\n## TODO\n\n# Incoming\n- [ ] Was following\
+      \ broken by diffmap stuff?\n- [ ] Panics when following collaborator into project\
+      \ diff view\n- [ ] Git diffs if file contains \\r\n- [ ] Have people noticed\
+      \ that the initial sync \n  \n# To ship\n\n- [ ] [@conrad @max] DiffMap rewrite\n\
+      \  - [@joão @conrad @max] Debugging / testing the diff map\n  - [x] Rebuilding\
+      \ the editor interactions\n- [x] [@cole @mikayla] Git status rewrite\n- [*]\
+      \ [@cole @mikayla @nate @kirill] Git Panel\n  - [*] [@nate] Show keybindings\
+      \ on buttons\n  - [*] [@nate] Add a dropdown for switching repositories when\
+      \ more than one\n    - `first repo` -> `selected repo`\n  - [ ] Add debug command\n\
+      \  - [ ] Testing\n    - For the basic setup, want a (randomized?) test using\
+      \ the\n      FakeGitRepository, that we can make changes to files, stage/unstage/commit\n\
+      \      them using our new actions, and the resulting state of the (fake) filesystem/git\
+      \ repo is what we expect\n    - Also test that git operations are sequenced\
+      \ correctly.\n    - Then we should extend this to remote editing when that is\
+      \ supported.\n    - Where will the tests live?\n  - [ ] Don't load single file\
+      \ worktrees (settings.json, etc) for now\n    - test external imports as well\
+      \ (cmd+clicking in)\n  - [ ] If not building overflow/context menu before shipping:\
+      \ remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by field\n\
+      \  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in the\
+      \ UI\n    - If read only buttons should look disabled for example\n    - add\
+      \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+      \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+      \ development support\n    - [ ] collaborator can see leader's listing in git\
+      \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+      \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [\
+      \ ] panel header buttons -> act on selected entry, modifier swaps to \"all\"\
+      \ variants\n  - [ ] Track when at top or bottom of list (scroll-position wise),\
+      \ add gradient overlay\n  - [ ] [@kirill] Query for collaborators git.email\n\
+      \      - check collaborators' .gitconfig for e-mails, user names, etc.\n   \
+      \       `$ git config user.email`\n      -  ? consider collab metadata?\n  \
+      \    -  ? ask the user for it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\"\
+      \ (don't commit untracked files)\n- [ ] Overflow menu for git top level actions\
+      \ (`...` menu)\n- [ ] Context menu for selected entry\n- [ ] Overflow menu for\
+      \ selected entry\n- [ ] [@cole] Restore the on-click behavior for specific status\
+      \ lines\n- [ ] Add a revert all command / button\n- [ ] Show a striped background\
+      \ for non-staged hunks, and a solid background for staged ones\n- [ ] Make sure\
+      \ there's a 'suggest a commit message' button somewhere if AI is enabled\n-\
+      \ [ ] Create the unified diff view UI\n    \n## Done"
+  cursor:
+    file: untitled
+    line: 12
+    column: 2
+  judge_assertions: "The model output should be exactly the same as the input. If\
+    \ it's even slightly different, the score should be 0:\n\nInput:\n```untitled\n\
+    <|start_of_file|>\n<|editable_region_start|>\n# Git\n\nOverall goals: Keep people\
+    \ in Zed, do something for everyone, build a git client we are proud of.\n\n##\
+    \ TODO\n\n# Incoming\n- [ ] Was following broken by diffmap stuff?\n- [ ] Panics\
+    \ when following collaborator into project diff view\n- [ ] Git diffs if file\
+    \ contains \\r\n- [ ] Have people noticed that the initial sync \n  \n# To ship\n\
+    \n- [ ] [@conrad @max] DiffMap rewrite\n  - [@joão @conrad @max] Debugging / testing\
+    \ the diff map\n  - [x] Rebuilding the editor interactions\n- [x] [@cole @mikayla]\
+    \ Git status rewrite\n- [*] [@cole @mikayla @nate @kirill] Git Panel\n  - [*]\
+    \ [@nate] Show keybindings on buttons\n  - [*] [@nate] Add a dropdown for switching\
+    \ repositories when more than one\n    - `first repo` -> `selected repo`\n  -\
+    \ [ ] Add debug command\n  - [ ] Testing\n    - For the basic setup, want a (randomized?)\
+    \ test using the\n      FakeGitRepository, that we can make changes to files,\
+    \ stage/unstage/commit\n      them using our new actions, and the resulting state\
+    \ of the (fake) filesystem/git repo is what we expect\n    - Also test that git\
+    \ operations are sequenced correctly.\n    - Then we should extend this to remote\
+    \ editing when that is supported.\n    - Where will the tests live?\n  - [ ] Don't\
+    \ load single file worktrees (settings.json, etc) for now\n    - test external\
+    \ imports as well (cmd+clicking in)\n  - [ ] If not building overflow/context\
+    \ menu before shipping: remove `...` icon on entries\n  - [ ] Add UI for the co-authored-by\
+    \ field\n  \n## Stretch\n  - [ ] Reflect what a collaborator can actually do in\
+    \ the UI\n    - If read only buttons should look disabled for example\n    - add\
+    \ something like `GitPanel::is_read_only`\n  - [ ] Make sure conflicts are sufficiently\
+    \ visible\n    - Mark with a ! at the end of the entry\n  - [ ] Add collaboration/remote\
+    \ development support\n    - [ ] collaborator can see leader's listing in git\
+    \ panel\n    - [ ] remote development: show state of repo on remote machine\n\
+    \  - [ ] [@cole] Add the diff line numbers to the status information\n  - [ ]\
+    \ panel header buttons -> act on selected entry, modifier swaps to \"all\" variants\n\
+    \  - [ ] Track when at top or bottom of list (scroll-position wise), add gradient\
+    \ overlay\n  - [ ] [@kirill] Query for collaborators git.email\n      - check\
+    \ collaborators' .gitconfig for e-mails, user names, etc.\n          `$ git config\
+    \ user.email`\n      -  ? consider collab metadata?\n      -  ? ask the user for\
+    \ it?\n\n## Later / Idea dump   \n\n- [ ] Add \"CommitAllModified\" (don't commit\
+    \ untracked files)\n- [ ] Overflow menu for git top level actions (`...` menu)\n\
+    - [ ] Context menu for selected entry\n- [ ] Overflow menu for selected entry\n\
+    - [ ] [@cole] Restore the on-click behavior for specific status lines\n- [ ] Add\
+    \ a revert all command / button\n- [ ] Show a striped background for non-staged\
+    \ hunks, and a solid background for staged ones\n- [ ] Make sure there's a 'suggest\
+    \ a commit message' button somewhere if AI is enabled\n- [ ] Create the unified\
+    \ diff view UI\n    \n<|editable_region_end|>\n## Done\n```"
+labels: no-op,complete-pattern

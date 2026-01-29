@@ -1,0 +1,43 @@
+task_id: '0007'
+description: 'Converted from zeta eval: 0007'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let root_directory = "/tmp";
+          let glob_pattern = format!("{}/{}", root_directory, "**/*.rs");
+      }
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: "fn main() {\n    let args = std::env::args();\n    let \n    let\
+      \ root_directory = \"/tmp\";\n    let glob_pattern = format!(\"{}/{}\", root_directory,\
+      \ \"**/*.rs\");\n}"
+  cursor:
+    file: src/main.rs
+    line: 3
+    column: 8
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let args = std::env::args();
+          let root_directory = args.nth(1).unwrap_or_else(|| "/tmp".into());
+          let glob_pattern = format!("{}/{}", root_directory, "**/*.rs");
+      }
+  cursor:
+    file: src/main.rs
+    line: 3
+    column: 70
+  judge_assertions: Ensure that `root_directory` is using the first command line argument
+labels: local-edit,infer-intent

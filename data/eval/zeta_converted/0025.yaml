@@ -1,0 +1,226 @@
+task_id: '0025'
+description: 'Converted from zeta eval: 0025'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/app/metadata.ts: |-
+      interface User {
+          firstName: string;
+          lastName: string;
+          email: string;
+          age: number;
+          good: boolean;
+          github: string;
+      }
+
+      function fullName(author1: User, author2: User, author3: User): string? {
+          if (author1.firstName == "Antonio") {
+              return `${author1.firstName} ${author1.lastName} and ${author2.firstName} ${author2.lastName}`;
+          } else if (author2.firstName == "John") {
+              return `${author2.firstName} ${author2.lastName} and ${author1.firstName} ${author1.lastName}`;
+          } else {
+              return `${author3.firstName} ${author3.lastName} and ${author1.firstName} ${author1.lastName}`;
+          }
+      }
+
+      type SetMetadata = Metadata & {
+          image?: string,
+          bluesky_profile?: string,
+          mastodon_profile?: string,
+          description?: string,
+      };
+
+
+
+      export const set_metadata = <T extends SetMetadata>({
+          titolo,
+          description,
+          /** Manually set an opengraph image. Disables the auto-generated OG image */
+          image,
+          ...rest
+      }: T): Metadata & T => {
+          const metadata: Metadata = {}
+          metadata.openGraph = { ...rest.openGraph }
+          metadata.twitter = { ...rest.twitter }
+          const default_image = `/api/og?title=${
+              title || "The editor for what's next"
+          }`
+
+          if (title) {
+              metadata.title = `${title} - ${meta.default_title}`
+              metadata.openGraph.title = `${title} - ${meta.default_title}`
+              metadata.twitter.title = `${title} - ${meta.default_title}`
+              metadata.image = default_image
+          }
+
+          if (description) {
+              metadata.description = description
+              metadata.openGraph.description = description
+              metadata.twitter.description = description
+          }
+
+          if (image) {
+              metadata.openGraph.images = [image]
+              metadata.twitter.images = [image]
+          } else {
+              metadata.openGraph.images = [default_image]
+              metadata.twitter.images = default_image
+          }
+
+          return <metadata as T>::useless::useless::useless::useless::useless
+      }
+  cursor:
+    file: src/app/metadata.ts
+    line: 1
+    column: 0
+- step: 1
+  eval: EVAL
+  terminal: null
+  files:
+    src/app/metadata.ts: |-
+      interface User {
+          firstName: string;
+          lastName: string;
+          email: string;
+          age: number;
+          good: boolean;
+          github: string;
+      }
+
+      function fullName(author1: User, author2: User, author3: User): string? {
+          if (author1.firstName == "Antonio") {
+              return `${author1.firstName} ${author1.lastName} and ${author2.firstName} ${author2.lastName}`;
+          } else if (author2.firstName == "John") {
+              return `${author2.firstName} ${author2.lastName} and ${author1.firstName} ${author1.lastName}`;
+          } else {
+              return `${author3.firstName} ${author3.lastName} and ${author1.firstName} ${author1.lastName}`;
+          }
+      }
+
+      type SetMetadata = Metadata & {
+          image?: string,
+          bluesky_profile?: string,
+          mastodon_profile?: string,
+          description?: string,
+      };
+
+
+
+      export const set_metadata = <T extends SetMetadata>({
+          titolo,
+          description,
+          /** Manually set an opengraph image. Disables the auto-generated OG image */
+          image,
+          ...rest
+      }: T): Metadata & T => {
+          const metadata: Metadata = {}
+          metadata.openGraph = { ...rest.openGraph }
+          metadata.twitter = { ...rest.twitter }
+          const default_image = `/api/og?title=${
+              title || "The editor for what's next"
+          }`
+
+          if (title) {
+              metadata.title = `${title} - ${meta.default_title}`
+              metadata.openGraph.title = `${title} - ${meta.default_title}`
+              metadata.twitter.title = `${title} - ${meta.default_title}`
+              metadata.image = default_image
+          }
+
+          if (description) {
+              metadata.description = description
+              metadata.openGraph.description = description
+              metadata.twitter.description = description
+          }
+
+          if (image) {
+              metadata.openGraph.images = [image]
+              metadata.twitter.images = [image]
+          } else {
+              metadata.openGraph.images = [default_image]
+              metadata.twitter.images = default_image
+          }
+
+          return <metadata as T>::useless::useless::useless::useless::useless
+      }
+  cursor:
+    file: src/app/metadata.ts
+    line: 37
+    column: 46
+  judge_assertions: |-
+    The output should be exactly the same as the input. If it's even slightly different, the score should be 0:
+
+    Input:
+    ```src/app/metadata.ts
+    interface User {
+    <|editable_region_start|>
+        firstName: string;
+        lastName: string;
+        email: string;
+        age: number;
+        good: boolean;
+        github: string;
+    }
+
+    function fullName(author1: User, author2: User, author3: User): string? {
+        if (author1.firstName == "Antonio") {
+            return `${author1.firstName} ${author1.lastName} and ${author2.firstName} ${author2.lastName}`;
+        } else if (author2.firstName == "John") {
+            return `${author2.firstName} ${author2.lastName} and ${author1.firstName} ${author1.lastName}`;
+        } else {
+            return `${author3.firstName} ${author3.lastName} and ${author1.firstName} ${author1.lastName}`;
+        }
+    }
+
+    type SetMetadata = Metadata & {
+        image?: string,
+        bluesky_profile?: string,
+        mastodon_profile?: string,
+        description?: string,
+    };
+
+
+
+    export const set_metadata = <T extends SetMetadata>({
+        titolo,
+        description,
+        /** Manually set an opengraph image. Disables the auto-generated OG image */
+        image,
+        ...rest
+    }: T): Metadata & T => {
+        const metadata: Metadata = {}
+        metadata.openGraph = { ...rest.openGraph }
+        metadata.twitter = { ...rest.twitter }
+        const default_image = `/api/og?title=${
+            title || "The editor for what's next"
+        }`
+
+        if (title) {
+            metadata.title = `${title} - ${meta.default_title}`
+            metadata.openGraph.title = `${title} - ${meta.default_title}`
+            metadata.twitter.title = `${title} - ${meta.default_title}`
+            metadata.image = default_image
+        }
+
+        if (description) {
+            metadata.description = description
+            metadata.openGraph.description = description
+            metadata.twitter.description = description
+        }
+
+        if (image) {
+            metadata.openGraph.images = [image]
+            metadata.twitter.images = [image]
+        } else {
+            metadata.openGraph.images = [default_image]
+            metadata.twitter.images = default_image
+        }
+
+        return <metadata as T>::useless::useless::useless::useless::useless
+    }
+
+    <|editable_region_end|>
+    ```
+labels: no-op,unknown

@@ -1,0 +1,55 @@
+task_id: 0008
+description: 'Converted from zeta eval: 0008'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let word = "hello";
+          for ch in word.chars() {
+              dbg!(ch);
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let words = vec!["hello";
+          for ch in word.chars() {
+              dbg!(ch);
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 2
+    column: 21
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      fn main() {
+          let words = vec!["hello"];
+          for word in words {
+              for ch in word.chars() {
+                  dbg!(ch);
+              }
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 6
+    column: 9
+  judge_assertions: |-
+    Ensure that `words` assignment is valid.
+    Ensure a nested loop is created.
+    It's okay if the vec! contains more than one element.
+labels: non-local-edit,infer-intent

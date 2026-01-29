@@ -1,0 +1,54 @@
+task_id: "0011"
+description: "Converted from zeta eval: 0011"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/main.rs: |-
+        struct Canvas {
+            pub pixels: Vec<u8>,
+            pub stride: u8,
+            pub size: Size<u8>,
+            pub format: Format
+        }
+    cursor:
+      file: src/main.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/main.rs: |-
+        struct Canvas {
+            pixels: Vec<u8>,
+            pub stride: u8,
+            pub size: Size<u8>,
+            pub format: Format
+        }
+    cursor:
+      file: src/main.rs
+      line: 2
+      column: 4
+  - step: 2
+    terminal: null
+    files:
+      src/main.rs: |-
+        struct Canvas {
+            pixels: Vec<u8>,
+            stride: u8,
+            size: Size<u8>,
+            format: Format
+        }
+    cursor:
+      file: src/main.rs
+      line: 5
+      column: 4
+    judge_assertions: |-
+      Ensure that `pixels` is private.
+      Ensure that `stride` is private.
+      Ensure that `size` is private.
+      Ensure that `format` is private.
+    eval: EVAL
+labels: non-local-edit,complete-pattern

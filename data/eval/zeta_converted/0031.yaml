@@ -1,0 +1,100 @@
+task_id: '0031'
+description: 'Converted from zeta eval: 0031'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    lib/src/unicode.h: "#ifndef TREE_SITTER_UNICODE_H_\n#define TREE_SITTER_UNICODE_H_\n\
+      \n#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n#include <limits.h>\n#include\
+      \ <stdint.h>\n\n#define U_EXPORT\n#define U_EXPORT2\n#include \"unicode/utf8.h\"\
+      \n#include \"unicode/utf16.h\"\n\nstatic const int32_t TS_DECODE_ERROR = U_SENTINEL;\n\
+      \n// These functions read one unicode code point from the given string,\n//\
+      \ returning the number of bytes consumed.\ntypedef uint32_t (*UnicodeDecodeFunction)(\n\
+      \  const uint8_t *string,\n  uint32_t length,\n  int32_t *code_point\n);\n\n\
+      static inline uint32_t ts_decode_utf8(\n  const uint8_t *string,\n  uint32_t\
+      \ length,\n  int32_t *code_point\n) {\n  uint32_t i = 0;\n  U8_NEXT(string,\
+      \ i, length, *code_point);\n  return i;\n}\n\nstatic \n\nstatic inline uint32_t\
+      \ ts_decode_utf16(\n  const uint8_t *string,\n  uint32_t length,\n  int32_t\
+      \ *code_point\n) {\n  uint32_t i = 0;\n  U16_NEXT(((uint16_t *)string), i, length,\
+      \ *code_point);\n  return i * 2;\n}\n\n#ifdef __cplusplus\n}\n#endif\n\n#endif\
+      \  // TREE_SITTER_UNICODE_H_"
+  cursor:
+    file: lib/src/unicode.h
+    line: 36
+    column: 7
+- step: 1
+  eval: EVAL
+  terminal: null
+  files:
+    lib/src/unicode.h: |-
+      #ifndef TREE_SITTER_UNICODE_H_
+      #define TREE_SITTER_UNICODE_H_
+
+      #ifdef __cplusplus
+      extern "C" {
+      #endif
+
+      #include <limits.h>
+      #include <stdint.h>
+
+      #define U_EXPORT
+      #define U_EXPORT2
+      #include "unicode/utf8.h"
+      #include "unicode/utf16.h"
+
+      static const int32_t TS_DECODE_ERROR = U_SENTINEL;
+
+      // These functions read one unicode code point from the given string,
+      // returning the number of bytes consumed.
+      typedef uint32_t (*UnicodeDecodeFunction)(
+        const uint8_t *string,
+        uint32_t length,
+        int32_t *code_point
+      );
+
+      static inline uint32_t ts_decode_utf8(
+        const uint8_t *string,
+        uint32_t length,
+        int32_t *code_point
+      ) {
+        uint32_t i = 0;
+        U8_NEXT(string, i, length, *code_point);
+        return i;
+      }
+
+      static inline uint32_t ts_decode_utf32(
+        const uint8_t *string,
+        uint32_t length,
+        int32_t *code_point
+      ) {
+        if (length >= 4) {
+          *code_point = ((int32_t *)string)[0];
+          return 4;
+        }
+        *code_point = TS_DECODE_ERROR;
+        return 1;
+      }
+
+      static inline uint32_t ts_decode_utf16(
+        const uint8_t *string,
+        uint32_t length,
+        int32_t *code_point
+      ) {
+        uint32_t i = 0;
+        U16_NEXT(((uint16_t *)string), i, length, *code_point);
+        return i * 2;
+      }
+
+      #ifdef __cplusplus
+      }
+      #endif
+
+      #endif  // TREE_SITTER_UNICODE_H_
+  cursor:
+    file: lib/src/unicode.h
+    line: 47
+    column: 1
+  judge_assertions: The code should have an `ts_decode_utf8` function, a `ts_decode_utf16`
+    function, and a third function that is declared as `static`.
+labels: local-edit,complete-implementation

@@ -1,0 +1,61 @@
+task_id: '0002'
+description: 'Converted from zeta eval: 0002'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: |-
+      use std::cmp::Ord;
+
+      pub fn quicksort<T: Ord>(arr: &mut [T]) {
+          let len = arr.len();
+          if len <= 1 {
+              return;
+          }
+
+          let p
+  cursor:
+    file: src/quicksort.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: |-
+      use std::cmp::Ord;
+
+      pub fn quicksort<T: Ord>(arr: &mut [T]) {
+          let len = arr.len();
+          if len <= 1 {
+              return;
+          }
+
+          let pivot = partit
+  cursor:
+    file: src/quicksort.rs
+    line: 9
+    column: 22
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/quicksort.rs: |-
+      use std::cmp::Ord;
+
+      pub fn quicksort<T: Ord>(arr: &mut [T]) {
+          let len = arr.len();
+          if len <= 1 {
+              return;
+          }
+
+          let pivot = partition(arr);
+      }
+  cursor:
+    file: src/quicksort.rs
+    line: 10
+    column: 1
+  judge_assertions: Ensure that it calls a function called `partition` and assign
+    its to `pivot`
+labels: local-edit,complete-implementation

@@ -1,0 +1,231 @@
+task_id: '0030'
+description: 'Converted from zeta eval: 0030'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    __main__.py: |-
+      print(f"Summarizing file: {file_path}")
+          try:
+              with open(file_path, 'r', encoding='utf-8') as file:
+                  content = file.read()
+
+              is_truncated = False
+              if count_tokens(content) > MAX_TOKENS:
+                  chunks = split_text(content, MAX_TOKENS)
+                  chunk_summaries = []
+                  for i, chunk in enumerate(chunks):
+                      print(f"  Processing chunk {i+1}/{len(chunks)} of {file_path}")
+                      chunk_summaries.append(summarize_text(chunk, is_file=True))
+                  summary = summarize_text("\n".join(chunk_summaries), is_file=True, is_truncated=True)
+                  is_truncated = True
+              else:
+                  summary = summarize_text(content, is_file=True)
+
+              print(f"File summary for {file_path}:\n{summary}")
+              save_summary(file_path, summary)
+              return summary
+          except Exception as e:
+              error_msg = f"Error processing {file_path}: {str(e)}"
+              print(error_msg)
+              save_summary(file_path, error_msg)
+              return error_msg
+
+      def get_git_tracked_files(dir_path: str) -> List[str]:
+          try:
+              tracked = subprocess.run(['git', 'ls-files'], cwd=dir_path, capture_output=True, text=True, check=True)
+              untracked = subprocess.run(['git', 'ls-files', '--others', '--exclude-standard'], cwd=dir_path, capture_output=True, text=True, check=True)
+              all_files = tracked.stdout.splitlines() + untracked.stdout.splitlines()
+              return list(set(all_files))  # Remove duplicates
+          except subprocess.CalledProcessError:
+              print(f"Error: Unable to run git commands in {dir_path}")
+              return []
+
+      def get_non_ignored_dirs(dir_path: str) -> List[str]:
+          try:
+              command = "{ git ls-files; git ls-files --others --exclude-standard; } | sort | uniq | xargs dirname | sort | uniq"
+              result = subprocess.run(command, shell=True, cwd=dir_path, capture_output=True, text=True, check=True)
+              non_ignored = result.stdout.splitlines()
+              return [item for item in non_ignored if os.path.isdir(os.path.join(dir_path, item)) and item != '.']
+          except subprocess.CalledProcessError:
+              print(f"Error: Unable to get non-ignored directories in {dir_path}")
+              return []
+
+      def summarize_directory(dir_path: str) -> str:
+          print(f"Summarizing directory: {dir_path}")
+          summaries = []
+
+          tracked_files = set(get_git_tracked_files(dir_path))
+          non_ignored_dirs = set(get_non_ignored_dirs(dir_path))
+
+          for root, dirs, files in os.walk(dir_path):
+              dirs[:] = [os.path.join(root, d) for d in dirs if d in non_ignored_dirs]
+
+              for file in files:
+                  full_path = os.path.join(root, file)
+                  relative_path = os.path.relpath(full_path, dir_path)
+                  if relative_path in tracked_files:
+                      summary = summarize_file(full_path)
+                      summaries.append(f"Summary of {full_path}:\n{summary}")
+
+              for dir in dirs:
+                  full_path = os.path.join(root, dir)
+                  summary = summarize_directory(full_path)
+                  summaries.append(f"Summary of directory {full_path}:\n{summary}")
+  cursor:
+    file: __main__.py
+    line: 1
+    column: 0
+- step: 1
+  eval: EVAL
+  terminal: null
+  files:
+    __main__.py: |-
+      print(f"Summarizing file: {file_path}")
+          try:
+              with open(file_path, 'r', encoding='utf-8') as file:
+                  content = file.read()
+
+              is_truncated = False
+              if count_tokens(content) > MAX_TOKENS:
+                  chunks = split_text(content, MAX_TOKENS)
+                  chunk_summaries = []
+                  for i, chunk in enumerate(chunks):
+                      print(f"  Processing chunk {i+1}/{len(chunks)} of {file_path}")
+                      chunk_summaries.append(summarize_text(chunk, is_file=True))
+                  summary = summarize_text("\n".join(chunk_summaries), is_file=True, is_truncated=True)
+                  is_truncated = True
+              else:
+                  summary = summarize_text(content, is_file=True)
+
+              print(f"File summary for {file_path}:\n{summary}")
+              save_summary(file_path, summary)
+              return summary
+          except Exception as e:
+              error_msg = f"Error processing {file_path}: {str(e)}"
+              print(error_msg)
+              save_summary(file_path, error_msg)
+              return error_msg
+
+      def get_git_tracked_files(dir_path: str) -> List[str]:
+          try:
+              tracked = subprocess.run(['git', 'ls-files'], cwd=dir_path, capture_output=True, text=True, check=True)
+              untracked = subprocess.run(['git', 'ls-files', '--others', '--exclude-standard'], cwd=dir_path, capture_output=True, text=True, check=True)
+              all_files = tracked.stdout.splitlines() + untracked.stdout.splitlines()
+              return list(set(all_files))  # Remove duplicates
+          except subprocess.CalledProcessError:
+              print(f"Error: Unable to run git commands in {dir_path}")
+              return []
+
+      def get_non_ignored_dirs(dir_path: str) -> List[str]:
+          try:
+              command = "{ git ls-files; git ls-files --others --exclude-standard; } | sort | uniq | xargs dirname | sort | uniq"
+              result = subprocess.run(command, shell=True, cwd=dir_path, capture_output=True, text=True, check=True)
+              non_ignored = result.stdout.splitlines()
+              return [item for item in non_ignored if os.path.isdir(os.path.join(dir_path, item)) and item != '.']
+          except subprocess.CalledProcessError:
+              print(f"Error: Unable to get non-ignored directories in {dir_path}")
+              return []
+
+      def summarize_directory(dir_path: str) -> str:
+          print(f"Summarizing directory: {dir_path}")
+          summaries = []
+
+          tracked_files = set(get_git_tracked_files(dir_path))
+          non_ignored_dirs = set(get_non_ignored_dirs(dir_path))
+
+          for root, dirs, files in os.walk(dir_path):
+              dirs[:] = [os.path.join(root, d) for d in dirs if d in non_ignored_dirs]
+
+              for file in files:
+                  full_path = os.path.join(root, file)
+                  relative_path = os.path.relpath(full_path, dir_path)
+                  if relative_path in tracked_files:
+                      summary = summarize_file(full_path)
+                      summaries.append(f"Summary of {full_path}:\n{summary}")
+
+              for dir in dirs:
+                  full_path = os.path.join(root, dir)
+                  summary = summarize_directory(full_path)
+                  summaries.append(f"Summary of directory {full_path}:\n{summary}")
+  cursor:
+    file: __main__.py
+    line: 34
+    column: 65
+  judge_assertions: |-
+    The model output should be exactly the same as the input. If it's even slightly different, the score should be 0:
+
+    Input:
+    ```__main__.py
+        print(f"Summarizing file: {file_path}")
+    <|editable_region_start|>
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read()
+
+            is_truncated = False
+            if count_tokens(content) > MAX_TOKENS:
+                chunks = split_text(content, MAX_TOKENS)
+                chunk_summaries = []
+                for i, chunk in enumerate(chunks):
+                    print(f"  Processing chunk {i+1}/{len(chunks)} of {file_path}")
+                    chunk_summaries.append(summarize_text(chunk, is_file=True))
+                summary = summarize_text("\n".join(chunk_summaries), is_file=True, is_truncated=True)
+                is_truncated = True
+            else:
+                summary = summarize_text(content, is_file=True)
+
+            print(f"File summary for {file_path}:\n{summary}")
+            save_summary(file_path, summary)
+            return summary
+        except Exception as e:
+            error_msg = f"Error processing {file_path}: {str(e)}"
+            print(error_msg)
+            save_summary(file_path, error_msg)
+            return error_msg
+
+    def get_git_tracked_files(dir_path: str) -> List[str]:
+        try:
+            tracked = subprocess.run(['git', 'ls-files'], cwd=dir_path, capture_output=True, text=True, check=True)
+            untracked = subprocess.run(['git', 'ls-files', '--others', '--exclude-standard'], cwd=dir_path, capture_output=True, text=True, check=True)
+            all_files = tracked.stdout.splitlines() + untracked.stdout.splitlines()
+            return list(set(all_files))  # Remove duplicates
+        except subprocess.CalledProcessError:
+            print(f"Error: Unable to run git commands in {dir_path}")
+            return []
+
+    def get_non_ignored_dirs(dir_path: str) -> List[str]:
+        try:
+            command = "{ git ls-files; git ls-files --others --exclude-standard; } | sort | uniq | xargs dirname | sort | uniq"
+            result = subprocess.run(command, shell=True, cwd=dir_path, capture_output=True, text=True, check=True)
+            non_ignored = result.stdout.splitlines()
+            return [item for item in non_ignored if os.path.isdir(os.path.join(dir_path, item)) and item != '.']
+        except subprocess.CalledProcessError:
+            print(f"Error: Unable to get non-ignored directories in {dir_path}")
+            return []
+
+    def summarize_directory(dir_path: str) -> str:
+        print(f"Summarizing directory: {dir_path}")
+        summaries = []
+
+        tracked_files = set(get_git_tracked_files(dir_path))
+        non_ignored_dirs = set(get_non_ignored_dirs(dir_path))
+
+        for root, dirs, files in os.walk(dir_path):
+            dirs[:] = [os.path.join(root, d) for d in dirs if d in non_ignored_dirs]
+
+            for file in files:
+                full_path = os.path.join(root, file)
+                relative_path = os.path.relpath(full_path, dir_path)
+                if relative_path in tracked_files:
+                    summary = summarize_file(full_path)
+                    summaries.append(f"Summary of {full_path}:\n{summary}")
+
+            for dir in dirs:
+                full_path = os.path.join(root, dir)
+                summary = summarize_directory(full_path)
+    <|editable_region_end|>
+                summaries.append(f"Summary of directory {full_path}:\n{summary}")
+    ```
+labels: no-op,unknown
