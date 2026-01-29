@@ -1,421 +1,464 @@
-task_id: '0024'
-description: 'Converted from zeta eval: 0024'
+task_id: "0024"
+description: "Converted from zeta eval: 0024"
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: |
-      // Cursor is 2+ lines below the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line
-              line 2
-              line 3
-              line ˇ4
-          "});
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
 
-          propose_edits(
-              &provider,
-              vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
 
-          // When accepting, cursor is moved to the proposed location
-          accept_completion(&mut cx);
-          cx.assert_editor_state(indoc! {"
-              line 0
-              linˇe
-              line 2
-              line 3
-              line 4
-          "});
-      }
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
 
-      #[gpui::test]
-      async fn test_inden(cx: &mut gpui::TestAppContext) {
-      }
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
 
-      #[gpui::test]
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-          init_test(cx, |_| {});
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
 
-          let mut cx = EditorTestContext::new(cx).await;
-          let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
-          assign_editor_completion_provider(provider.clone(), &mut cx);
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
 
-          // Cursor is 3+ lines above the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line ˇ1
-              line 2
-              line 3
-              line 4
-              line
-          "});
-          let edit_location = Point::new(5, 3);
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
 
-          propose_edits(
-              &provider,
-              vec![(edit_location..edit_location, " 5")],
-              &mut cx,
-          );
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), edit_location);
-          });
+            // If we move *towards* the completion, it stays active
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
 
-          // If we move *towards* the completion, it stays active
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 1
-    column: 0
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: |
-      // Cursor is 2+ lines below the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line
-              line 2
-              line 3
-              line ˇ4
-          "});
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
 
-          propose_edits(
-              &provider,
-              vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
-              &mut cx,
-          );
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
-          });
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
 
-          // When accepting, cursor is moved to the proposed location
-          accept_completion(&mut cx);
-          cx.assert_editor_state(indoc! {"
-              line 0
-              linˇe
-              line 2
-              line 3
-              line 4
-          "});
-      }
 
-      #[gpui::test]
-      async fn test_inden(cx: &mut gpui::TestAppContext) {
-      }
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+        }
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
 
-      #[gpui::test]
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-          init_test(cx, |_| {});
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
 
-          let mut cx = EditorTestContext::new(cx).await;
-          let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
-          assign_editor_completion_provider(provider.clone(), &mut cx);
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
 
-          // Cursor is 3+ lines above the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line ˇ1
-              line 2
-              line 3
-              line 4
-              line
-          "});
-          let edit_location = Point::new(5, 3);
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
 
-          propose_edits(
-              &provider,
-              vec![(edit_location..edit_location, " 5")],
-              &mut cx,
-          );
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), edit_location);
-          });
+            // If we move *towards* the completion, it stays active
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 35
+      column: 1
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
 
-          // If we move *towards* the completion, it stays active
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 1
-    column: 45
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: |
-      // Cursor is 2+ lines below the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line
-              line 2
-              line 3
-              line ˇ4
-          "});
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
 
-          propose_edits(
-              &provider,
-              vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
-              &mut cx,
-          );
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
-          });
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
 
-          // When accepting, cursor is moved to the proposed location
-          accept_completion(&mut cx);
-          cx.assert_editor_state(indoc! {"
-              line 0
-              linˇe
-              line 2
-              line 3
-              line 4
-          "});
-      }
 
-      #[gpui::test]
-      async fn test_inden(cx: &mut gpui::TestAppContext) {
-      }
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+        }
 
-      #[gpui::test]
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-          init_test(cx, |_| {});
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
 
-          let mut cx = EditorTestContext::new(cx).await;
-          let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
-          assign_editor_completion_provider(provider.clone(), &mut cx);
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
 
-          // Cursor is 3+ lines above the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line ˇ1
-              line 2
-              line 3
-              line 4
-              line
-          "});
-          let edit_location = Point::new(5, 3);
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
 
-          propose_edits(
-              &provider,
-              vec![(edit_location..edit_location, " 5")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), edit_location);
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
 
-          // If we move *towards* the completion, it stays active
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 1
-    column: 45
-- step: 3
-  eval: NO_EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: |-
-      // Cursor is 2+ lines below the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line
-              line 2
-              line 3
-              line ˇ4
-          "});
+            // If we move *towards* the completion, it stays active
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 36
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
 
-          propose_edits(
-              &provider,
-              vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
 
-          // When accepting, cursor is moved to the proposed location
-          accept_completion(&mut cx);
-          cx.assert_editor_state(indoc! {"
-              line 0
-              linˇe
-              line 2
-              line 3
-              line 4
-          "});
-      }
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
 
-      #[gpui::test]
-      async fn test_inden(cx: &mut gpui::TestAppContext) {
-      }
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+        }
 
-      #[gpui::test]
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-          init_test(cx, |_| {});
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
 
-          let mut cx = EditorTestContext::new(cx).await;
-          let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
-          assign_editor_completion_provider(provider.clone(), &mut cx);
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
 
-          // Cursor is 3+ lines above the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line ˇ1
-              line 2
-              line 3
-              line 4
-              line
-          "});
-          let edit_location = Point::new(5, 3);
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
 
-          propose_edits(
-              &provider,
-              vec![(edit_location..edit_location, " 5")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), edit_location);
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
 
-          // If we move *towards* the completion, it stays active
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 1
-    column: 45
-- step: 4
-  eval: NO_EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: |-
-      // Cursor is 2+ lines below the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line
-              line 2
-              line 3
-              line ˇ4
-          "});
+            // If we move *towards* the completion, it stays active
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 31
+      column: 0
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
 
-          propose_edits(
-              &provider,
-              vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
 
-          // When accepting, cursor is moved to the proposed location
-          accept_completion(&mut cx);
-          cx.assert_editor_state(indoc! {"
-              line 0
-              linˇe
-              line 2
-              line 3
-              line 4
-          "});
-      }
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
 
-      #[gpui::test]
-      async fn test_inden(cx: &mut gpui::TestAppContext) {
-      }
+        #[gpui::test]
+        async fn test_inden(cx: &mut gpui::TestAppContext) {
+        }
 
-      #[gpui::test]
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
-          init_test(cx, |_| {});
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
 
-          let mut cx = EditorTestContext::new(cx).await;
-          let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
-          assign_editor_completion_provider(provider.clone(), &mut cx);
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
 
-          // Cursor is 3+ lines above the proposed edit
-          cx.set_state(indoc! {"
-              line 0
-              line ˇ1
-              line 2
-              line 3
-              line 4
-              line
-          "});
-          let edit_location = Point::new(5, 3);
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
 
-          propose_edits(
-              &provider,
-              vec![(edit_location..edit_location, " 5")],
-              &mut cx,
-          );
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
 
-          cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
-          assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
-              assert_eq!(move_target.to_point(&snapshot), edit_location);
-          });
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
 
-          // If we move *towards* the completion, it stays active
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 33
-    column: 19
-- step: 5
-  eval: EVAL
-  terminal: null
-  files:
-    crates/editor/src/inline_completion_tests.rs: "// Cursor is 2+ lines below the\
-      \ proposed edit\n    cx.set_state(indoc! {\"\n        line 0\n        line\n\
-      \        line 2\n        line 3\n        line ˇ4\n    \"});\n\n    propose_edits(\n\
-      \        &provider,\n        vec![(Point::new(1, 3)..Point::new(1, 3), \" 1\"\
-      )],\n        &mut cx,\n    );\n\n    cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));\n\
-      \    assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {\n\
-      \        assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));\n  \
-      \  });\n\n    // When accepting, cursor is moved to the proposed location\n\
-      \    accept_completion(&mut cx);\n    cx.assert_editor_state(indoc! {\"\n  \
-      \      line 0\n        linˇe\n        line 2\n        line 3\n        line 4\n\
-      \    \"});\n}\n\n#[gpui::test]\nasync fn test_indentation(cx: &mut gpui::TestAppContext)\
-      \ {\n    init_test(cx, |_| {});\n    \n    let mut cx = EditorTestContext::new(cx).await;\n\
-      \    let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());\n\
-      \    assign_editor_completion_provider(provider.clone(), &mut cx);\n}\n\n#[gpui::test]\n\
-      async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext)\
-      \ {\n    init_test(cx, |_| {});\n\n    let mut cx = EditorTestContext::new(cx).await;\n\
-      \    let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());\n\
-      \    assign_editor_completion_provider(provider.clone(), &mut cx);\n\n    //\
-      \ Cursor is 3+ lines above the proposed edit\n    cx.set_state(indoc! {\"\n\
-      \        line 0\n        line ˇ1\n        line 2\n        line 3\n        line\
-      \ 4\n        line\n    \"});\n    let edit_location = Point::new(5, 3);\n\n\
-      \    propose_edits(\n        &provider,\n        vec![(edit_location..edit_location,\
-      \ \" 5\")],\n        &mut cx,\n    );\n\n    cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));\n\
-      \    assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {\n\
-      \        assert_eq!(move_target.to_point(&snapshot), edit_location);\n    });\n\
-      \n    // If we move *towards* the completion, it stays active"
-  cursor:
-    file: crates/editor/src/inline_completion_tests.rs
-    line: 38
-    column: 65
-  judge_assertions: |-
-    Ensure there's a test function called exactly `test_inline_completion_invalidation_range`.
-    Ensure there is a test function called `test_indentation` or similar.
-    Optionally, the `test_indentation` function has a body with test setup.
+            // If we move *towards* the completion, it stays active
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 33
+      column: 19
+  - step: 5
+    eval: EVAL
+    terminal: null
+    files:
+      crates/editor/src/inline_completion_tests.rs: |-
+        // Cursor is 2+ lines below the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line
+                line 2
+                line 3
+                line ˇ4
+            "});
+
+            propose_edits(
+                &provider,
+                vec![(Point::new(1, 3)..Point::new(1, 3), " 1")],
+                &mut cx,
+            );
+
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), Point::new(1, 3));
+            });
+
+            // When accepting, cursor is moved to the proposed location
+            accept_completion(&mut cx);
+            cx.assert_editor_state(indoc! {"
+                line 0
+                linˇe
+                line 2
+                line 3
+                line 4
+            "});
+        }
+
+        #[gpui::test]
+        async fn test_indentation(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
+            
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
+        }
+
+        #[gpui::test]
+        async fn test_inline_completion_invalidation_range(cx: &mut gpui::TestAppContext) {
+            init_test(cx, |_| {});
+
+            let mut cx = EditorTestContext::new(cx).await;
+            let provider = cx.new_model(|_| FakeInlineCompletionProvider::default());
+            assign_editor_completion_provider(provider.clone(), &mut cx);
+
+            // Cursor is 3+ lines above the proposed edit
+            cx.set_state(indoc! {"
+                line 0
+                line ˇ1
+                line 2
+                line 3
+                line 4
+                line
+            "});
+            let edit_location = Point::new(5, 3);
+
+            propose_edits(
+                &provider,
+                vec![(edit_location..edit_location, " 5")],
+                &mut cx,
+            );
+
+            cx.update_editor(|editor, cx| editor.update_visible_inline_completion(cx));
+            assert_editor_active_move_completion(&mut cx, |snapshot, move_target| {
+                assert_eq!(move_target.to_point(&snapshot), edit_location);
+            });
+
+            // If we move *towards* the completion, it stays active
+    cursor:
+      file: crates/editor/src/inline_completion_tests.rs
+      line: 38
+      column: 65
+    judge_assertions: |-
+      Ensure there's a test function called exactly `test_inline_completion_invalidation_range`.
+      Ensure there is a test function called `test_indentation` or similar.
+      Optionally, the `test_indentation` function has a body with test setup.
 labels: local-edit,complete-implementation

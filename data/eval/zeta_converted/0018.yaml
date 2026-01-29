@@ -1,61 +1,34 @@
-task_id: 0018
-description: 'Converted from zeta eval: 0018'
+task_id: 18
+description: "Converted from zeta eval: 0018"
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\
-      \n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\
-      \n)\n\nfunc TestLetStatements(t *testing.T) {\n\ttests := []struct {\n\t\tinput\
-      \              string"
-  cursor:
-    file: parser/parser_test.go
-    line: 1
-    column: 0
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\
-      \n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\
-      \n)\n\nfunc TestWhileStatements(t *testing.T) {\n\t\n}\n\nfunc TestLetStatements(t\
-      \ *testing.T) {\n\ttests := []struct {\n\t\tinput              string"
-  cursor:
-    file: parser/parser_test.go
-    line: 12
-    column: 1
-- step: 2
-  eval: EVAL
-  terminal: null
-  files:
-    parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\
-      \n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\
-      \n)\n\nfunc TestWhileStatements(t *testing.T) {\n\ttests := []struct {\n\t\t\
-      input              string\n\t\texpectedCondition  string\n\t\texpectedBody \
-      \      string\n\t}{\n\t\t{\"while (x < y) { x + 1; }\", \"(x < y)\", \"(x +\
-      \ 1)\"},\n\t\t{\"while (true) { 5; }\", \"true\", \"5\"},\n\t\t{\"while (false)\
-      \ { return 10; }\", \"false\", \"return 10;\"},\n\t}\n\n\tfor _, tt := range\
-      \ tests {\n\t\tl := lexer.New(tt.input)\n\t\tp := New(l)\n\t\tprogram := p.ParseProgram()\n\
-      \t\tcheckParserErrors(t, p)\n\n\t\tif len(program.Statements) != 1 {\n\t\t\t\
-      t.Fatalf(\"program.Statements does not contain 1 statement. got=%d\",\n\t\t\t\
-      len(program.Statements))\n\t\t}\n\n\t\tstmt, ok := program.Statements[0].(*ast.ExpressionStatement)\n\
-      \t\tif !ok {\n\t  \tt.Fatalf(\"program.Statements[0] is not ast.ExpressionStatement.\
-      \ got=%T\",\n\t  \tprogram.Statements[0])\n\t\t}\n\n\t\twhileExp, ok := stmt.Expression.(*ast.WhileExpression)\n\
-      \t\tif !ok {\n\t\t\tt.Fatalf(\"stmt.Expression is not ast.WhileExpression. got=%T\"\
-      ,\n\t\t\tstmt.Expression)\n\t\t}\n\n\t\tif whileExp.Condition.String() != tt.expectedCondition\
-      \ {\n\t\t\tt.Errorf(\"condition is not %q. got=%q\",\n\t\t\ttt.expectedCondition,\
-      \ whileExp.Condition.String())\n\t\t}\n\n\t\tif len(whileExp.Body.Statements)\
-      \ != 1 {\n\t\t\tt.Errorf(\"while body is not 1 statement. got=%d\\n\",\n\t\t\
-      \tlen(whileExp.Body.Statements))\n\t\t\tcontinue\n\t\t}\n\n\t\tif whileExp.Body.String()\
-      \ != tt.expectedBody {\n\t\t\tt.Errorf(\"body is not %q. got=%q\",\n\t\t\ttt.expectedBody,\
-      \ whileExp.Body.String())\n\t\t}\n\t}\n}\n\nfunc TestLetStatements(t *testing.T)\
-      \ {\n\ttests := []struct {\n\t\tinput              string"
-  cursor:
-    file: parser/parser_test.go
-    line: 60
-    column: 2
-  judge_assertions: |-
-    Ensure the TestWhileStatements function has at least one valid test case in its body.
-    Ensure the code is syntactically valid.
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\n)\n\nfunc TestLetStatements(t *testing.T) {\n\ttests := []struct {\n\t\tinput              string"
+    cursor:
+      file: parser/parser_test.go
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\n)\n\nfunc TestWhileStatements(t *testing.T) {\n\t\n}\n\nfunc TestLetStatements(t *testing.T) {\n\ttests := []struct {\n\t\tinput              string"
+    cursor:
+      file: parser/parser_test.go
+      line: 13
+      column: 1
+  - step: 2
+    eval: EVAL
+    terminal: null
+    files:
+      parser/parser_test.go: "package parser\n\nimport (\n\t\"fmt\"\n\t\"testing\"\n\n\t\"github.com/mrnugget/monkey/ast\"\n\t\"github.com/mrnugget/monkey/lexer\"\n)\n\nfunc TestWhileStatements(t *testing.T) {\n\ttests := []struct {\n\t\tinput              string\n\t\texpectedCondition  string\n\t\texpectedBody       string\n\t}{\n\t\t{\"while (x < y) { x + 1; }\", \"(x < y)\", \"(x + 1)\"},\n\t\t{\"while (true) { 5; }\", \"true\", \"5\"},\n\t\t{\"while (false) { return 10; }\", \"false\", \"return 10;\"},\n\t}\n\n\tfor _, tt := range tests {\n\t\tl := lexer.New(tt.input)\n\t\tp := New(l)\n\t\tprogram := p.ParseProgram()\n\t\tcheckParserErrors(t, p)\n\n\t\tif len(program.Statements) != 1 {\n\t\t\tt.Fatalf(\"program.Statements does not contain 1 statement. got=%d\",\n\t\t\tlen(program.Statements))\n\t\t}\n\n\t\tstmt, ok := program.Statements[0].(*ast.ExpressionStatement)\n\t\tif !ok {\n\t  \tt.Fatalf(\"program.Statements[0] is not ast.ExpressionStatement. got=%T\",\n\t  \tprogram.Statements[0])\n\t\t}\n\n\t\twhileExp, ok := stmt.Expression.(*ast.WhileExpression)\n\t\tif !ok {\n\t\t\tt.Fatalf(\"stmt.Expression is not ast.WhileExpression. got=%T\",\n\t\t\tstmt.Expression)\n\t\t}\n\n\t\tif whileExp.Condition.String() != tt.expectedCondition {\n\t\t\tt.Errorf(\"condition is not %q. got=%q\",\n\t\t\ttt.expectedCondition, whileExp.Condition.String())\n\t\t}\n\n\t\tif len(whileExp.Body.Statements) != 1 {\n\t\t\tt.Errorf(\"while body is not 1 statement. got=%d\\n\",\n\t\t\tlen(whileExp.Body.Statements))\n\t\t\tcontinue\n\t\t}\n\n\t\tif whileExp.Body.String() != tt.expectedBody {\n\t\t\tt.Errorf(\"body is not %q. got=%q\",\n\t\t\ttt.expectedBody, whileExp.Body.String())\n\t\t}\n\t}\n}\n\nfunc TestLetStatements(t *testing.T) {\n\ttests := []struct {\n\t\tinput              string"
+    cursor:
+      file: parser/parser_test.go
+      line: 60
+      column: 2
+    judge_assertions: |-
+      Ensure the TestWhileStatements function has at least one valid test case in its body.
+      Ensure the code is syntactically valid.
 labels: local-edit,complete-implementation

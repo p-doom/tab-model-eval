@@ -1,229 +1,229 @@
-task_id: '0033'
-description: 'Converted from zeta eval: 0033'
+task_id: "0033"
+description: "Converted from zeta eval: 0033"
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    astropy/units/function/core.py: |-
-      # -*- coding: utf-8 -*-
-      # Licensed under a 3-clause BSD style license - see LICENSE.rst
-      """Function Units and Quantities."""
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      astropy/units/function/core.py: |-
+        # -*- coding: utf-8 -*-
+        # Licensed under a 3-clause BSD style license - see LICENSE.rst
+        """Function Units and Quantities."""
 
-      from abc import ABCMeta, abstractmethod
+        from abc import ABCMeta, abstractmethod
 
-      import numpy as np
+        import numpy as np
 
-      from astropy.units import (
-          Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
-          dimensionless_unscaled)
+        from astropy.units import (
+            Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
+            dimensionless_unscaled)
 
-      __all__ = ['FunctionUnitBase', 'FunctionQuantity']
+        __all__ = ['FunctionUnitBase', 'FunctionQuantity']
 
-      SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
-          'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
-          'rint', 'floor', 'ceil', 'trunc',
-          '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
+        SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
+            'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
+            'rint', 'floor', 'ceil', 'trunc',
+            '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
 
-      # TODO: the following could work if helper changed relative to Quantity:
-      # - spacing should return dimensionless, not same unit
-      # - negative should negate unit too,
-      # - add, subtract, comparisons can work if units added/subtracted
+        # TODO: the following could work if helper changed relative to Quantity:
+        # - spacing should return dimensionless, not same unit
+        # - negative should negate unit too,
+        # - add, subtract, comparisons can work if units added/subtracted
 
-      SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
-                                ('clip', 'trace', 'mean', 'min', 'max', 'round'))
-
-
-      # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
-      # a large number of overrides. Hence, define new class.
-      class FunctionUnitBase(metaclass=ABCMeta):
-          """Abstract base class for function units.
-
-          Function units are functions containing a physical unit, such as dB(mW).
-          Most of the arithmetic operations on function units are defined in this
-          base class.
-
-          While instantiation is defined, this class should not be used directly.
-          Rather, subclasses should be used that override the abstract properties
-          `_default_function_unit` and `_quantity_class`, and the abstract methods
-          `from_physical`, and `to_physical`.
-
-          Parameters
-          ----------
-          physical_unit : `~astropy.units.Unit` or `string`
-              Unit that is encapsulated within the function unit.
-              If not given, dimensionless.
-
-          function_unit :  `~astropy.units.Unit` or `string`
-              By default, the same as the function unit set by the subclass.
-          """
-          # ↓↓↓ the following four need to be set by subclasses
-          # Make this a property so we can ensure subclasses define it.
-          @property
-          @abstractmethod
-          def _default_function_unit(self):
-              """Default function unit corresponding to the function.
-
-              This property should be overridden by subclasses, with, e.g.,
-              `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
-              """
-
-          # This has to be a property because the function quantity will not be
-          # known at unit definition time, as it gets defined after.
-          @property
-          @abstractmethod
-  cursor:
-    file: astropy/units/function/core.py
-    line: 1
-    column: 0
-- step: 1
-  eval: EVAL
-  terminal: null
-  files:
-    astropy/units/function/core.py: |-
-      # -*- coding: utf-8 -*-
-      # Licensed under a 3-clause BSD style license - see LICENSE.rst
-      """Function Units and Quantities."""
-
-      from abc import ABCMeta, abstractmethod
-
-      import numpy as np
-
-      from astropy.units import (
-          Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
-          dimensionless_unscaled)
-
-      __all__ = ['FunctionUnitBase', 'FunctionQuantity']
-
-      SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
-          'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
-          'rint', 'floor', 'ceil', 'trunc',
-          '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
-
-      # TODO: the following could work if helper changed relative to Quantity:
-      # - spacing should return dimensionless, not same unit
-      # - negative should negate unit too,
-      # - add, subtract, comparisons can work if units added/subtracted
-
-      SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
-                                ('clip', 'trace', 'mean', 'min', 'max', 'round'))
+        SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
+                                  ('clip', 'trace', 'mean', 'min', 'max', 'round'))
 
 
-      # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
-      # a large number of overrides. Hence, define new class.
-      class FunctionUnitBase(metaclass=ABCMeta):
-          """Abstract base class for function units.
+        # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
+        # a large number of overrides. Hence, define new class.
+        class FunctionUnitBase(metaclass=ABCMeta):
+            """Abstract base class for function units.
 
-          Function units are functions containing a physical unit, such as dB(mW).
-          Most of the arithmetic operations on function units are defined in this
-          base class.
+            Function units are functions containing a physical unit, such as dB(mW).
+            Most of the arithmetic operations on function units are defined in this
+            base class.
 
-          While instantiation is defined, this class should not be used directly.
-          Rather, subclasses should be used that override the abstract properties
-          `_default_function_unit` and `_quantity_class`, and the abstract methods
-          `from_physical`, and `to_physical`.
+            While instantiation is defined, this class should not be used directly.
+            Rather, subclasses should be used that override the abstract properties
+            `_default_function_unit` and `_quantity_class`, and the abstract methods
+            `from_physical`, and `to_physical`.
 
-          Parameters
-          ----------
-          physical_unit : `~astropy.units.Unit` or `string`
-              Unit that is encapsulated within the function unit.
-              If not given, dimensionless.
+            Parameters
+            ----------
+            physical_unit : `~astropy.units.Unit` or `string`
+                Unit that is encapsulated within the function unit.
+                If not given, dimensionless.
 
-          function_unit :  `~astropy.units.Unit` or `string`
-              By default, the same as the function unit set by the subclass.
-          """
-          # ↓↓↓ the following four need to be set by subclasses
-          # Make this a property so we can ensure subclasses define it.
-          @property
-          @abstractmethod
-          def _default_function_unit(self):
-              """Default function unit corresponding to the function.
-
-              This property should be overridden by subclasses, with, e.g.,
-              `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
-              """
-
-          # This has to be a property because the function quantity will not be
-          # known at unit definition time, as it gets defined after.
-          @property
-          @abstractmethod
-  cursor:
-    file: astropy/units/function/core.py
-    line: 12
-    column: 0
-  judge_assertions: |-
-    The model output should be exactly the same as the input. If it's even slightly different, the score should be 0:
-
-    Input:
-    ```astropy/units/function/core.py
-    <|start_of_file|>
-    <|editable_region_start|>
-    # -*- coding: utf-8 -*-
-    # Licensed under a 3-clause BSD style license - see LICENSE.rst
-    """Function Units and Quantities."""
-
-    from abc import ABCMeta, abstractmethod
-
-    import numpy as np
-
-    from astropy.units import (
-        Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
-        dimensionless_unscaled)
-
-    __all__ = ['FunctionUnitBase', 'FunctionQuantity']
-
-    SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
-        'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
-        'rint', 'floor', 'ceil', 'trunc',
-        '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
-
-    # TODO: the following could work if helper changed relative to Quantity:
-    # - spacing should return dimensionless, not same unit
-    # - negative should negate unit too,
-    # - add, subtract, comparisons can work if units added/subtracted
-
-    SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
-                              ('clip', 'trace', 'mean', 'min', 'max', 'round'))
-
-
-    # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
-    # a large number of overrides. Hence, define new class.
-    class FunctionUnitBase(metaclass=ABCMeta):
-        """Abstract base class for function units.
-
-        Function units are functions containing a physical unit, such as dB(mW).
-        Most of the arithmetic operations on function units are defined in this
-        base class.
-
-        While instantiation is defined, this class should not be used directly.
-        Rather, subclasses should be used that override the abstract properties
-        `_default_function_unit` and `_quantity_class`, and the abstract methods
-        `from_physical`, and `to_physical`.
-
-        Parameters
-        ----------
-        physical_unit : `~astropy.units.Unit` or `string`
-            Unit that is encapsulated within the function unit.
-            If not given, dimensionless.
-
-        function_unit :  `~astropy.units.Unit` or `string`
-            By default, the same as the function unit set by the subclass.
-        """
-        # ↓↓↓ the following four need to be set by subclasses
-        # Make this a property so we can ensure subclasses define it.
-        @property
-        @abstractmethod
-        def _default_function_unit(self):
-            """Default function unit corresponding to the function.
-
-            This property should be overridden by subclasses, with, e.g.,
-            `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
+            function_unit :  `~astropy.units.Unit` or `string`
+                By default, the same as the function unit set by the subclass.
             """
+            # ↓↓↓ the following four need to be set by subclasses
+            # Make this a property so we can ensure subclasses define it.
+            @property
+            @abstractmethod
+            def _default_function_unit(self):
+                """Default function unit corresponding to the function.
 
-        # This has to be a property because the function quantity will not be
-        # known at unit definition time, as it gets defined after.
-        @property
-    <|editable_region_end|>
-        @abstractmethod
-    ```
+                This property should be overridden by subclasses, with, e.g.,
+                `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
+                """
+
+            # This has to be a property because the function quantity will not be
+            # known at unit definition time, as it gets defined after.
+            @property
+            @abstractmethod
+    cursor:
+      file: astropy/units/function/core.py
+      line: 1
+      column: 0
+  - step: 1
+    eval: EVAL
+    terminal: null
+    files:
+      astropy/units/function/core.py: |-
+        # -*- coding: utf-8 -*-
+        # Licensed under a 3-clause BSD style license - see LICENSE.rst
+        """Function Units and Quantities."""
+
+        from abc import ABCMeta, abstractmethod
+
+        import numpy as np
+
+        from astropy.units import (
+            Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
+            dimensionless_unscaled)
+        e
+        __all__ = ['FunctionUnitBase', 'FunctionQuantity']
+
+        SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
+            'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
+            'rint', 'floor', 'ceil', 'trunc',
+            '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
+
+        # TODO: the following could work if helper changed relative to Quantity:
+        # - spacing should return dimensionless, not same unit
+        # - negative should negate unit too,
+        # - add, subtract, comparisons can work if units added/subtracted
+
+        SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
+                                  ('clip', 'trace', 'mean', 'min', 'max', 'round'))
+
+
+        # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
+        # a large number of overrides. Hence, define new class.
+        class FunctionUnitBase(metaclass=ABCMeta):
+            """Abstract base class for function units.
+
+            Function units are functions containing a physical unit, such as dB(mW).
+            Most of the arithmetic operations on function units are defined in this
+            base class.
+
+            While instantiation is defined, this class should not be used directly.
+            Rather, subclasses should be used that override the abstract properties
+            `_default_function_unit` and `_quantity_class`, and the abstract methods
+            `from_physical`, and `to_physical`.
+
+            Parameters
+            ----------
+            physical_unit : `~astropy.units.Unit` or `string`
+                Unit that is encapsulated within the function unit.
+                If not given, dimensionless.
+
+            function_unit :  `~astropy.units.Unit` or `string`
+                By default, the same as the function unit set by the subclass.
+            """
+            # ↓↓↓ the following four need to be set by subclasses
+            # Make this a property so we can ensure subclasses define it.
+            @property
+            @abstractmethod
+            def _default_function_unit(self):
+                """Default function unit corresponding to the function.
+
+                This property should be overridden by subclasses, with, e.g.,
+                `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
+                """
+
+            # This has to be a property because the function quantity will not be
+            # known at unit definition time, as it gets defined after.
+            @property
+            @abstractmethod
+    cursor:
+      file: astropy/units/function/core.py
+      line: 12
+      column: 0
+    judge_assertions: |-
+      The model output should be exactly the same as the input. If it's even slightly different, the score should be 0:
+
+      Input:
+      ```astropy/units/function/core.py
+      <|start_of_file|>
+      <|editable_region_start|>
+      # -*- coding: utf-8 -*-
+      # Licensed under a 3-clause BSD style license - see LICENSE.rst
+      """Function Units and Quantities."""
+
+      from abc import ABCMeta, abstractmethod
+
+      import numpy as np
+
+      from astropy.units import (
+          Quantity, Unit, UnitBase, UnitConversionError, UnitsError, UnitTypeError,
+          dimensionless_unscaled)
+
+      __all__ = ['FunctionUnitBase', 'FunctionQuantity']
+
+      SUPPORTED_UFUNCS = set(getattr(np.core.umath, ufunc) for ufunc in (
+          'isfinite', 'isinf', 'isnan', 'sign', 'signbit',
+          'rint', 'floor', 'ceil', 'trunc',
+          '_ones_like', 'ones_like', 'positive') if hasattr(np.core.umath, ufunc))
+
+      # TODO: the following could work if helper changed relative to Quantity:
+      # - spacing should return dimensionless, not same unit
+      # - negative should negate unit too,
+      # - add, subtract, comparisons can work if units added/subtracted
+
+      SUPPORTED_FUNCTIONS = set(getattr(np, function) for function in
+                                ('clip', 'trace', 'mean', 'min', 'max', 'round'))
+
+
+      # subclassing UnitBase or CompositeUnit was found to be problematic, requiring
+      # a large number of overrides. Hence, define new class.
+      class FunctionUnitBase(metaclass=ABCMeta):
+          """Abstract base class for function units.
+
+          Function units are functions containing a physical unit, such as dB(mW).
+          Most of the arithmetic operations on function units are defined in this
+          base class.
+
+          While instantiation is defined, this class should not be used directly.
+          Rather, subclasses should be used that override the abstract properties
+          `_default_function_unit` and `_quantity_class`, and the abstract methods
+          `from_physical`, and `to_physical`.
+
+          Parameters
+          ----------
+          physical_unit : `~astropy.units.Unit` or `string`
+              Unit that is encapsulated within the function unit.
+              If not given, dimensionless.
+
+          function_unit :  `~astropy.units.Unit` or `string`
+              By default, the same as the function unit set by the subclass.
+          """
+          # ↓↓↓ the following four need to be set by subclasses
+          # Make this a property so we can ensure subclasses define it.
+          @property
+          @abstractmethod
+          def _default_function_unit(self):
+              """Default function unit corresponding to the function.
+
+              This property should be overridden by subclasses, with, e.g.,
+              `~astropy.unit.MagUnit` returning `~astropy.unit.mag`.
+              """
+
+          # This has to be a property because the function quantity will not be
+          # known at unit definition time, as it gets defined after.
+          @property
+      <|editable_region_end|>
+          @abstractmethod
+      ```
 labels: no-op,unknown

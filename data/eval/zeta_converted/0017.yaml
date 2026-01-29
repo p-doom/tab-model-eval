@@ -1,53 +1,37 @@
-task_id: '0017'
-description: 'Converted from zeta eval: 0017'
+task_id: "0017"
+description: "Converted from zeta eval: 0017"
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n\
-      // Statements\ntype WhileStatement struct {\n\t\n}\ntype LetStatement struct\
-      \ {\n\tToken token.Token // the token.LET token\n\tName  *Identifier\n\tValue\
-      \ Expression\n}\n\nfunc (ls *LetStatement) statementNode()       {}\nfunc (ls\
-      \ *LetStatement) TokenLiteral() string { return ls.Token.Literal }\nfunc (ls\
-      \ *LetStatement) String() string {"
-  cursor:
-    file: ast/ast.go
-    line: 1
-    column: 0
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n\
-      // Statements\ntype WhileStatement struct {\n\t\n}\ntype LetStatement struct\
-      \ {\n\tToken token.Token // the token.LET token\n\tName  *Identifier\n\tValue\
-      \ Expression\n}\n\nfunc (ls *LetStatement) statementNode()       {}\nfunc (ls\
-      \ *LetStatement) TokenLiteral() string { return ls.Token.Literal }\nfunc (ls\
-      \ *LetStatement) String() string {"
-  cursor:
-    file: ast/ast.go
-    line: 9
-    column: 1
-- step: 2
-  eval: EVAL
-  terminal: null
-  files:
-    ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n\
-      // Statements\ntype WhileStatement struct {\n\tToken      token.Token // the\
-      \ token.WHILE token\n\tCondition  Expression\n\tBody       BlockStatement\n\
-      }\n\ntype LetStatement struct {\n\tToken token.Token // the token.LET token\n\
-      \tName  *Identifier\n\tValue Expression\n}\n\nfunc (ls *LetStatement) statementNode()\
-      \       {}\nfunc (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal\
-      \ }\nfunc (ls *LetStatement) String() string {"
-  cursor:
-    file: ast/ast.go
-    line: 13
-    column: 0
-  judge_assertions: |-
-    Ensure the new WhileStatement struct has fields for the token, condition, and body.
-    Ensure the condition field is an Expression.
-    Ensure the body is a BlockStatement.
-    Ensure the code is syntactically valid.
-    The code has defined methods on the WhileStatement struct to make it a valid AST node.
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n// Statements\ntype LetStatement struct {\n\tToken token.Token // the token.LET token\n\tName  *Identifier\n\tValue Expression\n}\n\nfunc (ls *LetStatement) statementNode()       {}\nfunc (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }\nfunc (ls *LetStatement) String() string {"
+    cursor:
+      file: ast/ast.go
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n// Statements\ntype WhileStatement struct {\n\t\n}\n\ntype LetStatement struct {\n\tToken token.Token // the token.LET token\n\tName  *Identifier\n\tValue Expression\n}\n\nfunc (ls *LetStatement) statementNode()       {}\nfunc (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }\nfunc (ls *LetStatement) String() string {"
+    cursor:
+      file: ast/ast.go
+      line: 11
+      column: 0
+  - step: 2
+    eval: EVAL
+    terminal: null
+    files:
+      ast/ast.go: "out.WriteString(s.String())\n\t}\n\n\treturn out.String()\n}\n\n// Statements\ntype WhileStatement struct {\n\tToken      token.Token // the token.WHILE token\n\tCondition  Expression\n\tBody       BlockStatement\n}\n\ntype LetStatement struct {\n\tToken token.Token // the token.LET token\n\tName  *Identifier\n\tValue Expression\n}\n\nfunc (ls *LetStatement) statementNode()       {}\nfunc (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }\nfunc (ls *LetStatement) String() string {"
+    cursor:
+      file: ast/ast.go
+      line: 11
+      column: 26
+    judge_assertions: |-
+      Ensure the new WhileStatement struct has fields for the token, condition, and body.
+      Ensure the condition field is an Expression.
+      Ensure the body is a BlockStatement.
+      Ensure the code is syntactically valid.
+      The code has defined methods on the WhileStatement struct to make it a valid AST node.
 labels: local-edit,complete-implementation
