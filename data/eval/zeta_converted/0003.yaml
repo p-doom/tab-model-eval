@@ -1,44 +1,43 @@
-task_id: '0003'
-description: 'Converted from zeta eval: 0003'
+task_id: "0003"
+description: "Converted from zeta eval: 0003"
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/quicksort.rs: |-
-      fn main() {
-      }
-  cursor:
-    file: src/quicksort.rs
-    line: 1
-    column: 0
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/quicksort.rs: |-
-      fn main() {
-          thread::sleep(Duration::from_secs(1));
-      }
-  cursor:
-    file: src/quicksort.rs
-    line: 1
-    column: 11
-- step: 2
-  eval: EVAL
-  terminal: null
-  files:
-    src/quicksort.rs: |-
-      use std::thread;
-      use std::time::Duration;
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/quicksort.rs: |-
+        fn main() {
+        }
+    cursor:
+      file: src/quicksort.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/quicksort.rs: |-
+        fn main() {
+            thread::sleep(Duration::from_secs(1));
+        }
+    cursor:
+      file: src/quicksort.rs
+      line: 2
+      column: 42
+  - step: 2
+    eval: EVAL
+    terminal: null
+    files:
+      src/quicksort.rs: |-
+        use std::thread;
+        use std::time::Duration;
 
-      fn main() {
-          thread::sleep(Duration::from_secs(1));
-      }
-  cursor:
-    file: src/quicksort.rs
-    line: 3
-    column: 0
-  judge_assertions: Ensure there are `use` statements importing `std::thread` and
-    `std::time::Duration`
+        fn main() {
+            thread::sleep(Duration::from_secs(1));
+        }
+    cursor:
+      file: src/quicksort.rs
+      line: 3
+      column: 0
+    judge_assertions: Ensure there are `use` statements importing `std::thread` and `std::time::Duration`
 labels: non-local-edit,add-imports
