@@ -1,669 +1,443 @@
-"""
-LLM-as-a-judge evaluation for code completion models.
-
-This script evaluates generated commands using an LLM judge to determine
-semantic equivalence between generated and expected commands.
-
-This is designed to be run AFTER sglang_eval_metrics.py, which handles
-fast deterministic metrics. The judge can optionally skip samples that
-failed format validation to save compute.
-
-Usage:
-    # Run on raw generations (will do format check inline)
-    python sglang_eval_judge.py \
-        --generations-file data/eval/output/generations.json \
-        --evaluations-file data/eval/output/evaluations.json \
-        --eval-step 1000
-
-    # Run on metrics output (skip format-invalid samples)
-    python sglang_eval_judge.py \
-        --metrics-file data/eval/output/metrics.json \
-        --evaluations-file data/eval/output/evaluations.json \
-        --eval-step 1000 \
-        --skip-format-invalid
-"""
-
 import asyncio
 import json
 import os
 import subprocess
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 import httpx
 import tyro
+import yaml
 import wandb
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
-from eval_utils import (
-    LocalLogger,
-    check_command_format,
-    filter_tasks_by_context_length,
-    load_dataset,
-    save_dataset,
-)
+from .yaml_output import load_generation_yaml
 
 
-# ----------------------------
-# Argument definitions
-# ----------------------------
 @dataclass
 class Args:
-    # Wandb logging
-    wandb_project: str = "llm-coding-agent"
-    wandb_name: str = "validation_set_judge"
-    wandb_eval_type: str = "next_action_validation_set"
-    wandb_tags: list[str] = field(default_factory=lambda: ["val_mini", "judge_eval"])
-    wandb_id: str | None = None
-    wandb_group: str = "debug"
+    wandb_project: str = "tab-model-eval"
+    wandb_name: str = "judge_eval"
+    wandb_eval_type: str = "judge_eval"
+    wandb_tags: Optional[List[str]] = None
+    wandb_id: Optional[str] = None
+    wandb_group: str = "evals"
 
-    # Input files - either generations_file OR metrics_file (from sglang_eval_metrics.py)
-    generations_file: str = ""
-    metrics_file: str = ""  # Output from sglang_eval_metrics.py
-    evaluations_file: str = ""
+    generations_file: str = "data/eval/generations/generations.yaml"
+    evaluations_file: str = "data/eval/evaluations/evaluations.yaml"
     eval_step: int = 0
-
-    # Batch mode
-    generations_files: str = ""
-    metrics_files: str = ""
-    evaluations_files: str = ""
-    eval_steps: str = ""
-
-    # Skip samples that failed format validation (only works with metrics_file input)
-    skip_format_invalid: bool = True
-
     limit: int = -1
-    system_prompt_file: str = "data/prompts/judge_system_prompt_v3.md"
-    judge_prompt_file: str = "data/prompts/judge_prompt_v3.md"
-    judge_prompt_file_with_context: str = "data/prompts/judge_prompt_v4_with_context.md"
-    include_context: bool = True
 
-    # Local logging for offline mode
-    use_local_logger: bool = False
-    local_log_dir: str = "data/eval/local_logs"
-
-    # Server-related (sglang)
     judge_model_path: str = "Qwen/Qwen3-32B"
     judge_name: str = "default"
+    judge_system_prompt_file: str = ""
+    judge_prompt_file: str = ""
+
     server_host: str = "0.0.0.0"
     server_port: int = 30000
     context_length: int = 40960
-    problem_length: int = 40960
-    api_key: str = "EMPTY"
     mem_fraction_static: float = 0.95
     tp_size: int = 1
-
-    # We set presence_penalty to 0.0 to avoid the model from hallucinating variable names.
-    presence_penalty: float = 0.0
-    num_samples: int = 1
-    enable_thinking: bool = True
-
-    # HTTP / client config
-    concurrency: int = 16
-    max_connections: int = 256
-    keepalive: int = 60
-    max_attempts: int = 6
-    timeout: float = 30.0
-
-    # Server control
+    api_key: str = "EMPTY"
     launch_server: bool = True
     extra_server_args: Optional[List[str]] = None
 
-    def get_eval_jobs(self) -> List[tuple[str, str, str, int]]:
-        """
-        Returns a list of (input_file, input_type, evaluations_file, eval_step) tuples.
-        input_type is either 'generations' or 'metrics'
-        """
-        # Check batch mode
-        if self.evaluations_files and self.eval_steps:
-            eval_files = [f.strip() for f in self.evaluations_files.split(",") if f.strip()]
-            steps = [int(s.strip()) for s in self.eval_steps.split(",") if s.strip()]
+    presence_penalty: float = 0.0
+    num_judge_samples: int = 1
+    enable_thinking: bool = True
 
-            # Prefer metrics_files if provided
-            if self.metrics_files:
-                input_files = [f.strip() for f in self.metrics_files.split(",") if f.strip()]
-                input_type = "metrics"
-            elif self.generations_files:
-                input_files = [f.strip() for f in self.generations_files.split(",") if f.strip()]
-                input_type = "generations"
-            else:
-                raise ValueError("Batch mode requires either metrics_files or generations_files")
+    concurrency: int = 16
+    max_connections: int = 256
+    max_attempts: int = 6
+    timeout: float = 60.0
 
-            if not (len(input_files) == len(eval_files) == len(steps)):
-                raise ValueError(
-                    f"Batch mode requires equal-length lists: "
-                    f"input_files ({len(input_files)}), "
-                    f"evaluations_files ({len(eval_files)}), "
-                    f"eval_steps ({len(steps)})"
-                )
-
-            return [(f, input_type, e, s) for f, e, s in zip(input_files, eval_files, steps)]
-
-        # Single file mode
-        if self.evaluations_file:
-            if self.metrics_file:
-                return [(self.metrics_file, "metrics", self.evaluations_file, self.eval_step)]
-            elif self.generations_file:
-                return [
-                    (self.generations_file, "generations", self.evaluations_file, self.eval_step)
-                ]
-
-        raise ValueError("Provide either metrics_file or generations_file, plus evaluations_file")
+    skip_exact_matches: bool = True
+    skip_empty_predictions: bool = True
 
 
-# ----------------------------
-# Data loading helpers
-# ----------------------------
-def load_test_cases_from_generations(filepath: str) -> tuple[List[Dict], Dict, Dict]:
-    """Load test cases from a generations file."""
-    data = load_dataset(filepath)
-    test_cases = data["generation_results"]
-    config = data.get("config_generations", {})
-    scores = data.get("generation_scores", {})
-    return test_cases, config, scores
+def format_files_for_prompt(files: Dict[str, str]) -> str:
+    if not files:
+        return "(no files)"
+    parts = []
+    for path, content in files.items():
+        parts.append(f"### {path}\n```\n{content}\n```")
+    return "\n\n".join(parts)
 
 
-def load_test_cases_from_metrics(filepath: str) -> tuple[List[Dict], Dict, Dict]:
-    """Load test cases from a metrics file (output of sglang_eval_metrics.py)."""
-    data = load_dataset(filepath)
-    test_cases = data["metrics_results"]
-    config = data.get("metadata", {}).get("config_generations", {})
-    scores = data.get("metrics_scores", {})
-    return test_cases, config, scores
+def format_context(states: List[Dict[str, Any]]) -> str:
+    if not states:
+        return ""
+    parts: List[str] = []
+    for state in states:
+        if state.get("eval") == "EVAL":
+            break
+        step = state.get("step")
+        header = f"## Step {step}" if step is not None else "## Step"
+        parts.append(header)
+
+        cursor = state.get("cursor")
+        if cursor:
+            parts.append(
+                f"Cursor: {cursor.get('file')}:{cursor.get('line')}:{cursor.get('column')}"
+            )
+
+        files = state.get("files") or {}
+        if files:
+            parts.append("Files:")
+            parts.append(format_files_for_prompt(files))
+        else:
+            parts.append("Files: (no files)")
+
+        terminal = state.get("terminal")
+        if terminal:
+            parts.append("Terminal:")
+            command = terminal.get("command")
+            output = terminal.get("output")
+            exit_code = terminal.get("exit_code")
+            cwd = terminal.get("cwd")
+            if command is not None:
+                parts.append(f"Command: {command}")
+            if cwd:
+                parts.append(f"CWD: {cwd}")
+            if exit_code is not None:
+                parts.append(f"Exit code: {exit_code}")
+            if output is not None:
+                parts.append("Output:")
+                parts.append(f"```\n{output}\n```")
+        parts.append("")
+
+    return "\n".join(parts).rstrip()
 
 
-# ----------------------------
-# Judge evaluation logic
-# ----------------------------
-async def evaluate_single_sample_with_judge(
+def load_prompt_file(path: str, label: str) -> str:
+    if not path:
+        raise ValueError(f"--{label} is required")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"{label} not found: {path}")
+    with open(path, "r") as f:
+        return f.read()
+
+
+async def judge_single_sample(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
-    test_case: Dict[str, Any],
-    sample: Dict[str, Any],
+    task_id: str,
     sample_idx: int,
-    args: Args,
+    expected_files: Dict[str, str],
+    predicted_files: Optional[Dict[str, str]],
+    assertions: Optional[str],
+    context: str,
     system_prompt: str,
     prompt_template: str,
-) -> List[Dict[str, Any]]:
-    """
-    Evaluate a single sample using the LLM judge.
-    Returns a list of evaluation results (one per judge sample).
-    """
+    args: Args,
+) -> Dict[str, Any]:
+    if predicted_files is None:
+        return {
+            "task_id": task_id,
+            "sample_idx": sample_idx,
+            "equivalent": 0,
+            "skipped": True,
+            "skip_reason": "no_prediction",
+        }
+
+    expected_files_str = format_files_for_prompt(expected_files)
+    predicted_files_str = format_files_for_prompt(predicted_files)
+    template_vars = {
+        "assertions": assertions
+        or "No specific assertions provided. Judge based on code correctness.",
+        "expected_files": expected_files_str,
+        "predicted_files": predicted_files_str,
+        "expected": expected_files_str,
+        "generated": predicted_files_str,
+        "context": context,
+    }
+    try:
+        prompt = prompt_template.format(**template_vars)
+    except KeyError as e:
+        raise ValueError(
+            f"Unknown placeholder in judge prompt template: {e.args[0]}. "
+            "Allowed placeholders: assertions, expected_files, predicted_files, expected, generated, context."
+        ) from e
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt},
+    ]
+
     async with sem:
         delay = 0.25
-        results = []
-        expected_command = test_case.get("expected_command", "")
-        assertions = test_case.get("assertions", "Skipping assertions parsing")
-        generated_command = sample.get("generated_command", "")
-
         for attempt in range(args.max_attempts):
             try:
-                format_dict = {
-                    "expected": expected_command,
-                    "generated": generated_command,
-                    "assertions": assertions,
-                }
-                if args.include_context:
-                    format_dict["context"] = json.dumps(test_case.get("context", []), indent=2)
-                prompt = prompt_template.format(**format_dict)
-
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt},
-                ]
-
                 resp = await client.chat.completions.create(
                     model=args.judge_name,
                     messages=messages,
                     presence_penalty=args.presence_penalty,
-                    n=args.num_samples,
+                    n=args.num_judge_samples,
                     response_format={"type": "json_object"},
-                    extra_body={
-                        "chat_template_kwargs": {"enable_thinking": args.enable_thinking},
-                    },
+                    extra_body={"chat_template_kwargs": {"enable_thinking": args.enable_thinking}},
                 )
 
-                for choice_idx, choice in enumerate(resp.choices):
-                    thinking_trace = getattr(choice.message, "reasoning_content", "")
-                    result = json.loads(choice.message.content)
-                    equivalent = result.get("equivalent", 0)
+                choice = resp.choices[0]
+                thinking = getattr(choice.message, "reasoning_content", "")
+                result = json.loads(choice.message.content or "{}")
 
-                    results.append(
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": choice_idx,
-                            "messages": messages,
-                            "generated_command": generated_command,
-                            "thinking_trace": thinking_trace,
-                            "evaluation_results": result,
-                            "equivalent": equivalent,
-                            "exact_match": sample.get("exact_match", 0),
-                        }
-                    )
-                return results
+                return {
+                    "task_id": task_id,
+                    "sample_idx": sample_idx,
+                    "equivalent": result.get("equivalent", 0),
+                    "reasoning": result.get("reasoning", ""),
+                    "thinking": thinking,
+                    "skipped": False,
+                }
 
             except Exception as e:
-                print(f"Error on task {test_case['task_id']}: {e}")
                 if attempt == args.max_attempts - 1:
-                    return [
-                        {
-                            "sample_idx": sample_idx,
-                            "choice_idx": None,
-                            "task_id": test_case["task_id"],
-                            "error": str(e),
-                            "equivalent": 0,
-                        }
-                    ]
+                    return {
+                        "task_id": task_id,
+                        "sample_idx": sample_idx,
+                        "equivalent": 0,
+                        "error": str(e),
+                        "skipped": False,
+                    }
                 await asyncio.sleep(delay)
                 delay *= 2
 
-        return results
+    return {"task_id": task_id, "sample_idx": sample_idx, "equivalent": 0, "error": "max_attempts"}
 
 
-async def evaluate_task_with_judge(
+async def evaluate_task(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
-    test_case: Dict[str, Any],
-    args: Args,
+    task_result: Dict[str, Any],
     system_prompt: str,
     prompt_template: str,
-    input_type: str,
+    args: Args,
 ) -> Dict[str, Any]:
-    """
-    Evaluate all samples for a test case using the LLM judge.
-    """
-    # Handle error cases
-    if test_case.get("error") or test_case.get("had_error"):
-        return {
-            "task_id": test_case["task_id"],
-            "error": test_case.get("error", "Unknown error"),
-            "had_error": True,
-            "judge_avg_at_n": 0.0,
-            "judge_pass_at_n": 0,
-            "sample_evaluations": [],
-        }
+    task_id = task_result.get("task_id", "unknown")
+    states = task_result.get("states", [])
+    samples = task_result.get("samples", [])
+    context = format_context(states)
 
-    samples = test_case.get("samples", [])
-    if not samples:
-        return {
-            "task_id": test_case["task_id"],
-            "error": "No samples",
-            "had_error": True,
-            "judge_avg_at_n": 0.0,
-            "judge_pass_at_n": 0,
-            "sample_evaluations": [],
-        }
+    expected_files = {}
+    assertions = None
+    for state in states:
+        eval = state.get("eval")
+        if eval == "EVAL":
+            expected_files = state.get("files", {})
+            assertions = state.get("judge_assertions")
+            break
 
-    expected_command = test_case.get("expected_command", "")
+    sample_evals = []
+    tasks = []
 
-    # Build list of samples to evaluate
-    samples_to_eval = []
-    skipped_samples = []
+    for sample in samples:
+        sample_idx = sample.get("sample_idx", 0)
+        predicted_files = sample.get("predicted_files")
+        exact_match_raw = sample.get("exact_match", 0)
+        predicted_raw = sample.get("predicted_raw", "")
 
-    for idx, sample in enumerate(samples):
-        should_skip = False
-        skip_reason = None
+        file_exact_match = False
+        if predicted_files is not None and expected_files:
+            file_exact_match = all(
+                predicted_files.get(path) == content for path, content in expected_files.items()
+            )
 
-        generated_command = sample.get("generated_command", "")
-        if generated_command == "":
-            should_skip = True
-            skip_reason = "empty_generated_command"
-        elif sample.get("exact_match", 0) == 1:
-            should_skip = True
-            skip_reason = "exact_match"
-        elif args.skip_format_invalid and input_type == "metrics":
-            if not sample.get("format_valid", True):
-                should_skip = True
-                skip_reason = sample.get("format_reason", "format_invalid")
-        elif args.skip_format_invalid and input_type == "generations":
-            format_valid, format_reason = check_command_format(generated_command, expected_command)
-            if not format_valid:
-                should_skip = True
-                skip_reason = format_reason
-
-        if should_skip:
-            exact_match = sample.get("exact_match", 0)
-            skipped_samples.append(
+        if args.skip_exact_matches and (file_exact_match or exact_match_raw == 1):
+            sample_evals.append(
                 {
-                    "sample_idx": idx,
-                    "generated_command": generated_command,
-                    "equivalent": exact_match,
+                    "task_id": task_id,
+                    "sample_idx": sample_idx,
+                    "equivalent": 1,
                     "skipped": True,
-                    "skip_reason": skip_reason,
-                    "exact_match": exact_match,
+                    "skip_reason": "file_exact_match" if file_exact_match else "exact_match",
                 }
             )
-        else:
-            samples_to_eval.append((idx, sample))
+            continue
 
-    if samples_to_eval:
-        eval_tasks = [
-            evaluate_single_sample_with_judge(
+        if args.skip_empty_predictions and not predicted_raw.strip():
+            sample_evals.append(
+                {
+                    "task_id": task_id,
+                    "sample_idx": sample_idx,
+                    "equivalent": 0,
+                    "skipped": True,
+                    "skip_reason": "empty_prediction",
+                }
+            )
+            continue
+
+        tasks.append(
+            judge_single_sample(
                 client,
                 sem,
-                test_case,
-                sample,
-                idx,
-                args,
+                task_id,
+                sample_idx,
+                expected_files,
+                predicted_files,
+                assertions,
+                context,
                 system_prompt,
                 prompt_template,
+                args,
             )
-            for idx, sample in samples_to_eval
-        ]
-        eval_results_nested = await asyncio.gather(*eval_tasks)
-        eval_results = []
-        for results in eval_results_nested:
-            eval_results.extend(results)
-    else:
-        eval_results = []
+        )
 
-    all_results = skipped_samples + eval_results
+    if tasks:
+        judged = await asyncio.gather(*tasks)
+        sample_evals.extend(judged)
 
-    num_judge_matches = sum(r.get("equivalent", 0) for r in all_results)
-    num_evaluated = len([r for r in all_results if not r.get("skipped")])
-    num_skipped = len(skipped_samples)
+    sample_evals.sort(key=lambda x: x.get("sample_idx", 0))
 
-    judge_avg_at_n = num_judge_matches / len(all_results)
-    judge_pass_at_n = int(num_judge_matches > 0)
+    num_samples = len(sample_evals)
+    num_equivalent = sum(1 for s in sample_evals if s.get("equivalent", 0) == 1)
+    num_skipped = sum(1 for s in sample_evals if s.get("skipped", False))
 
     return {
-        "task_id": test_case["task_id"],
-        "context": test_case.get("context", []),
-        "expected_command": expected_command,
-        "had_error": any("error" in r for r in all_results),
-        "num_samples": len(samples),
-        "num_evaluated": num_evaluated,
+        "task_id": task_id,
+        "assertions": assertions,
+        "num_samples": num_samples,
+        "num_equivalent": num_equivalent,
         "num_skipped": num_skipped,
-        "num_judge_matches": num_judge_matches,
-        "judge_avg_at_n": judge_avg_at_n,
-        "judge_pass_at_n": judge_pass_at_n,
-        "sample_evaluations": all_results,
+        "num_judged": num_samples - num_skipped,
+        "equivalent_rate": num_equivalent / num_samples if num_samples > 0 else 0.0,
+        "pass_at_1": int(num_equivalent > 0),
+        "sample_evaluations": sample_evals,
     }
 
 
-async def run_single_judge_eval(
-    args: Args,
-    input_file: str,
-    input_type: str,
-    evaluations_file: str,
-    eval_step: int,
-    client: AsyncOpenAI,
-    sem: asyncio.Semaphore,
-    system_prompt: str,
-    prompt_template: str,
-    logger=None,
-) -> Dict[str, Any]:
-    """
-    Run judge evaluation on a single file.
-    """
+async def run_judge_eval(args: Args, base_url: str):
     print(f"\n{'='*60}")
-    print(f"Judge evaluating ({input_type}): {input_file}")
-    print(f"Output: {evaluations_file}")
-    print(f"Step: {eval_step}")
-    print(f"Skip format invalid: {args.skip_format_invalid}")
+    print(f"Judge Evaluation: {args.generations_file}")
+    print(f"Output: {args.evaluations_file}")
+
+    wandb_run = wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        id=args.wandb_id,
+        resume="allow" if args.wandb_id else None,
+        group=args.wandb_group,
+        tags=args.wandb_tags,
+        config={"eval_type": args.wandb_eval_type},
+    )
     print(f"{'='*60}")
 
-    if input_type == "metrics":
-        test_cases, config_generations, gen_scores = load_test_cases_from_metrics(input_file)
-    else:
-        test_cases, config_generations, gen_scores = load_test_cases_from_generations(input_file)
+    system_prompt = load_prompt_file(args.judge_system_prompt_file, "judge-system-prompt-file")
+    prompt_template = load_prompt_file(args.judge_prompt_file, "judge-prompt-file")
+
+    data = load_generation_yaml(args.generations_file)
+    results = data.get("results", [])
+    config = data.get("config", {})
 
     if args.limit > 0:
-        test_cases = test_cases[: args.limit]
+        results = results[: args.limit]
 
-    test_cases, skipped_cases = filter_tasks_by_context_length(
-        test_cases,
-        system_prompt=system_prompt,
-        prompt_template=prompt_template,
-        max_context_length=args.context_length,
-        problem_length=args.problem_length,
-        buffer_tokens=512,
-        include_context=args.include_context,
-    )
+    print(f"Evaluating {len(results)} tasks with judge...")
 
-    print(f"\nFiltered dataset:")
-    print(f"  Valid test cases: {len(test_cases)}")
-    print(f"  Skipped (too long): {len(skipped_cases)}")
-    print()
-
-    tasks = [
-        evaluate_task_with_judge(client, sem, tc, args, system_prompt, prompt_template, input_type)
-        for tc in test_cases
-    ]
-
-    print(f"Running judge on {len(test_cases)} test cases with concurrency={args.concurrency} ...")
-    results: List[Dict[str, Any]] = []
-    for coro in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
-        results.append(await coro)
-
-    # Sort by task_id
-    results.sort(key=lambda x: x["task_id"])
-
-    # Aggregate scores
-    num_tasks = len(results)
-    total_judge_matches = sum(r["num_judge_matches"] for r in results)
-    total_evaluated = sum(r["num_evaluated"] for r in results)
-    total_skipped = sum(r["num_skipped"] for r in results)
-
-    avg_judge_at_n = sum(r["judge_avg_at_n"] for r in results) / num_tasks if num_tasks else 0.0
-    avg_judge_pass_at_n = (
-        sum(r["judge_pass_at_n"] for r in results) / num_tasks if num_tasks else 0.0
-    )
-    num_errors = sum(1 for r in results if r.get("had_error", False))
-
-    gen_exact_match_avg_at_n = gen_scores.get(
-        "total_exact_match_avg_at_n", gen_scores.get("gen_exact_match_avg_at_n", 0)
-    )
-    # Convert pass@n count to rate
-    gen_exact_match_pass_count = gen_scores.get(
-        "total_exact_match_pass_at_n", gen_scores.get("gen_exact_match_pass_at_n", 0)
-    )
-    gen_exact_match_pass_at_n = gen_exact_match_pass_count / num_tasks if num_tasks else 0.0
-
-    scores = {
-        "total_test_cases": num_tasks,
-        "total_evaluated": total_evaluated,
-        "total_skipped": total_skipped,
-        "total_judge_matches": total_judge_matches,
-        "avg_judge_at_n": avg_judge_at_n,
-        "avg_judge_pass_at_n": avg_judge_pass_at_n,
-        "gen_exact_match_avg_at_n": gen_exact_match_avg_at_n,
-        "gen_exact_match_pass_at_n": gen_exact_match_pass_at_n,
-        "num_errors": num_errors,
-    }
-
-    # Log metrics
-    metrics_to_log = {
-        "eval_step": eval_step,
-        f"{args.wandb_eval_type}/total_test_cases": num_tasks,
-        f"{args.wandb_eval_type}/total_evaluated": total_evaluated,
-        f"{args.wandb_eval_type}/total_skipped": total_skipped,
-        f"{args.wandb_eval_type}/avg_judge_at_n": avg_judge_at_n,
-        f"{args.wandb_eval_type}/avg_judge_pass_at_n": avg_judge_pass_at_n,
-        f"{args.wandb_eval_type}/gen_exact_match_avg_at_n": gen_exact_match_avg_at_n,
-        f"{args.wandb_eval_type}/gen_exact_match_pass_at_n": gen_exact_match_pass_at_n,
-        f"{args.wandb_eval_type}/num_errors": num_errors,
-    }
-
-    if args.use_local_logger and logger is not None:
-        logger.log(metrics_to_log)
-    else:
-        wandb.log(metrics_to_log)
-
-    # Save output
-    output_data = {
-        "metadata": {
-            "config_generations": config_generations,
-            "config_judge": args.__dict__,
-            "eval_step": eval_step,
-            "input_file": input_file,
-            "input_type": input_type,
-        },
-        "judge_scores": scores,
-        "judge_results": results,
-    }
-    save_dataset(evaluations_file, output_data)
-
-    # Print summary
-    print("\n" + "=" * 50)
-    print(f"--- Judge Evaluation Complete (step {eval_step}) ---")
-    print("=" * 50)
-    print(f"Total Test Cases: {num_tasks}")
-    print(f"Total Evaluated: {total_evaluated}")
-    print(f"Total Skipped: {total_skipped}")
-    print(f"Judge Avg@N: {avg_judge_at_n * 100:.2f}%")
-    print(f"Judge Pass@N: {avg_judge_pass_at_n * 100:.2f}%")
-    print(f"Exact Match Avg@N: {gen_exact_match_avg_at_n * 100:.2f}%")
-    print(f"Exact Match Pass@N: {gen_exact_match_pass_at_n * 100:.2f}%")
-    print(f"Errors: {num_errors}")
-    print(f"Output file: {evaluations_file}")
-
-    return {
-        "eval_step": eval_step,
-        "input_file": input_file,
-        "evaluations_file": evaluations_file,
-        **scores,
-    }
-
-
-async def run_batch_judge_eval(args: Args, base_url: str):
-    """
-    Run judge evaluation on multiple files with a single model load.
-    """
-    eval_jobs = args.get_eval_jobs()
-
-    print(f"\n{'#'*60}")
-    print(f"# BATCH JUDGE EVALUATION")
-    print(f"# Processing {len(eval_jobs)} evaluation job(s)")
-    print(f"{'#'*60}\n")
-
-    for i, (input_file, input_type, eval_file, step) in enumerate(eval_jobs):
-        print(f"  [{i+1}/{len(eval_jobs)}] Step {step} ({input_type}): {input_file}")
-    print()
-
-    # Load prompts
-    with open(args.system_prompt_file, "r") as f:
-        system_prompt = f.read()
-
-    judge_prompt_file = (
-        args.judge_prompt_file_with_context if args.include_context else args.judge_prompt_file
-    )
-    with open(judge_prompt_file, "r") as f:
-        prompt_template = f.read()
-
-    # Initialize logger
-    logger = None
-    if args.use_local_logger:
-        run_id = args.wandb_id or args.wandb_name
-        logger = LocalLogger(
-            log_dir=args.local_log_dir,
-            run_id=run_id,
-            run_name=args.wandb_name,
-            project=args.wandb_project,
-            eval_type=args.wandb_eval_type,
-            config={"batch_mode": True, "num_jobs": len(eval_jobs)},
-            tags=args.wandb_tags,
-        )
-    else:
-        wandb_init_kwargs = {
-            "project": args.wandb_project,
-            "name": args.wandb_name,
-            "tags": args.wandb_tags,
-            "group": args.wandb_group,
-            "config": {"batch_mode": True, "num_jobs": len(eval_jobs)},
-        }
-        if args.wandb_id:
-            wandb_dir = os.path.join(os.getcwd(), "eval_logs", args.wandb_id)
-            os.makedirs(wandb_dir, exist_ok=True)
-            wandb_init_kwargs.update({"id": args.wandb_id, "resume": "allow", "dir": wandb_dir})
-        wandb.init(**wandb_init_kwargs)
-
-    # Create HTTP client
     http = httpx.AsyncClient(
         http2=True,
         timeout=httpx.Timeout(args.timeout, connect=10.0, read=args.timeout),
         limits=httpx.Limits(
-            max_connections=args.max_connections,
-            max_keepalive_connections=args.max_connections,
-            keepalive_expiry=args.keepalive,
+            max_connections=args.max_connections, max_keepalive_connections=args.max_connections
         ),
-        headers={"Connection": "keep-alive"},
     )
     client = AsyncOpenAI(base_url=base_url, api_key=args.api_key, http_client=http)
     sem = asyncio.Semaphore(args.concurrency)
 
-    # Process each job
-    all_results = []
-    for i, (input_file, input_type, eval_file, step) in enumerate(eval_jobs):
-        print(f"\n[{i+1}/{len(eval_jobs)}] Processing step {step}...")
-        result = await run_single_judge_eval(
-            args=args,
-            input_file=input_file,
-            input_type=input_type,
-            evaluations_file=eval_file,
-            eval_step=step,
-            client=client,
-            sem=sem,
-            system_prompt=system_prompt,
-            prompt_template=prompt_template,
-            logger=logger,
-        )
-        all_results.append(result)
+    tasks = [evaluate_task(client, sem, r, system_prompt, prompt_template, args) for r in results]
+
+    task_evals: List[Dict[str, Any]] = []
+    for coro in tqdm_asyncio.as_completed(tasks, total=len(tasks)):
+        task_evals.append(await coro)
 
     await http.aclose()
 
-    # Finish logging
-    if args.use_local_logger and logger is not None:
-        logger.finish()
-    else:
-        wandb.finish()
+    task_evals.sort(key=lambda x: x["task_id"])
 
-    # Print summary
-    print("\n" + "#" * 60)
-    print("# BATCH JUDGE EVALUATION SUMMARY")
-    print("#" * 60)
-    for r in all_results:
-        print(
-            f"  Step {r['eval_step']:>5}: "
-            f"Judge Avg@N = {r['avg_judge_at_n']*100:5.2f}%, "
-            f"Pass@N = {r['avg_judge_pass_at_n']*100:5.2f}%, "
-            f"Evaluated = {r['total_evaluated']}, "
-            f"Skipped = {r['total_skipped']}"
+    num_tasks = len(task_evals)
+    total_samples = sum(t["num_samples"] for t in task_evals)
+    total_equivalent = sum(t["num_equivalent"] for t in task_evals)
+    total_pass_at_1 = sum(t["pass_at_1"] for t in task_evals)
+    total_skipped = sum(t["num_skipped"] for t in task_evals)
+    total_judged = sum(t["num_judged"] for t in task_evals)
+
+    avg_equivalent_rate = (
+        sum(t["equivalent_rate"] for t in task_evals) / num_tasks if num_tasks > 0 else 0.0
+    )
+
+    scores = {
+        "total_tasks": num_tasks,
+        "total_samples": total_samples,
+        "total_equivalent": total_equivalent,
+        "total_pass_at_1": total_pass_at_1,
+        "total_skipped": total_skipped,
+        "total_judged": total_judged,
+        "avg_equivalent_rate": avg_equivalent_rate,
+        "pass_at_1_rate": total_pass_at_1 / num_tasks if num_tasks > 0 else 0.0,
+    }
+
+    output = {
+        "metadata": {
+            "generations_file": args.generations_file,
+            "eval_step": args.eval_step,
+            "judge_model": args.judge_model_path,
+            "config": config,
+        },
+        "judge_scores": scores,
+        "task_evaluations": task_evals,
+    }
+
+    os.makedirs(os.path.dirname(args.evaluations_file), exist_ok=True)
+    with open(args.evaluations_file, "w") as f:
+        yaml.dump(output, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+    print("\n" + "=" * 50)
+    print(f"Judge Evaluation Complete (step {args.eval_step})")
+    print("=" * 50)
+    print(f"Tasks: {num_tasks}")
+    print(f"Samples: {total_samples} (judged: {total_judged}, skipped: {total_skipped})")
+    print(f"Equivalent: {total_equivalent}/{total_samples} ({avg_equivalent_rate*100:.1f}%)")
+    print(f"Pass@1: {total_pass_at_1}/{num_tasks} ({scores['pass_at_1_rate']*100:.1f}%)")
+    print(f"Output: {args.evaluations_file}")
+
+    if wandb_run is not None:
+        wandb_run.log(
+            {
+                "eval_step": args.eval_step,
+                f"{args.wandb_eval_type}/total_tasks": num_tasks,
+                f"{args.wandb_eval_type}/total_samples": total_samples,
+                f"{args.wandb_eval_type}/total_judged": total_judged,
+                f"{args.wandb_eval_type}/total_skipped": total_skipped,
+                f"{args.wandb_eval_type}/total_equivalent": total_equivalent,
+                f"{args.wandb_eval_type}/pass_at_1_rate": scores["pass_at_1_rate"],
+                f"{args.wandb_eval_type}/equivalent_rate": avg_equivalent_rate,
+            }
         )
-    print("#" * 60)
+        wandb_run.finish()
+
+    return scores
 
 
-# ----------------------------
-# Server management
-# ----------------------------
-async def wait_for_server(base_url: str, timeout: float = 600.0) -> None:
-    """Poll the server until it responds or timeout."""
-    print(f"Waiting for server at {base_url} ...")
+async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
+    print(f"Waiting for server at {base_url}...")
     deadline = asyncio.get_event_loop().time() + timeout
 
     async with httpx.AsyncClient() as client:
         while True:
-            now = asyncio.get_event_loop().time()
-            if now > deadline:
-                raise RuntimeError(
-                    f"Server at {base_url} did not become ready within {timeout} seconds."
-                )
+            if asyncio.get_event_loop().time() > deadline:
+                raise RuntimeError(f"Server not ready within {timeout}s")
             try:
                 resp = await client.get(f"{base_url}/v1/models", timeout=5.0)
                 if resp.status_code == 200:
                     print("Server is up.")
                     return
-                else:
-                    print(f"Server not ready yet (status {resp.status_code}); retrying...")
             except Exception as e:
-                print(f"Server not ready yet ({e}); retrying...")
+                print(f"Waiting... ({e})")
             await asyncio.sleep(10.0)
 
 
 def launch_sglang_server(args: Args) -> subprocess.Popen:
-    """Launch sglang server as a subprocess."""
     cmd = [
         sys.executable,
         "-m",
@@ -685,37 +459,26 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
     if args.extra_server_args:
         cmd.extend(args.extra_server_args)
 
-    print("Launching sglang server:")
-    print("  " + " ".join(cmd))
-
-    env = os.environ.copy()
-    proc = subprocess.Popen(cmd, env=env, stdout=sys.stdout, stderr=sys.stderr)
-    return proc
+    print("Launching judge server: " + " ".join(cmd))
+    return subprocess.Popen(cmd, env=os.environ.copy(), stdout=sys.stdout, stderr=sys.stderr)
 
 
-# ----------------------------
-# Main
-# ----------------------------
 async def amain(args: Args):
     base_url = f"http://{args.server_host}:{args.server_port}/v1"
-    print(f"Using server at {base_url}")
 
     server_proc: Optional[subprocess.Popen] = None
     try:
         if args.launch_server:
             server_proc = launch_sglang_server(args)
             await wait_for_server(f"http://{args.server_host}:{args.server_port}")
-
-        await run_batch_judge_eval(args, base_url=base_url)
-
+        await run_judge_eval(args, base_url)
     finally:
-        if server_proc is not None:
-            print("Shutting down sglang server ...")
+        if server_proc:
+            print("Shutting down server...")
             server_proc.terminate()
             try:
                 server_proc.wait(timeout=30)
             except subprocess.TimeoutExpired:
-                print("Server did not exit in time; killing.")
                 server_proc.kill()
 
 

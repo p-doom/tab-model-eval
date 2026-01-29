@@ -33,6 +33,7 @@ dependencies = [
     "httpx>=0.24.0",
     "wandb",
     "tqdm",
+    "pytest>=8.4.2",
 ]
 
 [project.optional-dependencies]
