@@ -6,7 +6,6 @@ import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
-from enum import Enum
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -15,29 +14,21 @@ import yaml
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
-from crowd_pilot_serializer import (
-    convert_yaml_to_conversations,
-    convert_yaml_to_zeta,
-    default_system_prompt,
-    zeta_system_prompt,
-)
-
 from .prediction_applicators import (
     apply_sed_prediction,
     apply_zeta_prediction_to_editable,
     parse_viewport_command,
     parse_zeta_cursor_position,
 )
-
-
-class InputFormat(Enum):
-    SED = "sed"
-    ZETA = "zeta"
+from .types import (
+    InputFormat,
+    TestCaseWithYaml,
+)
 
 
 @dataclass
 class Args:
-    input_format: str = ""  # "sed" or "zeta"
+    input_format: str = ""
     yaml_input_dir: str = "data/eval/handcrafted"
     output_file: str = "data/eval/generations/generations.yaml"
     limit: int = -1
@@ -71,23 +62,7 @@ class Args:
     timeout: float = 300.0
 
 
-@dataclass
-class TestCaseWithYaml:
-    """Holds both the converted test case and raw YAML data."""
-
-    task_id: str
-    context: List[Dict[str, str]]
-    expected_response: str
-    assertions: Optional[str]
-    input_files: Dict[str, str]  # file state before EVAL
-    raw_yaml: Dict[str, Any]  # original YAML for output
-    format: InputFormat
-    editable_range: Optional[Dict[str, int]] = None
-    editable_file: Optional[str] = None
-
-
 def load_yaml_files(yaml_dir: str, limit: int = -1) -> List[Dict[str, Any]]:
-    """Load all YAML files from directory."""
     pattern = os.path.join(yaml_dir, "*.yaml")
     yaml_files = sorted(glob.glob(pattern))
 
@@ -102,214 +77,22 @@ def load_yaml_files(yaml_dir: str, limit: int = -1) -> List[Dict[str, Any]]:
     return results
 
 
-def get_input_files_from_yaml(raw_yaml: Dict[str, Any]) -> Dict[str, str]:
-    """Extract the file state just before the EVAL step."""
-    states = raw_yaml.get("states", [])
+from .formats import FormatConverter, SEDConverter, ZetaConverter
 
-    # Find the state just before EVAL
-    files = {}
-    for i, state in enumerate(states):
-        eval = state.get("eval", "NO_EVAL")
-        if eval == "EVAL":
-            # Return files from previous state
-            if i > 0:
-                prev_files = states[i - 1].get("files", {})
-                if prev_files:
-                    files = prev_files
-            break
-        # Keep track of latest files
-        state_files = state.get("files", {})
-        if state_files:
-            files.update(state_files)
-
-    return files
-
-
-def get_input_files_for_eval(
-    raw_yaml: Dict[str, Any],
-) -> Dict[str, str]:
-    """Get input files for evaluation from YAML states only."""
-    files: Dict[str, str] = get_input_files_from_yaml(raw_yaml)
-    if not files:
-        raise ValueError("file_state_not_found_in_yaml")
-    return files
-
-
-def get_assertions_from_yaml(raw_yaml: Dict[str, Any]) -> Optional[str]:
-    """Extract judge_assertions from the EVAL state."""
-    states = raw_yaml.get("states", [])
-    for state in states:
-        eval = state.get("eval", "NO_EVAL")
-        if eval == "EVAL":
-            return state.get("judge_assertions")
-    return None
-
-
-def get_cursor_file_from_yaml(raw_yaml: Dict[str, Any]) -> Optional[str]:
-    states = raw_yaml.get("states", [])
-    for state in states:
-        eval = state.get("eval", state.get("eval", "NO_EVAL"))
-        if eval == "EVAL":
-            cursor = state.get("cursor") or {}
-            return cursor.get("file")
-    return None
-
-
-def find_first_eval_state_index(raw_yaml: Dict[str, Any]) -> int:
-    """Find the index of the first EVAL state."""
-    states = raw_yaml.get("states", [])
-    for i, state in enumerate(states):
-        eval = state.get("eval", "NO_EVAL")
-        if eval == "EVAL":
-            return i
-    return -1
-
-
-def find_eval_message_split(
-    messages: List[Dict[str, str]],
-    raw_yaml: Dict[str, Any],
-) -> tuple[List[Dict[str, str]], str]:
-    """
-    Find where to split messages for evaluation.
-
-    Returns (context_messages, expected_response) where:
-    - context_messages: all messages before the first EVAL edit
-    - expected_response: the assistant message at the first EVAL step
-    """
-    first_eval_idx = find_first_eval_state_index(raw_yaml)
-    if first_eval_idx <= 0:
-        # No valid EVAL state found
-        return [], ""
-
-    assistant_idxs = [i for i, msg in enumerate(messages) if msg["role"] == "assistant"]
-    if first_eval_idx >= len(assistant_idxs):
-        return [], ""
-    msg_idx = assistant_idxs[first_eval_idx]
-    return messages[:msg_idx], messages[msg_idx]["content"]
-
-
-def convert_yaml_to_test_cases_sed(
-    yaml_data_list: List[Dict[str, Any]],
-) -> List[TestCaseWithYaml]:
-    """Convert YAML data to SED-format test cases."""
-    results = []
-
-    for raw_yaml in yaml_data_list:
-        yaml_content = yaml.dump(raw_yaml)
-        task_id = raw_yaml.get("task_id", "unknown")
-
-        conversations = convert_yaml_to_conversations(yaml_content)
-
-        if not conversations:
-            print(f"Warning: No conversations generated for {task_id}")
-            continue
-
-        conv = conversations[0]
-        messages = conv["messages"]
-
-        if len(messages) < 2:
-            print(f"Warning: Not enough messages for {task_id}")
-            continue
-
-        context, expected_response = find_eval_message_split(messages, raw_yaml)
-        if not expected_response:
-            print(f"Warning: No EVAL step found for {task_id}, skipping")
-            continue
-        input_files = get_input_files_for_eval(raw_yaml)
-        assertions = get_assertions_from_yaml(raw_yaml)
-
-        results.append(
-            TestCaseWithYaml(
-                task_id=task_id,
-                context=context,
-                expected_response=expected_response,
-                assertions=assertions,
-                input_files=input_files,
-                raw_yaml=raw_yaml,
-                format=InputFormat.SED,
-            )
-        )
-
-    return results
-
-
-def convert_yaml_to_test_cases_zeta(
-    yaml_data_list: List[Dict[str, Any]],
-) -> List[TestCaseWithYaml]:
-    """Convert YAML data to Zeta-format test cases."""
-    results = []
-
-    for raw_yaml in yaml_data_list:
-        yaml_content = yaml.dump(raw_yaml)
-        task_id = raw_yaml.get("task_id", "unknown")
-        if find_first_eval_state_index(raw_yaml) < 0:
-            print(f"Warning: No EVAL step found for {task_id}, skipping")
-            continue
-
-        # Use Zeta conversion API
-        conversations = convert_yaml_to_zeta(yaml_content)
-
-        if not conversations:
-            print(f"Warning: No Zeta conversations generated for {task_id}")
-            continue
-
-        # Zeta returns [system prompt, expected output]
-        conv = conversations[0]
-        messages = conv["messages"]
-        editable_range = conv.get("editable_range")
-
-        if len(messages) < 2:
-            print(f"Warning: Not enough messages for {task_id}")
-            continue
-
-        # For Zeta: system message is full prompt; strip the system prompt prefix
-        system_msg = messages[0]
-        expected_msg = messages[1]
-
-        zeta_prefix = zeta_system_prompt()
-        system_content = system_msg.get("content", "")
-        if system_content.startswith(zeta_prefix):
-            context_text = system_content[len(zeta_prefix) :].lstrip()
-        else:
-            context_text = system_content
-        context = [{"role": "user", "content": context_text}]
-        expected_response = expected_msg["content"]
-
-        # Get input files from YAML (files at EVAL step minus 1)
-        input_files = get_input_files_from_yaml(raw_yaml)
-        assertions = get_assertions_from_yaml(raw_yaml)
-        editable_file = get_cursor_file_from_yaml(raw_yaml)
-        if editable_file is None and len(input_files) == 1:
-            editable_file = next(iter(input_files.keys()))
-
-        results.append(
-            TestCaseWithYaml(
-                task_id=task_id,
-                context=context,
-                expected_response=expected_response,
-                assertions=assertions,
-                input_files=input_files,
-                raw_yaml=raw_yaml,
-                format=InputFormat.ZETA,
-                editable_range=editable_range,
-                editable_file=editable_file,
-            )
-        )
-
-    return results
+_CONVERTERS: Dict[InputFormat, FormatConverter] = {
+    InputFormat.SED: SEDConverter(),
+    InputFormat.ZETA: ZetaConverter(),
+}
 
 
 def convert_yaml_to_test_cases(
     yaml_data_list: List[Dict[str, Any]],
     input_format: InputFormat,
 ) -> List[TestCaseWithYaml]:
-    """Convert YAML data to test cases using PyO3 bindings."""
-    if input_format == InputFormat.SED:
-        return convert_yaml_to_test_cases_sed(yaml_data_list)
-    elif input_format == InputFormat.ZETA:
-        return convert_yaml_to_test_cases_zeta(yaml_data_list)
-    else:
+    converter = _CONVERTERS.get(input_format)
+    if converter is None:
         raise ValueError(f"Unsupported format: {input_format.value}")
+    return converter.convert(yaml_data_list)
 
 
 def estimate_token_count(messages: List[Dict[str, str]]) -> int:
@@ -347,11 +130,9 @@ def extract_response_content(response_text: str, format_type: InputFormat) -> st
         match = re.search(r"(```bash\s+.*?```)", response_text, re.DOTALL)
         return match.group(1) if match else ""
     elif format_type == InputFormat.ZETA:
-        # Zeta uses 5 backticks for code blocks
         match = re.search(r"`````\n(.*?)\n`````", response_text, re.DOTALL)
         if match:
             return match.group(1)
-        # Fallback to 3 backticks
         match = re.search(r"```\n(.*?)\n```", response_text, re.DOTALL)
         return match.group(1) if match else response_text
     return response_text
@@ -364,7 +145,6 @@ def apply_prediction(
     editable_range: Optional[Dict[str, int]] = None,
     editable_file: Optional[str] = None,
 ) -> tuple[Optional[Dict[str, str]], Optional[str]]:
-    """Apply model prediction to input files."""
     if format_type == InputFormat.SED:
         return apply_sed_prediction(input_files, generated)
     elif format_type == InputFormat.ZETA:
@@ -374,6 +154,37 @@ def apply_prediction(
     return None, f"Unsupported format: {format_type.value}"
 
 
+async def generate_single_sample(
+    client: AsyncOpenAI,
+    model_name: str,
+    messages: List[Dict[str, str]],
+    presence_penalty: float,
+    max_tokens: int,
+    max_attempts: int,
+    task_id: str,
+) -> Optional[str]:
+    delay = 0.25
+    for attempt in range(max_attempts):
+        try:
+            resp = await client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                presence_penalty=presence_penalty,
+                n=1,  # Always use n=1 to avoid SGLang bug with n>1 on some models
+                max_tokens=max_tokens,
+                extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+            )
+            if resp.choices:
+                return resp.choices[0].message.content or ""
+            return ""
+        except Exception as e:
+            print(f"Error on {task_id} sample (attempt {attempt + 1}): {e}")
+            if attempt < max_attempts - 1:
+                await asyncio.sleep(delay)
+                delay *= 2
+    return None
+
+
 async def generate_for_test_case(
     client: AsyncOpenAI,
     sem: asyncio.Semaphore,
@@ -381,61 +192,36 @@ async def generate_for_test_case(
     test_case: TestCaseWithYaml,
     args: Args,
 ) -> Dict[str, Any]:
+    if test_case.unsupported:
+        return {
+            "task_id": test_case.task_id,
+            "format": test_case.format.value,
+            "input_files": test_case.input_files,
+            "raw_yaml": test_case.raw_yaml,
+            "expected_response": test_case.expected_response,
+            "assertions": test_case.assertions,
+            "samples": [],
+            "error": f"unsupported_test_case: {test_case.format.value} format does not support this test case type",
+        }
+
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(test_case.context)
 
     async with sem:
-        delay = 0.25
-        for attempt in range(args.max_attempts):
-            try:
-                resp = await client.chat.completions.create(
-                    model=args.model_name,
-                    messages=messages,
-                    presence_penalty=args.presence_penalty,
-                    n=args.num_samples,
-                    max_tokens=args.max_new_tokens,
-                    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
-                )
+        # Generate sequentially: n>1 is broken in SGLang for some models.
+        samples = []
+        for idx in range(args.num_samples):
+            response_text = await generate_single_sample(
+                client=client,
+                model_name=args.model_name,
+                messages=messages,
+                presence_penalty=args.presence_penalty,
+                max_tokens=args.max_new_tokens,
+                max_attempts=args.max_attempts,
+                task_id=test_case.task_id,
+            )
 
-                samples = []
-                for idx, choice in enumerate(resp.choices):
-                    response_text = choice.message.content or ""
-                    generated = extract_response_content(response_text, test_case.format)
-                    exact_match = int(generated == test_case.expected_response)
-                    predicted_files, error = apply_prediction(
-                        test_case.format,
-                        test_case.input_files,
-                        generated,
-                        editable_range=test_case.editable_range,
-                        editable_file=test_case.editable_file,
-                    )
-                    predicted_cursor = None
-                    if test_case.format == InputFormat.SED:
-                        viewport = parse_viewport_command(generated)
-                        if viewport:
-                            line = (viewport["start"] + viewport["end"]) // 2
-                            predicted_cursor = {
-                                "file": viewport["file_path"],
-                                "line": line,
-                                "column": 0,
-                            }
-                    elif test_case.format == InputFormat.ZETA:
-                        predicted_cursor = parse_zeta_cursor_position(
-                            generated, test_case.editable_range, test_case.editable_file
-                        )
-
-                    samples.append(
-                        {
-                            "sample_idx": idx,
-                            "response_text": response_text,
-                            "generated": generated,
-                            "exact_match": exact_match,
-                            "predicted_files": predicted_files if error is None else None,
-                            "prediction_error": error,
-                            "predicted_cursor": predicted_cursor,
-                        }
-                    )
-
+            if response_text is None:
                 return {
                     "task_id": test_case.task_id,
                     "format": test_case.format.value,
@@ -444,26 +230,55 @@ async def generate_for_test_case(
                     "expected_response": test_case.expected_response,
                     "assertions": test_case.assertions,
                     "samples": samples,
-                    "error": None,
+                    "error": f"Failed to generate sample {idx} after {args.max_attempts} attempts",
                 }
 
-            except Exception as e:
-                print(f"Error on {test_case.task_id} (attempt {attempt + 1}): {e}")
-                if attempt == args.max_attempts - 1:
-                    return {
-                        "task_id": test_case.task_id,
-                        "format": test_case.format.value,
-                        "input_files": test_case.input_files,
-                        "raw_yaml": test_case.raw_yaml,
-                        "expected_response": test_case.expected_response,
-                        "assertions": test_case.assertions,
-                        "samples": [],
-                        "error": str(e),
+            generated = extract_response_content(response_text, test_case.format)
+            exact_match = int(generated == test_case.expected_response)
+            predicted_files, error = apply_prediction(
+                test_case.format,
+                test_case.input_files,
+                generated,
+                editable_range=test_case.editable_range,
+                editable_file=test_case.editable_file,
+            )
+            predicted_cursor = None
+            if test_case.format == InputFormat.SED:
+                viewport = parse_viewport_command(generated)
+                if viewport:
+                    line = (viewport["start"] + viewport["end"]) // 2
+                    predicted_cursor = {
+                        "file": viewport["file_path"],
+                        "line": line,
+                        "column": 0,
                     }
-                await asyncio.sleep(delay)
-                delay *= 2
+            elif test_case.format == InputFormat.ZETA:
+                predicted_cursor = parse_zeta_cursor_position(
+                    generated, test_case.editable_range, test_case.editable_file
+                )
 
-    return {"task_id": test_case.task_id, "error": "max_attempts_exceeded", "samples": []}
+            samples.append(
+                {
+                    "sample_idx": idx,
+                    "response_text": response_text,
+                    "generated": generated,
+                    "exact_match": exact_match,
+                    "predicted_files": predicted_files if error is None else None,
+                    "prediction_error": error,
+                    "predicted_cursor": predicted_cursor,
+                }
+            )
+
+        return {
+            "task_id": test_case.task_id,
+            "format": test_case.format.value,
+            "input_files": test_case.input_files,
+            "raw_yaml": test_case.raw_yaml,
+            "expected_response": test_case.expected_response,
+            "assertions": test_case.assertions,
+            "samples": samples,
+            "error": None,
+        }
 
 
 def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -472,10 +287,8 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
     raw_yaml = raw_result.get("raw_yaml", {})
     samples_raw = raw_result.get("samples", [])
 
-    # Get states directly from raw YAML (full history)
     yaml_states = raw_yaml.get("states", [])
 
-    # Find eval step index
     eval_step = 0
     for i, state in enumerate(yaml_states):
         eval = state.get("eval", "NO_EVAL")
@@ -483,7 +296,6 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
             eval_step = i
             break
 
-    # Build output states from YAML states
     states = []
     for i, state in enumerate(yaml_states):
         eval = state.get("eval", "NO_EVAL")
@@ -498,7 +310,6 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
             }
         )
 
-    # Build sample predictions
     samples = []
     for s in samples_raw:
         samples.append(
@@ -513,7 +324,6 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
             }
         )
 
-    # Compute metrics
     num_samples = len(samples)
     num_exact = sum(1 for s in samples if s.get("exact_match", 0) == 1)
     pass_at_1 = 1 if num_exact > 0 else 0
@@ -544,7 +354,6 @@ def validate_format(args: Args) -> InputFormat:
 def write_yaml_output(
     output_file: str, results: List[Dict[str, Any]], config: Dict[str, Any]
 ) -> None:
-    """Write generation results to YAML file."""
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     output = {

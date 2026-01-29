@@ -235,17 +235,23 @@ async def evaluate_task(
     for sample in samples:
         sample_idx = sample.get("sample_idx", 0)
         predicted_files = sample.get("predicted_files")
-        exact_match = sample.get("exact_match", 0)
+        exact_match_raw = sample.get("exact_match", 0)
         predicted_raw = sample.get("predicted_raw", "")
 
-        if args.skip_exact_matches and exact_match == 1:
+        file_exact_match = False
+        if predicted_files is not None and expected_files:
+            file_exact_match = all(
+                predicted_files.get(path) == content for path, content in expected_files.items()
+            )
+
+        if args.skip_exact_matches and (file_exact_match or exact_match_raw == 1):
             sample_evals.append(
                 {
                     "task_id": task_id,
                     "sample_idx": sample_idx,
                     "equivalent": 1,
                     "skipped": True,
-                    "skip_reason": "exact_match",
+                    "skip_reason": "file_exact_match" if file_exact_match else "exact_match",
                 }
             )
             continue
