@@ -244,7 +244,4 @@ states:
                   task_name = f"conversation_{conversation_id}/{args.task_name}"
                   convert_to_incremental_jsonl(line, args.output_file, task_name)
                   conversation_id += 1
-  cursor:
-    file: src/input_pipeline/validation_to_testcases.py
-    line: 5
-    column: 0
+  cursor: null

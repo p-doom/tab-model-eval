@@ -3,6 +3,8 @@ from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple
 
+from .eval_utils import find_matching_path
+
 
 class InputFormat(Enum):
     SED = "sed"
@@ -128,13 +130,6 @@ def apply_sed_to_content(content: str, sed_parsed: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _find_matching_path(files: Dict[str, str], target: str) -> Optional[str]:
-    for path in files:
-        if path == target or path.endswith(target) or target.endswith(path):
-            return path
-    return None
-
-
 def apply_sed_prediction(
     files: Dict[str, str],
     prediction: str,
@@ -147,7 +142,7 @@ def apply_sed_prediction(
         # Non-edit command (e.g., cat -n viewport, git/pytest) => no file changes.
         return files, None
 
-    matched_path = _find_matching_path(files, parsed["file_path"])
+    matched_path = find_matching_path(files.keys(), parsed["file_path"])
     if matched_path is None:
         return files, f"file_not_found: {parsed['file_path']}"
 
@@ -188,7 +183,7 @@ def apply_zeta_prediction(
     updated_files = deepcopy(files)
 
     for file_path, new_content in parsed.items():
-        matched_path = _find_matching_path(files, file_path)
+        matched_path = find_matching_path(files.keys(), file_path)
         if matched_path:
             updated_files[matched_path] = new_content
         else:
@@ -208,7 +203,7 @@ def apply_zeta_prediction_to_editable(
     if prediction is None or not prediction.strip():
         return files, "empty_zeta_output"
 
-    matched_path = _find_matching_path(files, file_path)
+    matched_path = find_matching_path(files.keys(), file_path)
     if matched_path is None:
         return files, f"file_not_found: {file_path}"
 
@@ -337,7 +332,7 @@ def extract_expected_files(
         if parsed:
             result = deepcopy(input_files)
             for path, content in parsed.items():
-                matched = _find_matching_path(result, path)
+                matched = find_matching_path(result.keys(), path)
                 if matched:
                     result[matched] = content
                 else:

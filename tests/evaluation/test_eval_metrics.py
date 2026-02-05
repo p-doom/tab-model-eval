@@ -120,3 +120,59 @@ def test_run_metrics_eval_writes_output(tmp_path):
     assert metrics_file.exists()
     assert scores["total_tasks"] == 1
     assert scores["total_samples"] == 1
+
+
+def test_evaluate_task_terminal_compares_command_only():
+    task_result = {
+        "task_id": "terminal_task",
+        "states": [
+            {
+                "eval": "EVAL",
+                "files": {"a.txt": "expected"},
+                "cursor": {"file": "a.txt", "line": 10, "column": 5},
+                "terminal": {"command": "pytest -q tests/evaluation"},
+            }
+        ],
+        "samples": [
+            {
+                "sample_idx": 0,
+                "predicted_files": {"a.txt": "wrong"},
+                "predicted_cursor": {"file": "a.txt", "line": 1, "column": 0},
+                "predicted_raw": "```bash\npytest -q tests/evaluation\n```",
+            }
+        ],
+    }
+
+    result = eval_metrics.evaluate_task(task_result)
+    assert result["eval_mode"] == "terminal"
+    assert result["num_terminal_exact_match"] == 1
+    assert result["num_file_exact_match"] == 0
+    assert result["num_cursor_exact_match"] == 0
+    assert result["pass_at_1"] == 1
+
+
+def test_evaluate_task_state_requires_cursor_match_and_ignores_terminal_text():
+    task_result = {
+        "task_id": "state_task",
+        "states": [
+            {
+                "eval": "EVAL",
+                "files": {"a.txt": "hello"},
+                "cursor": {"file": "a.txt", "line": 1, "column": 5},
+            }
+        ],
+        "samples": [
+            {
+                "sample_idx": 0,
+                "predicted_files": {"a.txt": "hello"},
+                "predicted_cursor": {"file": "a.txt", "line": 1, "column": 4},
+                "predicted_raw": "pytest -q",
+            }
+        ],
+    }
+
+    result = eval_metrics.evaluate_task(task_result)
+    assert result["eval_mode"] == "state"
+    assert result["num_file_exact_match"] == 1
+    assert result["num_cursor_exact_match"] == 0
+    assert result["pass_at_1"] == 0

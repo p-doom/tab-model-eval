@@ -20,6 +20,7 @@ from .prediction_applicators import (
     parse_viewport_command,
     parse_zeta_cursor_position,
 )
+from .eval_utils import find_matching_path
 from .types import (
     InputFormat,
     TestCaseWithYaml,
@@ -154,6 +155,67 @@ def apply_prediction(
     return None, f"Unsupported format: {format_type.value}"
 
 
+def _cursor_from_char_offset(content: str, offset: int) -> Dict[str, int]:
+    bounded = max(0, min(offset, len(content)))
+    prefix = content[:bounded]
+    line = prefix.count("\n") + 1
+    last_newline = prefix.rfind("\n")
+    column = len(prefix) if last_newline == -1 else len(prefix) - last_newline - 1
+    return {"line": line, "column": column}
+
+
+def compute_cursor_after_text_diff(original: str, updated: str) -> Optional[Dict[str, int]]:
+    """Return cursor at the end of the minimal changed span in updated text."""
+    if original == updated:
+        return None
+
+    prefix = 0
+    max_prefix = min(len(original), len(updated))
+    while prefix < max_prefix and original[prefix] == updated[prefix]:
+        prefix += 1
+
+    old_tail = len(original)
+    new_tail = len(updated)
+    while (
+        old_tail > prefix and new_tail > prefix and original[old_tail - 1] == updated[new_tail - 1]
+    ):
+        old_tail -= 1
+        new_tail -= 1
+
+    cursor_offset = new_tail
+    # Keep cursor at the end of changed code, not at the next line start.
+    while cursor_offset > prefix and updated[cursor_offset - 1] == "\n":
+        cursor_offset -= 1
+
+    return _cursor_from_char_offset(updated, cursor_offset)
+
+
+def compute_cursor_after_applied_diff(
+    input_files: Dict[str, str],
+    predicted_files: Optional[Dict[str, str]],
+    preferred_file: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    """Return cursor right after the accepted file diff."""
+    if predicted_files is None:
+        return None
+
+    all_paths = sorted(set(input_files.keys()) | set(predicted_files.keys()))
+    changed_paths = [p for p in all_paths if input_files.get(p, "") != predicted_files.get(p, "")]
+    if not changed_paths:
+        return None
+
+    selected_path = find_matching_path(changed_paths, preferred_file)
+    if selected_path is None:
+        selected_path = changed_paths[0]
+
+    original = input_files.get(selected_path, "")
+    updated = predicted_files.get(selected_path, "")
+    cursor = compute_cursor_after_text_diff(original, updated)
+    if cursor is None:
+        return None
+    return {"file": selected_path, **cursor}
+
+
 async def generate_single_sample(
     client: AsyncOpenAI,
     model_name: str,
@@ -242,20 +304,28 @@ async def generate_for_test_case(
                 editable_range=test_case.editable_range,
                 editable_file=test_case.editable_file,
             )
-            predicted_cursor = None
-            if test_case.format == InputFormat.SED:
-                viewport = parse_viewport_command(generated)
-                if viewport:
-                    line = (viewport["start"] + viewport["end"]) // 2
-                    predicted_cursor = {
-                        "file": viewport["file_path"],
-                        "line": line,
-                        "column": 0,
-                    }
-            elif test_case.format == InputFormat.ZETA:
-                predicted_cursor = parse_zeta_cursor_position(
-                    generated, test_case.editable_range, test_case.editable_file
-                )
+            preferred_file = (
+                test_case.editable_file if test_case.format == InputFormat.ZETA else None
+            )
+            predicted_cursor = compute_cursor_after_applied_diff(
+                test_case.input_files,
+                predicted_files,
+                preferred_file=preferred_file,
+            )
+            if predicted_cursor is None:
+                if test_case.format == InputFormat.SED:
+                    viewport = parse_viewport_command(generated)
+                    if viewport:
+                        line = (viewport["start"] + viewport["end"]) // 2
+                        predicted_cursor = {
+                            "file": viewport["file_path"],
+                            "line": line,
+                            "column": 0,
+                        }
+                elif test_case.format == InputFormat.ZETA:
+                    predicted_cursor = parse_zeta_cursor_position(
+                        generated, test_case.editable_range, test_case.editable_file
+                    )
 
             samples.append(
                 {

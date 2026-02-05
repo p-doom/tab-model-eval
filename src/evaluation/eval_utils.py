@@ -13,7 +13,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 
 # ----------------------------
@@ -102,6 +102,22 @@ class LocalLogger:
 # ----------------------------
 # Dataset helpers
 # ----------------------------
+def find_matching_path(paths: Iterable[str], target_path: Optional[str]) -> Optional[str]:
+    """Find exact or suffix-compatible file path match."""
+    if not target_path:
+        return None
+
+    candidates = list(paths)
+    if target_path in candidates:
+        return target_path
+
+    for path in candidates:
+        if path.endswith(target_path) or target_path.endswith(path):
+            return path
+
+    return None
+
+
 def load_dataset(filepath: str) -> Dict[str, Any]:
     """Load a JSON dataset file."""
     with open(filepath, "r") as f:

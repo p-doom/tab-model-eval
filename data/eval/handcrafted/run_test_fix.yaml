@@ -116,7 +116,4 @@ states:
 
       def test_subtract():
           assert subtract(2, 1) == 1
-  cursor:
-    file: tests/test_math.py
-    line: 9
-    column: 0
+  cursor: null

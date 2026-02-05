@@ -1,5 +1,6 @@
 import difflib
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -7,6 +8,7 @@ import tyro
 import yaml
 import wandb
 
+from .eval_utils import find_matching_path
 from .yaml_output import load_generation_yaml
 
 
@@ -64,20 +66,65 @@ def compute_line_diff_metrics(expected: str, predicted: str) -> Dict[str, Any]:
     }
 
 
+def _normalize_terminal_command(command: str) -> str:
+    text = (command or "").strip()
+    if not text:
+        return ""
+
+    match = re.search(r"```(?:bash)?\s*\n(.*?)\n```", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return text
+
+
+def _cursor_exact_match(
+    expected_cursor: Optional[Dict[str, Any]],
+    predicted_cursor: Optional[Dict[str, Any]],
+) -> Optional[bool]:
+    if expected_cursor is None:
+        return None
+    if predicted_cursor is None:
+        return False
+
+    expected_file = expected_cursor.get("file")
+    predicted_file = predicted_cursor.get("file")
+
+    if expected_file:
+        matched = find_matching_path([expected_file], predicted_file)
+        if matched is None:
+            return False
+
+    return predicted_cursor.get("line") == expected_cursor.get("line") and predicted_cursor.get(
+        "column"
+    ) == expected_cursor.get("column")
+
+
 def evaluate_sample(
     expected_files: Dict[str, str],
     predicted_files: Optional[Dict[str, str]],
     predicted_raw: str,
     prediction_error: Optional[str],
+    expected_cursor: Optional[Dict[str, Any]] = None,
+    predicted_cursor: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     result: Dict[str, Any] = {
         "has_prediction": predicted_files is not None,
         "prediction_error": prediction_error,
         "is_empty_prediction": not predicted_raw.strip(),
+        "cursor_exact_match": _cursor_exact_match(expected_cursor, predicted_cursor),
     }
 
     if prediction_error or predicted_files is None:
-        result.update({"file_exact_match": False, "avg_similarity": 0.0, "files_evaluated": 0})
+        cursor_match = result.get("cursor_exact_match")
+        sample_pass = False if cursor_match is not None else False
+        result.update(
+            {
+                "file_exact_match": False,
+                "avg_similarity": 0.0,
+                "files_evaluated": 0,
+                "sample_pass": sample_pass,
+            }
+        )
         return result
 
     file_matches = []
@@ -109,7 +156,32 @@ def evaluate_sample(
         }
     )
 
+    cursor_match = result.get("cursor_exact_match")
+    result["sample_pass"] = (
+        result["file_exact_match"] and cursor_match
+        if cursor_match is not None
+        else result["file_exact_match"]
+    )
+
     return result
+
+
+def evaluate_terminal_sample(
+    expected_command: str,
+    predicted_raw: str,
+    prediction_error: Optional[str],
+) -> Dict[str, Any]:
+    expected_norm = _normalize_terminal_command(expected_command)
+    predicted_norm = _normalize_terminal_command(predicted_raw)
+    terminal_exact_match = bool(predicted_norm) and expected_norm == predicted_norm
+
+    return {
+        "has_prediction": bool(predicted_norm),
+        "prediction_error": prediction_error,
+        "is_empty_prediction": not predicted_norm,
+        "terminal_exact_match": terminal_exact_match,
+        "sample_pass": terminal_exact_match,
+    }
 
 
 def evaluate_task(task_result: Dict[str, Any]) -> Dict[str, Any]:
@@ -118,46 +190,102 @@ def evaluate_task(task_result: Dict[str, Any]) -> Dict[str, Any]:
     samples = task_result.get("samples", [])
 
     expected_files = {}
+    expected_cursor = None
+    expected_terminal_command = ""
     assertions = None
     for state in states:
         eval = state.get("eval", "NO_EVAL")
         if eval == "EVAL":
             expected_files = state.get("files", {})
+            expected_cursor = state.get("cursor")
+            terminal = state.get("terminal") or {}
+            expected_terminal_command = terminal.get("command", "") if terminal else ""
             assertions = state.get("judge_assertions")
             break
+    eval_mode = "terminal" if expected_terminal_command else "state"
 
     sample_results = []
     for sample in samples:
-        sample_eval = evaluate_sample(
-            expected_files=expected_files,
-            predicted_files=sample.get("predicted_files"),
-            predicted_raw=sample.get("predicted_raw", ""),
-            prediction_error=sample.get("prediction_error"),
-        )
+        if eval_mode == "terminal":
+            sample_eval = evaluate_terminal_sample(
+                expected_command=expected_terminal_command,
+                predicted_raw=sample.get("predicted_raw", ""),
+                prediction_error=sample.get("prediction_error"),
+            )
+        else:
+            sample_eval = evaluate_sample(
+                expected_files=expected_files,
+                predicted_files=sample.get("predicted_files"),
+                predicted_raw=sample.get("predicted_raw", ""),
+                prediction_error=sample.get("prediction_error"),
+                expected_cursor=expected_cursor,
+                predicted_cursor=sample.get("predicted_cursor"),
+            )
         sample_eval["sample_idx"] = sample.get("sample_idx", 0)
         sample_eval["exact_match_raw"] = sample.get("exact_match", 0)
         sample_results.append(sample_eval)
 
     num_samples = len(sample_results)
+    num_has_prediction = sum(1 for s in sample_results if s["has_prediction"])
+    num_empty = sum(1 for s in sample_results if s["is_empty_prediction"])
+    num_pass = sum(1 for s in sample_results if s.get("sample_pass", False))
+
     if num_samples > 0:
-        num_file_exact_match = sum(1 for s in sample_results if s["file_exact_match"])
-        num_has_prediction = sum(1 for s in sample_results if s["has_prediction"])
-        num_empty = sum(1 for s in sample_results if s["is_empty_prediction"])
-        avg_similarity = sum(s["avg_similarity"] for s in sample_results) / num_samples
+        if eval_mode == "terminal":
+            num_file_exact_match = 0
+            file_exact_match_rate = 0.0
+            avg_similarity = 0.0
+            num_cursor_evaluated = 0
+            num_cursor_exact_match = 0
+            cursor_exact_match_rate = 0.0
+            num_terminal_exact_match = sum(
+                1 for s in sample_results if s.get("terminal_exact_match", False)
+            )
+            terminal_exact_match_rate = num_terminal_exact_match / num_samples
+        else:
+            num_file_exact_match = sum(1 for s in sample_results if s["file_exact_match"])
+            file_exact_match_rate = num_file_exact_match / num_samples
+            avg_similarity = sum(s["avg_similarity"] for s in sample_results) / num_samples
+            cursor_results = [
+                s["cursor_exact_match"]
+                for s in sample_results
+                if s.get("cursor_exact_match") is not None
+            ]
+            num_cursor_evaluated = len(cursor_results)
+            num_cursor_exact_match = sum(1 for c in cursor_results if c is True)
+            cursor_exact_match_rate = (
+                num_cursor_exact_match / num_cursor_evaluated if num_cursor_evaluated > 0 else 0.0
+            )
+            num_terminal_exact_match = 0
+            terminal_exact_match_rate = 0.0
     else:
-        num_file_exact_match = num_has_prediction = num_empty = 0
+        num_file_exact_match = 0
+        file_exact_match_rate = 0.0
         avg_similarity = 0.0
+        num_cursor_evaluated = 0
+        num_cursor_exact_match = 0
+        cursor_exact_match_rate = 0.0
+        num_terminal_exact_match = 0
+        terminal_exact_match_rate = 0.0
 
     return {
         "task_id": task_id,
         "assertions": assertions,
+        "eval_mode": eval_mode,
         "num_samples": num_samples,
+        "num_pass": num_pass,
+        "pass_rate": num_pass / num_samples if num_samples > 0 else 0.0,
         "num_file_exact_match": num_file_exact_match,
+        "num_cursor_evaluated": num_cursor_evaluated,
+        "num_cursor_exact_match": num_cursor_exact_match,
+        "num_terminal_exact_match": num_terminal_exact_match,
         "num_has_prediction": num_has_prediction,
         "num_empty_predictions": num_empty,
-        "file_exact_match_rate": num_file_exact_match / num_samples if num_samples > 0 else 0.0,
+        "file_exact_match_rate": file_exact_match_rate,
+        "cursor_exact_match_rate": cursor_exact_match_rate,
+        "terminal_exact_match_rate": terminal_exact_match_rate,
         "avg_similarity": avg_similarity,
-        "pass_at_1": int(num_file_exact_match > 0),
+        "pass_at_1": int(num_pass > 0),
         "sample_results": sample_results,
     }
 
@@ -189,25 +317,51 @@ def run_metrics_eval(
     num_tasks = len(task_metrics)
     total_samples = sum(t["num_samples"] for t in task_metrics)
     total_file_exact = sum(t["num_file_exact_match"] for t in task_metrics)
+    total_cursor_exact = sum(t["num_cursor_exact_match"] for t in task_metrics)
+    total_terminal_exact = sum(t["num_terminal_exact_match"] for t in task_metrics)
+    total_pass = sum(t["num_pass"] for t in task_metrics)
     total_pass_at_1 = sum(t["pass_at_1"] for t in task_metrics)
     total_empty = sum(t["num_empty_predictions"] for t in task_metrics)
+    num_state_tasks = sum(1 for t in task_metrics if t.get("eval_mode") == "state")
+    num_terminal_tasks = sum(1 for t in task_metrics if t.get("eval_mode") == "terminal")
 
     avg_file_exact_rate = (
-        sum(t["file_exact_match_rate"] for t in task_metrics) / num_tasks if num_tasks > 0 else 0.0
+        sum(t["file_exact_match_rate"] for t in task_metrics if t.get("eval_mode") == "state")
+        / num_state_tasks
+        if num_state_tasks > 0
+        else 0.0
     )
     avg_similarity = (
-        sum(t["avg_similarity"] for t in task_metrics) / num_tasks if num_tasks > 0 else 0.0
+        sum(t["avg_similarity"] for t in task_metrics if t.get("eval_mode") == "state")
+        / num_state_tasks
+        if num_state_tasks > 0
+        else 0.0
+    )
+    avg_terminal_exact_rate = (
+        sum(
+            t["terminal_exact_match_rate"] for t in task_metrics if t.get("eval_mode") == "terminal"
+        )
+        / num_terminal_tasks
+        if num_terminal_tasks > 0
+        else 0.0
     )
 
     scores = {
         "total_tasks": num_tasks,
+        "num_state_tasks": num_state_tasks,
+        "num_terminal_tasks": num_terminal_tasks,
         "total_samples": total_samples,
+        "total_pass": total_pass,
         "total_file_exact_match": total_file_exact,
+        "total_cursor_exact_match": total_cursor_exact,
+        "total_terminal_exact_match": total_terminal_exact,
         "total_pass_at_1": total_pass_at_1,
         "total_empty_predictions": total_empty,
         "avg_file_exact_match_rate": avg_file_exact_rate,
+        "avg_terminal_exact_match_rate": avg_terminal_exact_rate,
         "avg_similarity": avg_similarity,
         "pass_at_1_rate": total_pass_at_1 / num_tasks if num_tasks > 0 else 0.0,
+        "pass_rate": total_pass / total_samples if total_samples > 0 else 0.0,
         "empty_rate": total_empty / total_samples if total_samples > 0 else 0.0,
     }
 
@@ -230,7 +384,14 @@ def run_metrics_eval(
     print("=" * 50)
     print(f"Tasks: {num_tasks}")
     print(f"Samples: {total_samples}")
-    print(f"File Exact Match: {total_file_exact}/{total_samples} ({avg_file_exact_rate*100:.1f}%)")
+    if num_state_tasks > 0:
+        print(
+            f"File Exact Match: {total_file_exact}/{total_samples} ({avg_file_exact_rate*100:.1f}%)"
+        )
+    if num_terminal_tasks > 0:
+        print(
+            f"Terminal Exact Match: {total_terminal_exact}/{total_samples} ({avg_terminal_exact_rate*100:.1f}%)"
+        )
     print(f"Pass@1: {total_pass_at_1}/{num_tasks} ({scores['pass_at_1_rate']*100:.1f}%)")
     print(f"Avg Similarity: {avg_similarity*100:.1f}%")
     print(f"Output: {metrics_file}")
@@ -240,12 +401,19 @@ def run_metrics_eval(
             {
                 "eval_step": eval_step,
                 f"{wandb_eval_type}/total_tasks": num_tasks,
+                f"{wandb_eval_type}/num_state_tasks": num_state_tasks,
+                f"{wandb_eval_type}/num_terminal_tasks": num_terminal_tasks,
                 f"{wandb_eval_type}/total_samples": total_samples,
+                f"{wandb_eval_type}/total_pass": total_pass,
                 f"{wandb_eval_type}/total_file_exact_match": total_file_exact,
+                f"{wandb_eval_type}/total_cursor_exact_match": total_cursor_exact,
+                f"{wandb_eval_type}/total_terminal_exact_match": total_terminal_exact,
                 f"{wandb_eval_type}/total_pass_at_1": total_pass_at_1,
                 f"{wandb_eval_type}/avg_file_exact_match_rate": avg_file_exact_rate,
+                f"{wandb_eval_type}/avg_terminal_exact_match_rate": avg_terminal_exact_rate,
                 f"{wandb_eval_type}/avg_similarity": avg_similarity,
                 f"{wandb_eval_type}/pass_at_1_rate": scores["pass_at_1_rate"],
+                f"{wandb_eval_type}/pass_rate": scores["pass_rate"],
                 f"{wandb_eval_type}/empty_rate": scores["empty_rate"],
             }
         )

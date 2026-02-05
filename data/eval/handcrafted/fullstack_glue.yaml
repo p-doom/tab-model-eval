@@ -131,10 +131,7 @@ states:
           email: Optional[EmailStr] = None
           role: Optional[UserRole] = None
           is_premium: Optional[bool] = None
-  cursor:
-    file: backend/models.py
-    line: 1
-    column: 0
+  cursor: null
 - step: 4
   eval: NO_EVAL
   terminal: null

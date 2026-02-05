@@ -137,3 +137,55 @@ def test_build_yaml_result_uses_eval_field():
     result = generations.build_yaml_result(raw_result)
     assert result["format"] == "zeta"
     assert result["states"][1]["eval"] == "EVAL"
+
+
+def test_compute_cursor_after_text_diff_line_completion():
+    cursor = generations.compute_cursor_after_text_diff("value = fo", "value = foo")
+    assert cursor == {"line": 1, "column": 11}
+
+
+def test_compute_cursor_after_text_diff_mid_line_completion():
+    cursor = generations.compute_cursor_after_text_diff(
+        "result = vari + 1",
+        "result = variable + 1",
+    )
+    assert cursor == {"line": 1, "column": 17}
+
+
+def test_compute_cursor_after_text_diff_multi_line_edit():
+    cursor = generations.compute_cursor_after_text_diff(
+        "a=1\nb=2\nc=3",
+        "a=1\nb=2\nx=9\ny=10\nc=3",
+    )
+    assert cursor == {"line": 4, "column": 4}
+
+
+def test_compute_cursor_after_text_diff_minimal_changed_span():
+    cursor = generations.compute_cursor_after_text_diff(
+        "import os\nimport sys\nx = 1\n",
+        "import os\nimport sys\nx = 2\n",
+    )
+    assert cursor == {"line": 3, "column": 5}
+
+
+def test_compute_cursor_after_applied_diff_uses_preferred_file():
+    input_files = {
+        "pkg/src/main.py": "result = vari + 1",
+        "pkg/src/other.py": "a = 1",
+    }
+    predicted_files = {
+        "pkg/src/main.py": "result = variable + 1",
+        "pkg/src/other.py": "a = 2",
+    }
+    cursor = generations.compute_cursor_after_applied_diff(
+        input_files,
+        predicted_files,
+        preferred_file="src/main.py",
+    )
+    assert cursor == {"file": "pkg/src/main.py", "line": 1, "column": 17}
+
+
+def test_compute_cursor_after_applied_diff_no_change_returns_none():
+    files = {"a.txt": "same"}
+    cursor = generations.compute_cursor_after_applied_diff(files, {"a.txt": "same"})
+    assert cursor is None
