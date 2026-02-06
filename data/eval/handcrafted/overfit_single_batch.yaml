@@ -1,103 +1,188 @@
 task_id: overfit_single_batch
-description: 'This eval tests completing a single-batch overfitting training loop.'
+description: This eval tests completing a single-batch overfitting training loop.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: ls -la
-    output: |-
-      total 24
-      drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
-      drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
-      -rw-r--r-- 1 user user 2341 Jan 19 09:58 train.py
-      -rw-r--r-- 1 user user 1245 Jan 19 09:58 model.py
-      -rw-r--r-- 1 user user  892 Jan 19 09:58 data.py
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    train.py: "import jax\nimport jax.numpy as jnp\nimport optax\nfrom model import\
-      \ create_model, apply_model\nfrom data import create_dataloader\n\n\ndef compute_loss(params,\
-      \ batch):\n    inputs, targets = batch\n    logits = apply_model(params, inputs)\n\
-      \    loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)\n\
-      \    return jnp.mean(loss)\n\n\n@jax.jit\ndef train_step(params, opt_state,\
-      \ batch):\n    loss, grads = jax.value_and_grad(compute_loss)(params, batch)\n\
-      \    updates, opt_state = optimizer.update(grads, opt_state, params)\n    params\
-      \ = optax.apply_updates(params, updates)\n    return params, opt_state, loss\n\
-      \n\ndef main():\n    rng = jax.random.PRNGKey(42)\n    params = create_model(rng)\n\
-      \    \n    global optimizer\n    optimizer = optax.adam(learning_rate=1e-3)\n\
-      \    opt_state = optimizer.init(params)\n    \n    dataloader = create_dataloader(batch_size=32)\n\
-      \    \n    for epoch in range(100):\n        for batch in dataloader:\n    \
-      \        params, opt_state, loss = train_step(params, opt_state, batch)\n  \
-      \      print(f\"Epoch {epoch}, Loss: {loss:.4f}\")\n\n\nif __name__ == \"__main__\"\
-      :\n    main()"
-  cursor:
-    file: train.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  terminal: null
-  files:
-    train.py: "import jax\nimport jax.numpy as jnp\nimport optax\nfrom model import\
-      \ create_model, apply_model\nfrom data import create_dataloader\n\n\ndef compute_loss(params,\
-      \ batch):\n    inputs, targets = batch\n    logits = apply_model(params, inputs)\n\
-      \    loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)\n\
-      \    return jnp.mean(loss)\n\n\n@jax.jit\ndef train_step(params, opt_state,\
-      \ batch):\n    loss, grads = jax.value_and_grad(compute_loss)(params, batch)\n\
-      \    updates, opt_state = optimizer.update(grads, opt_state, params)\n    params\
-      \ = optax.apply_updates(params, updates)\n    return params, opt_state, loss\n\
-      \n\ndef main():\n    rng = jax.random.PRNGKey(42)\n    params = create_model(rng)\n\
-      \    \n    global optimizer\n    optimizer = optax.adam(learning_rate=1e-3)\n\
-      \    opt_state = optimizer.init(params)\n    \n    dataloader = create_dataloader(batch_size=32)\n\
-      \    \n    # for epoch in range(100):\n    #     for batch in dataloader:\n\
-      \    #         params, opt_state, loss = train_step(params, opt_state, batch)\n\
-      \    #     print(f\"Epoch {epoch}, Loss: {loss:.4f}\")\n    \n    batch = next(iter(dataloader))\n\
-      \    step = 0\n    while Tr\n\nif __name__ == \"__main__\":\n    main()\n  \
-      \  main()"
-  cursor:
-    file: train.py
-    line: 36
-    column: 51
-- step: 3
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the while loop is completed with `True:` to create an infinite loop for overfitting
-    - the loop body calls `train_step` with the same `batch` variable (single batch overfitting)
-    - the step counter is incremented
-    - there is some form of logging/printing the loss periodically
-    - the correct file is being edited (train.py)
-    - the correct line is being edited (line 40)
-    - the file is being catted with approx. the correct viewport (around lines 27-47)
-    Note:
-    - is is also okay if a different logging frequency is used (e.g. 1000 steps instead of 100 steps)
-    - it is okay if variable names differ as long as the logic is correct
-  terminal: null
-  files:
-    train.py: "import jax\nimport jax.numpy as jnp\nimport optax\nfrom model import\
-      \ create_model, apply_model\nfrom data import create_dataloader\n\n\ndef compute_loss(params,\
-      \ batch):\n    inputs, targets = batch\n    logits = apply_model(params, inputs)\n\
-      \    loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)\n\
-      \    return jnp.mean(loss)\n\n\n@jax.jit\ndef train_step(params, opt_state,\
-      \ batch):\n    loss, grads = jax.value_and_grad(compute_loss)(params, batch)\n\
-      \    updates, opt_state = optimizer.update(grads, opt_state, params)\n    params\
-      \ = optax.apply_updates(params, updates)\n    return params, opt_state, loss\n\
-      \n\ndef main():\n    rng = jax.random.PRNGKey(42)\n    params = create_model(rng)\n\
-      \    \n    global optimizer\n    optimizer = optax.adam(learning_rate=1e-3)\n\
-      \    opt_state = optimizer.init(params)\n    \n    dataloader = create_dataloader(batch_size=32)\n\
-      \    \n    # for epoch in range(100):\n    #     for batch in dataloader:\n\
-      \    #         params, opt_state, loss = train_step(params, opt_state, batch)\n\
-      \    #     print(f\"Epoch {epoch}, Loss: {loss:.4f}\")\n    \n    batch = next(iter(dataloader))\n\
-      \    step = 0\n    while True:\n        params, opt_state, loss = train_step(params,\
-      \ opt_state, batch)\n        step += 1\n        if step % 100 == 0:\n      \
-      \      print(f\"Step {step}, Loss: {loss:.4f}\")\n\nif __name__ == \"__main__\"\
-      :\n    main()\n    main()"
-  cursor:
-    file: train.py
-    line: 40
-    column: 15
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 24
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user 2341 Jan 19 09:58 train.py
+        -rw-r--r-- 1 user user 1245 Jan 19 09:58 model.py
+        -rw-r--r-- 1 user user  892 Jan 19 09:58 data.py
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      train.py: |-
+        import jax
+        import jax.numpy as jnp
+        import optax
+        from model import create_model, apply_model
+        from data import create_dataloader
+
+
+        def compute_loss(params, batch):
+            inputs, targets = batch
+            logits = apply_model(params, inputs)
+            loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)
+            return jnp.mean(loss)
+
+
+        @jax.jit
+        def train_step(params, opt_state, batch):
+            loss, grads = jax.value_and_grad(compute_loss)(params, batch)
+            updates, opt_state = optimizer.update(grads, opt_state, params)
+            params = optax.apply_updates(params, updates)
+            return params, opt_state, loss
+
+
+        def main():
+            rng = jax.random.PRNGKey(42)
+            params = create_model(rng)
+            
+            global optimizer
+            optimizer = optax.adam(learning_rate=1e-3)
+            opt_state = optimizer.init(params)
+            
+            dataloader = create_dataloader(batch_size=32)
+            
+            for epoch in range(100):
+                for batch in dataloader:
+                    params, opt_state, loss = train_step(params, opt_state, batch)
+                print(f"Epoch {epoch}, Loss: {loss:.4f}")
+
+
+        if __name__ == "__main__":
+            main()
+    cursor:
+      file: train.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      train.py: |-
+        import jax
+        import jax.numpy as jnp
+        import optax
+        from model import create_model, apply_model
+        from data import create_dataloader
+
+
+        def compute_loss(params, batch):
+            inputs, targets = batch
+            logits = apply_model(params, inputs)
+            loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)
+            return jnp.mean(loss)
+
+
+        @jax.jit
+        def train_step(params, opt_state, batch):
+            loss, grads = jax.value_and_grad(compute_loss)(params, batch)
+            updates, opt_state = optimizer.update(grads, opt_state, params)
+            params = optax.apply_updates(params, updates)
+            return params, opt_state, loss
+
+
+        def main():
+            rng = jax.random.PRNGKey(42)
+            params = create_model(rng)
+            
+            global optimizer
+            optimizer = optax.adam(learning_rate=1e-3)
+            opt_state = optimizer.init(params)
+            
+            dataloader = create_dataloader(batch_size=32)
+            
+            # for epoch in range(100):
+            #     for batch in dataloader:
+            #         params, opt_state, loss = train_step(params, opt_state, batch)
+            #     print(f"Epoch {epoch}, Loss: {loss:.4f}")
+            
+            # overfit on one single batch
+            batch = next(iter(dataloader))
+            step = 0
+            while Tr
+
+        if __name__ == "__main__":
+            main()
+    cursor:
+      file: train.py
+      line: 41
+      column: 12
+  - step: 3
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the correct file is being edited (train.py)
+      - the correct lines edited (line 40-44)
+      - the while loop is completed with `True:` to create an infinite loop for overfitting
+      - the loop body calls `train_step` with the same `batch` variable (single batch overfitting)
+      - the step counter is incremented
+      - there is some form of logging/printing the loss periodically
+      Note:
+      - is is also okay if a different logging frequency is used (e.g. 1000 steps instead of 100 steps)
+      - it is okay if variable names differ as long as the logic of overfitting on a single batch is there
+    terminal: null
+    files:
+      train.py: |-
+        import jax
+        import jax.numpy as jnp
+        import optax
+        from model import create_model, apply_model
+        from data import create_dataloader
+
+
+        def compute_loss(params, batch):
+            inputs, targets = batch
+            logits = apply_model(params, inputs)
+            loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets)
+            return jnp.mean(loss)
+
+
+        @jax.jit
+        def train_step(params, opt_state, batch):
+            loss, grads = jax.value_and_grad(compute_loss)(params, batch)
+            updates, opt_state = optimizer.update(grads, opt_state, params)
+            params = optax.apply_updates(params, updates)
+            return params, opt_state, loss
+
+
+        def main():
+            rng = jax.random.PRNGKey(42)
+            params = create_model(rng)
+            
+            global optimizer
+            optimizer = optax.adam(learning_rate=1e-3)
+            opt_state = optimizer.init(params)
+            
+            dataloader = create_dataloader(batch_size=32)
+            
+            # for epoch in range(100):
+            #     for batch in dataloader:
+            #         params, opt_state, loss = train_step(params, opt_state, batch)
+            #     print(f"Epoch {epoch}, Loss: {loss:.4f}")
+            
+            # overfit on one single batch
+            batch = next(iter(dataloader))
+            step = 0
+            while True:
+                params, opt_state, loss = train_step(params, opt_state, batch)
+                step += 1
+                if step % 100 == 0:
+                    print(f"Step {step}, Loss: {loss:.4f}")
+
+        if __name__ == "__main__":
+            main()
+    cursor:
+      file: train.py
+      line: 45
+      column: 51
