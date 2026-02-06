@@ -107,7 +107,6 @@ states:
             #         params, opt_state, loss = train_step(params, opt_state, batch)
             #     print(f"Epoch {epoch}, Loss: {loss:.4f}")
             
-            # overfit on one single batch
             batch = next(iter(dataloader))
             step = 0
             while Tr
@@ -116,7 +115,7 @@ states:
             main()
     cursor:
       file: train.py
-      line: 41
+      line: 40
       column: 12
   - step: 3
     eval: EVAL
@@ -131,6 +130,7 @@ states:
       Note:
       - is is also okay if a different logging frequency is used (e.g. 1000 steps instead of 100 steps)
       - it is okay if variable names differ as long as the logic of overfitting on a single batch is there
+      - as long as the overfitting on a single batch logic is implemented its also ok
     terminal: null
     files:
       train.py: |-
@@ -171,18 +171,17 @@ states:
             #         params, opt_state, loss = train_step(params, opt_state, batch)
             #     print(f"Epoch {epoch}, Loss: {loss:.4f}")
             
-            # overfit on one single batch
             batch = next(iter(dataloader))
             step = 0
             while True:
                 params, opt_state, loss = train_step(params, opt_state, batch)
-                step += 1
                 if step % 100 == 0:
                     print(f"Step {step}, Loss: {loss:.4f}")
+                step += 1
 
         if __name__ == "__main__":
             main()
     cursor:
       file: train.py
-      line: 45
-      column: 51
+      line: 44
+      column: 17

@@ -604,6 +604,8 @@ states:
       - the model completes the json.loads(line) call
       - the correct file is being edited (process_data.py)
       - the correct line is being edited (line 8)
+      Note
+      - adding strip() is fine as well, but not necessary
     terminal: null
     files:
       products.jsonl: |-
@@ -1045,8 +1047,8 @@ states:
         {"id": 99, "name": "Portable Light", "price": 148.1, "in_stock": true, "category": "audio"}
         {"id": 100, "name": "LED Cooler", "price": 121.82, "in_stock": true, "category": "audio"}
       process_data.py: |-
-        import json
         from typing import List, Dict, Optional
+        import json
 
 
         def load_products(filepath: str) -> List[Dict]:
@@ -1101,5 +1103,5 @@ states:
             print(f"Expensive (>$100): {len(expensive)}")
     cursor:
       file: process_data.py
-      line: 0
+      line: 2
       column: 11

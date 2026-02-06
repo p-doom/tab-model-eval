@@ -32,7 +32,28 @@ states:
     eval: NO_EVAL
     terminal: null
     files:
-      components/Button.jsx: ""
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
     cursor:
       file: components/Button.jsx
       line: 1
@@ -198,8 +219,8 @@ states:
         export default App;
     cursor:
       file: App.jsx
-      line: 6
-      column: 54
+      line: 2
+      column: 12
   - step: 6
     eval: EVAL
     judge_assertions: |-
@@ -271,5 +292,5 @@ states:
         export default App;
     cursor:
       file: App.jsx
-      line: 6
-      column: 54
+      line: 2
+      column: 45

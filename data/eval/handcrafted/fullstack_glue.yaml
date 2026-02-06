@@ -131,10 +131,6 @@ states:
             email: Optional[EmailStr] = None
             role: Optional[UserRole] = None
             is_premium: Optional[bool] = None
-    cursor:
-      file: backend/models.py
-      line: 1
-      column: 0
   - step: 4
     eval: NO_EVAL
     terminal: null
@@ -502,8 +498,8 @@ states:
         }
     cursor:
       file: frontend/UserTable.tsx
-      line: 43
-      column: 33
+      line: 44
+      column: 22
   - step: 7
     eval: EVAL
     judge_assertions: |-
@@ -634,5 +630,5 @@ states:
         }
     cursor:
       file: frontend/UserTable.tsx
-      line: 44
-      column: 34
+      line: 45
+      column: 6

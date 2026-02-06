@@ -102,7 +102,7 @@ states:
     judge_assertions: |-
       Make sure that:
       - the volume function is being typed correctly with float as the return type
-      - nothing else is being modified at all (the area and circumference functions should changed)
+      - nothing else is being modified at all (the area and circumference functions should not be changed)
     terminal: null
     files:
       src/utils/math.py: |-

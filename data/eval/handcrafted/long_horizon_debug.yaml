@@ -498,10 +498,6 @@ states:
             x = torch.randint(0, 50257, (4, 128))
             logits = model(x)
             print(f"Output shape: {logits.shape}")
-    cursor:
-      file: src/model.py
-      line: 64
-      column: 20
   - step: 6
     eval: NO_EVAL
     terminal: null
@@ -581,7 +577,7 @@ states:
             print(f"Output shape: {logits.shape}")
     cursor:
       file: src/model.py
-      line: 23
+      line: 55
       column: 4
   - step: 7
     eval: NO_EVAL
@@ -901,7 +897,7 @@ states:
                     x_BTD = block(x_BTD)
                 x_BTD = self.ln_f(x_BTD)
                 breakpoint()
-                logits_BTV = self.head(x_BTD)
+                logits = self.head(x_BTD)
                 breakpoint()
                 return logits
 
@@ -1104,10 +1100,6 @@ states:
             x = torch.randint(0, 50257, (4, 128))
             logits = model(x)
             print(f"Output shape: {logits.shape}")
-    cursor:
-      file: src/model.py
-      line: 65
-      column: 25
   - step: 13
     eval: NO_EVAL
     terminal: null

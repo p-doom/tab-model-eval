@@ -538,7 +538,7 @@ states:
     judge_assertions: |-
       Make sure that:
       - the model suggests navigating to services.py (the file where send_notification is defined)
-      - this is a NAVIGATION action (cat with viewport), not an edit action
+      - this is a NAVIGATION action, not an edit action
       - the correct file is being viewed (services.py, not main.py)
     terminal: null
     files:

@@ -408,6 +408,8 @@ states:
       - the argument should be one of the defined arrays (mat_a is most logical given the comment "Normalize the matrix")
       - the correct file is being edited (main.py)
       - the correct line is being edited (line 25)
+      Note: 
+      - changing the log message below is also ok
     terminal: null
     files:
       utils.py: |-

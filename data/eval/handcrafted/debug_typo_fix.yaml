@@ -131,10 +131,6 @@ states:
             --warmup_steps 500 \
             --logging_steps 100 \
             --save_steps 1000
-    cursor:
-      file: train.sbatch
-      line: 6
-      column: 17
   - step: 4
     eval: NO_EVAL
     terminal:
@@ -178,10 +174,6 @@ states:
             --warmup_steps 500 \
             --logging_steps 100 \
             --save_steps 1000
-    cursor:
-      file: train.sbatch
-      line: 6
-      column: 17
   - step: 5
     eval: NO_EVAL
     terminal:
@@ -230,10 +222,6 @@ states:
             --warmup_steps 500 \
             --logging_steps 100 \
             --save_steps 1000
-    cursor:
-      file: train.sbatch
-      line: 6
-      column: 17
   - step: 6
     eval: NO_EVAL
     terminal:
@@ -272,10 +260,6 @@ states:
             --warmup_steps 500 \
             --logging_steps 100 \
             --save_steps 1000
-    cursor:
-      file: train.sbatch
-      line: 6
-      column: 17
   - step: 7
     eval: NO_EVAL
     terminal:
@@ -319,10 +303,6 @@ states:
             --warmup_steps 500 \
             --logging_steps 100 \
             --save_steps 1000
-    cursor:
-      file: train.sbatch
-      line: 6
-      column: 17
   - step: 8
     eval: NO_EVAL
     terminal: null
@@ -392,7 +372,7 @@ states:
 
         python train.py \
             --model_name gpt2-medium \
-            --dataset_path data/train_dataset.jsonl \
+            --dataset_path data/trian_dataset.jsonl \
             --output_dir checkpoints/run_001 \
             --batch_size 32 \
             --learning_rate 1e-4 \

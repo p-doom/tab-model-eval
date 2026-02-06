@@ -837,6 +837,8 @@ states:
       - the filter condition uses the in_stock field from the jsonl data
       - the correct file is being edited (process_data.py)
       - the correct line is being edited (line 45)
+      Note:
+      - returning the list of available products directly is also ok
     terminal: null
     files:
       products.jsonl: |-

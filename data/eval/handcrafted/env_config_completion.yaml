@@ -524,6 +524,8 @@ states:
       - this matches the key name from .env.example (line 22: STRIPE_WEBHOOK_SECRET=whsec_your_secret_here)
       - the model follows the pattern of other getter functions in the file (check, raise, return)
       - the correct file is being edited (payments.py)
+      Notes: 
+      - ommiting the if check is also ok
     terminal: null
     files:
       .env.example: |-

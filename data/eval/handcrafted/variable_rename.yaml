@@ -26,7 +26,6 @@ states:
     files:
       src/process.py: |-
         import json
-        import os
 
         def load_data(path):
             with open(path) as f:
@@ -57,7 +56,6 @@ states:
     files:
       src/process.py: |-
         import json
-        import os
 
         def load_data(path):
             with open(path) as f:
@@ -74,5 +72,5 @@ states:
             process_data({"id": 123})
     cursor:
       file: src/process.py
-      line: 11
+      line: 10
       column: 19

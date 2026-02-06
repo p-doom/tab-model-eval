@@ -181,16 +181,17 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
-            
 
             def forward(self, x):
                 attn_out, _ = self.attn(x, x, x)
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
@@ -225,7 +226,7 @@ states:
             print(f"Input: {x.shape}, Output: {out.shape}")
     cursor:
       file: transformer.py
-      line: 28
+      line: 29
       column: 16
   - step: 4
     eval: NO_EVAL
@@ -267,6 +268,7 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
@@ -301,8 +303,8 @@ states:
             print(f"Input: {x.shape}, Output: {out.shape}")
     cursor:
       file: transformer.py
-      line: 26
-      column: 29
+      line: 23
+      column: 41
   - step: 5
     eval: NO_EVAL
     terminal: null
@@ -333,9 +335,10 @@ states:
                 attn_out, _ = self.attn(ln1_out, ln1_out, ln1_out)
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
-                ln2_out = self.ln2(x)
-                mlp_out = self.mlp(ln2_out)
+                x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
+                x = self.ln2(x)
                 return x
 
             def forward(self, x):
@@ -343,6 +346,7 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
@@ -377,8 +381,8 @@ states:
             print(f"Input: {x.shape}, Output: {out.shape}")
     cursor:
       file: transformer.py
-      line: 27
-      column: 35
+      line: 23
+      column: 58
   - step: 6
     eval: NO_EVAL
     terminal: null
@@ -419,6 +423,7 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
@@ -453,8 +458,8 @@ states:
             print(f"Input: {x.shape}, Output: {out.shape}")
     cursor:
       file: transformer.py
-      line: 31
-      column: 4
+      line: 27
+      column: 35
   - step: 7
     eval: NO_EVAL
     terminal: null
@@ -495,6 +500,7 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
@@ -579,6 +585,7 @@ states:
                 attn_out = self.dropout(attn_out)
                 x = x + attn_out
                 x = self.ln1(x)
+                mlp_out = self.mlp(x)
                 x = x + mlp_out
                 x = self.ln2(x)
                 return x
