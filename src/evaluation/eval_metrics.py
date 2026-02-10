@@ -7,7 +7,7 @@ import tyro
 import yaml
 import wandb
 
-from .yaml_output import load_generation_yaml
+from src.utils.yaml_output import load_generation_yaml
 
 
 @dataclass

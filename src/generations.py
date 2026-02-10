@@ -14,13 +14,13 @@ import yaml
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
-from .prediction_applicators import (
+from src.applicators.prediction_applicators import (
     apply_sed_prediction,
     apply_zeta_prediction_to_editable,
     parse_viewport_command,
     parse_zeta_cursor_position,
 )
-from .types import (
+from src.utils.types import (
     InputFormat,
     TestCaseWithYaml,
 )

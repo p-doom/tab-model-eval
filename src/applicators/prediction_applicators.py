@@ -1,12 +1,8 @@
 import re
 from copy import deepcopy
-from enum import Enum
 from typing import Any, Dict, Optional, Tuple
 
-
-class InputFormat(Enum):
-    SED = "sed"
-    ZETA = "zeta"
+from src.utils.types import InputFormat
 
 
 def extract_bash_command(text: str) -> str:

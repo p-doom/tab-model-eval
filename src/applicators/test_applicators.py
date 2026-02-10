@@ -1,5 +1,5 @@
 import pytest
-from .prediction_applicators import (
+from src.applicators.prediction_applicators import (
     parse_sed_command,
     apply_sed_to_content,
     apply_sed_prediction,

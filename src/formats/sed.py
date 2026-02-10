@@ -3,8 +3,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from crowd_pilot_serializer import convert_yaml_to_conversations
 
-from ..types import InputFormat, get_eval_state_type
-from .base import FormatConverter
+from src.utils.types import InputFormat, get_eval_state_type
+from src.formats.base import FormatConverter
 
 
 def _is_edit_command(content: str) -> bool:

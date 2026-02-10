@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-from ..types import (
+from src.utils.types import (
     InputFormat,
     TestCaseWithYaml,
     find_all_eval_state_indices,

@@ -13,7 +13,7 @@ import wandb
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
-from .yaml_output import load_generation_yaml
+from src.utils.yaml_output import load_generation_yaml
 
 
 @dataclass

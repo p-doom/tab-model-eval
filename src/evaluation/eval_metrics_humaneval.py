@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import tyro
 import yaml
 
-from .eval_utils import (
+from src.utils.eval_utils import (
     create_humaneval_sandbox,
     execute_sed_in_sandbox,
     is_humaneval_task,
@@ -13,7 +13,7 @@ from .eval_utils import (
     cleanup_sandbox,
     validate_sed_command_for_sandbox,
 )
-from .yaml_output import load_generation_yaml
+from src.utils.yaml_output import load_generation_yaml
 
 
 @dataclass

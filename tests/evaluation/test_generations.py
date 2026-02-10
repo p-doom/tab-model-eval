@@ -1,5 +1,5 @@
-from src.evaluation import generations
-from src.evaluation.prediction_applicators import (
+from src import generations
+from src.applicators.prediction_applicators import (
     parse_viewport_command,
     parse_zeta_cursor_position,
 )
