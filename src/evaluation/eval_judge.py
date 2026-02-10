@@ -291,18 +291,18 @@ async def evaluate_task(
     sample_evals.sort(key=lambda x: x.get("sample_idx", 0))
 
     num_samples = len(sample_evals)
-    num_equivalent = sum(1 for s in sample_evals if s.get("equivalent", 0) == 1)
+    num_samples_passed = sum(1 for s in sample_evals if s.get("equivalent", 0) == 1)
     num_skipped = sum(1 for s in sample_evals if s.get("skipped", False))
 
     return {
         "task_id": task_id,
         "assertions": assertions,
         "num_samples": num_samples,
-        "num_equivalent": num_equivalent,
-        "num_skipped": num_skipped,
-        "num_judged": num_samples - num_skipped,
-        "equivalent_rate": num_equivalent / num_samples if num_samples > 0 else 0.0,
-        "pass_at_1": int(num_equivalent > 0),
+        "num_samples_passed": num_samples_passed,
+        "num_samples_skipped": num_skipped,
+        "num_samples_judged": num_samples - num_skipped,
+        "task_avg_at_k": num_samples_passed / num_samples if num_samples > 0 else 0.0,
+        "task_pass_at_k": int(num_samples_passed > 0),
         "sample_evaluations": sample_evals,
     }
 
@@ -357,24 +357,27 @@ async def run_judge_eval(args: Args, base_url: str):
 
     num_tasks = len(task_evals)
     total_samples = sum(t["num_samples"] for t in task_evals)
-    total_equivalent = sum(t["num_equivalent"] for t in task_evals)
-    total_pass_at_1 = sum(t["pass_at_1"] for t in task_evals)
-    total_skipped = sum(t["num_skipped"] for t in task_evals)
-    total_judged = sum(t["num_judged"] for t in task_evals)
+    samples_per_task = total_samples / num_tasks
+    total_samples_passed = sum(t["num_samples_passed"] for t in task_evals)
+    total_pass_at_k = sum(t["task_pass_at_k"] for t in task_evals)
+    total_pass_at_k_rate = total_pass_at_k / num_tasks if num_tasks > 0 else 0.0
+    total_skipped = sum(t["num_samples_skipped"] for t in task_evals)
+    total_judged = sum(t["num_samples_judged"] for t in task_evals)
 
-    avg_equivalent_rate = (
-        sum(t["equivalent_rate"] for t in task_evals) / num_tasks if num_tasks > 0 else 0.0
+    total_avg_at_k = (
+        sum(t["task_avg_at_k"] for t in task_evals) / num_tasks if num_tasks > 0 else 0.0
     )
 
     scores = {
         "total_tasks": num_tasks,
         "total_samples": total_samples,
-        "total_equivalent": total_equivalent,
-        "total_pass_at_1": total_pass_at_1,
+        "samples_per_task": samples_per_task,
+        "total_samples_passed": total_samples_passed,
+        "total_pass_at_k": total_pass_at_k,
         "total_skipped": total_skipped,
         "total_judged": total_judged,
-        "avg_equivalent_rate": avg_equivalent_rate,
-        "pass_at_1_rate": total_pass_at_1 / num_tasks if num_tasks > 0 else 0.0,
+        "total_avg_at_k": total_avg_at_k,
+        "total_pass_at_k_rate": total_pass_at_k_rate,
     }
 
     output = {
@@ -397,8 +400,9 @@ async def run_judge_eval(args: Args, base_url: str):
     print("=" * 50)
     print(f"Tasks: {num_tasks}")
     print(f"Samples: {total_samples} (judged: {total_judged}, skipped: {total_skipped})")
-    print(f"Equivalent: {total_equivalent}/{total_samples} ({avg_equivalent_rate*100:.1f}%)")
-    print(f"Pass@1: {total_pass_at_1}/{num_tasks} ({scores['pass_at_1_rate']*100:.1f}%)")
+    print(f"Samples per task: {samples_per_task}")
+    print(f"Equivalent: {total_samples_passed}/{total_samples} ({total_avg_at_k*100:.1f}%)")
+    print(f"Pass@k: {total_pass_at_k}/{num_tasks} ({scores['total_pass_at_k_rate']*100:.1f}%)")
     print(f"Output: {args.evaluations_file}")
 
     if wandb_run is not None:
@@ -409,9 +413,9 @@ async def run_judge_eval(args: Args, base_url: str):
                 f"{args.wandb_eval_type}/total_samples": total_samples,
                 f"{args.wandb_eval_type}/total_judged": total_judged,
                 f"{args.wandb_eval_type}/total_skipped": total_skipped,
-                f"{args.wandb_eval_type}/total_equivalent": total_equivalent,
-                f"{args.wandb_eval_type}/pass_at_1_rate": scores["pass_at_1_rate"],
-                f"{args.wandb_eval_type}/equivalent_rate": avg_equivalent_rate,
+                f"{args.wandb_eval_type}/total_samples_passed": total_samples_passed,
+                f"{args.wandb_eval_type}/total_pass_at_k_rate": total_pass_at_k_rate,
+                f"{args.wandb_eval_type}/total_avg_at_k": total_avg_at_k,
             }
         )
         wandb_run.finish()
