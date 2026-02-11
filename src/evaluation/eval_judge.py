@@ -50,7 +50,7 @@ class Args:
 
     concurrency: int = 16
     max_connections: int = 256
-    max_attempts: int = 6
+    max_attempts: int = 3
     timeout: float = 60.0
 
     skip_exact_matches: bool = True
@@ -193,7 +193,9 @@ async def judge_single_sample(
                 }
 
             except Exception as e:
+                print(f"Error on {task_id} sample (attempt {attempt + 1}): {e}")
                 if attempt == args.max_attempts - 1:
+                    print(f"Returning error for {task_id} sample (attempt {attempt + 1}): {e}")
                     return {
                         "task_id": task_id,
                         "sample_idx": sample_idx,
@@ -293,11 +295,13 @@ async def evaluate_task(
     num_samples = len(sample_evals)
     num_samples_passed = sum(1 for s in sample_evals if s.get("equivalent", 0) == 1)
     num_skipped = sum(1 for s in sample_evals if s.get("skipped", False))
+    num_errors = sum(1 for s in sample_evals if s.get("error", False))
 
     return {
         "task_id": task_id,
         "assertions": assertions,
         "num_samples": num_samples,
+        "num_samples_errors": num_errors,
         "num_samples_passed": num_samples_passed,
         "num_samples_skipped": num_skipped,
         "num_samples_judged": num_samples - num_skipped,
@@ -359,6 +363,7 @@ async def run_judge_eval(args: Args, base_url: str):
     total_samples = sum(t["num_samples"] for t in task_evals)
     samples_per_task = total_samples / num_tasks
     total_samples_passed = sum(t["num_samples_passed"] for t in task_evals)
+    total_samples_errors = sum(t["num_samples_errors"] for t in task_evals)
     total_pass_at_k = sum(t["task_pass_at_k"] for t in task_evals)
     total_pass_at_k_rate = total_pass_at_k / num_tasks if num_tasks > 0 else 0.0
     total_skipped = sum(t["num_samples_skipped"] for t in task_evals)
@@ -378,6 +383,7 @@ async def run_judge_eval(args: Args, base_url: str):
         "total_judged": total_judged,
         "total_avg_at_k": total_avg_at_k,
         "total_pass_at_k_rate": total_pass_at_k_rate,
+        "total_samples_errors": total_samples_errors,
     }
 
     output = {
@@ -399,7 +405,9 @@ async def run_judge_eval(args: Args, base_url: str):
     print(f"Judge Evaluation Complete (step {args.eval_step})")
     print("=" * 50)
     print(f"Tasks: {num_tasks}")
-    print(f"Samples: {total_samples} (judged: {total_judged}, skipped: {total_skipped})")
+    print(
+        f"Samples: {total_samples} (judged: {total_judged}, skipped: {total_skipped}, errors: {total_samples_errors})"
+    )
     print(f"Samples per task: {samples_per_task}")
     print(f"Equivalent: {total_samples_passed}/{total_samples} ({total_avg_at_k*100:.1f}%)")
     print(f"Pass@k: {total_pass_at_k}/{num_tasks} ({scores['total_pass_at_k_rate']*100:.1f}%)")
@@ -411,6 +419,8 @@ async def run_judge_eval(args: Args, base_url: str):
                 "eval_step": args.eval_step,
                 f"{args.wandb_eval_type}/total_tasks": num_tasks,
                 f"{args.wandb_eval_type}/total_samples": total_samples,
+                f"{args.wandb_eval_type}/total_samples_errors": total_samples_errors,
+                f"{args.wandb_eval_type}/samples_per_task": samples_per_task,
                 f"{args.wandb_eval_type}/total_judged": total_judged,
                 f"{args.wandb_eval_type}/total_skipped": total_skipped,
                 f"{args.wandb_eval_type}/total_samples_passed": total_samples_passed,
