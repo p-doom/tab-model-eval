@@ -157,6 +157,12 @@
             font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .eval-badge:hover {
+            opacity: 0.8;
         }
 
         .eval-badge.eval {
@@ -173,6 +179,28 @@
             margin-left: auto;
             font-size: 12px;
             color: var(--text-secondary);
+        }
+
+        .task-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+        }
+
+        .task-selector label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .task-selector select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            min-width: 240px;
         }
 
         kbd {
@@ -426,6 +454,29 @@
             overflow: auto;
         }
 
+        .assertions-section.resizable {
+            height: 150px;
+            min-height: 80px;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .assertions-section.resizable .assertions-title {
+            padding: 8px 15px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .assertions-section.resizable .assertions-editor {
+            flex: 1;
+            margin: 0 15px 10px 15px;
+            min-height: 0;
+            resize: none;
+        }
+
         .assertions-title {
             font-size: 11px;
             font-weight: 600;
@@ -565,25 +616,98 @@
             cursor: not-allowed;
         }
 
-        /* Editable code textarea */
-        .code-editor {
+        /* Editable code container */
+        .code-editor-wrapper {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        .code-editor-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .code-editor-line-numbers {
+            min-width: 45px;
+            padding: 0;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .code-editor-line-numbers .line-num {
+            display: block;
+            padding: 0 8px;
+            text-align: right;
+            color: var(--text-secondary);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            height: 19.5px; /* Match line height of 13px * 1.5 */
+        }
+
+        .code-editor-content {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            min-height: fit-content;
+        }
+
+        .code-editor-backdrop {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 0 8px;
+            white-space: pre;
+        }
+
+        .code-editor-backdrop .highlighted-line {
+            display: block;
+            min-height: 19.5px;
+        }
+
+        .code-editor-backdrop code {
+            background: transparent !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            white-space: pre !important;
+        }
+
+        .code-editor-textarea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            background: transparent;
+            color: transparent;
+            caret-color: var(--cursor-color);
             border: none;
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
             font-size: 13px;
             line-height: 1.5;
-            padding: 10px;
+            padding: 0 8px;
+            margin: 0;
             resize: none;
             outline: none;
             white-space: pre;
-            overflow: auto;
+            overflow: hidden;
             tab-size: 4;
+            z-index: 1;
         }
 
-        .code-editor:focus {
+        .code-editor-textarea:focus {
+            outline: none;
+        }
+
+        .code-editor-wrapper:focus-within {
             outline: 1px solid var(--accent);
         }
 
@@ -637,10 +761,10 @@
             background: transparent;
             border: 1px dashed var(--border);
             color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 1px 1px;
+            border-radius: 2px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 8px;
             margin-left: 5px;
         }
 
@@ -821,6 +945,24 @@
             color: var(--text-secondary);
             font-weight: normal;
         }
+
+        /* Sample mode styles */
+        .sample-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .panel-label.sample {
+            color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+
+        .panel-label.ground-truth {
+            color: var(--success);
+            background: rgba(78, 201, 176, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -830,7 +972,12 @@
             <label for="yaml-file">Load YAML File</label>
             <input type="file" id="yaml-file" accept=".yaml,.yml">
         </div>
+        <div class="file-input-wrapper">
+            <label for="yaml-directory">Load Directory</label>
+            <input type="file" id="yaml-directory" webkitdirectory directory accept=".yaml,.yml">
+        </div>
         <span id="file-name" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <span id="file-nav-info" style="color: var(--text-secondary); font-size: 12px; margin-left: 10px;"></span>
         <div class="edit-mode-toggle" id="edit-mode-toggle" style="display: none;">
             <input type="checkbox" id="edit-mode-checkbox">
             <label for="edit-mode-checkbox">Edit Mode</label>
@@ -848,6 +995,10 @@
         <button class="nav-btn" id="btn-prev">Prev</button>
         <div class="step-indicator">
             Step <strong id="current-step">0</strong> / <span id="total-steps">0</span>
+        </div>
+        <div class="task-selector">
+            <label for="task-select">Task</label>
+            <select id="task-select"></select>
         </div>
         <button class="nav-btn" id="btn-next">Next</button>
         <button class="nav-btn" id="btn-last">Last</button>
@@ -872,7 +1023,7 @@
             <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
         </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>i</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+            <kbd>←</kbd><kbd>→</kbd> Steps/Samples <kbd>Shift+A</kbd>/<kbd>Shift+D</kbd> Tasks <kbd>w</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -890,13 +1041,87 @@
         let activeFile = null;
         let syncScroll = true;
         let terminalHeight = 200; // Persisted terminal height
+        let assertionsHeight = 150; // Persisted assertions height
         let editMode = false;
         let cursorMode = false;
         let hasUnsavedChanges = false;
         let originalFileName = '';
+        
+        // Directory navigation state
+        let directoryFiles = []; // Array of {name, content} objects
+        let currentFileIndex = -1;
+        
+        // Multi-task support
+        let currentTaskIndex = 0;
+        let currentSampleIndex = -1; // -1 means viewing states, 0+ means viewing samples
+        
+        // Helper to get current task
+        function getCurrentTask() {
+            if (!evalData || !evalData.results || evalData.results.length === 0) return null;
+            return evalData.results[currentTaskIndex];
+        }
+
+        // Helper to infer the eval step for the current task
+        function getEvalStepForTask(task) {
+            if (!task) return null;
+            
+            // Prefer explicit step in task_id (e.g. ".../step_5")
+            if (typeof task.task_id === 'string') {
+                const match = task.task_id.match(/(?:^|\/)step_(\d+)\b/);
+                if (match) {
+                    const parsed = parseInt(match[1], 10);
+                    if (!Number.isNaN(parsed)) return parsed;
+                }
+            }
+            
+            // Fall back to sample step (usually a single eval step)
+            if (Array.isArray(task.samples) && task.samples.length > 0) {
+                const sampleSteps = task.samples
+                    .map(sample => sample?.step)
+                    .filter(step => Number.isFinite(step));
+                if (sampleSteps.length > 0) {
+                    return sampleSteps[0];
+                }
+            }
+            
+            // Fall back to the last explicit EVAL marker
+            if (Array.isArray(task.states)) {
+                for (let i = task.states.length - 1; i >= 0; i--) {
+                    if (task.states[i]?.eval === 'EVAL') return i;
+                }
+            }
+            
+            return null;
+        }
+
+        function getMaxVisibleStateStep(task) {
+            if (!task || !Array.isArray(task.states) || task.states.length === 0) return 0;
+            const lastStateStep = task.states.length - 1;
+            const evalStep = getEvalStepForTask(task);
+            if (!Number.isFinite(evalStep)) return lastStateStep;
+            return Math.min(Math.max(evalStep, 0), lastStateStep);
+        }
+
+        function getVisibleStateCount(task) {
+            return getMaxVisibleStateStep(task) + 1;
+        }
+        
+        // Helper to check if we're in sample viewing mode
+        function isViewingSamples() {
+            return currentSampleIndex >= 0;
+        }
+        
+        // Get the samples for current task at the last eval step
+        function getCurrentTaskSamples() {
+            const task = getCurrentTask();
+            if (!task || !task.samples) return [];
+            return task.samples;
+        }
 
         const fileInput = document.getElementById('yaml-file');
+        const directoryInput = document.getElementById('yaml-directory');
         const fileNameEl = document.getElementById('file-name');
+        const fileNavInfo = document.getElementById('file-nav-info');
         const taskInfo = document.getElementById('task-info');
         const taskIdEl = document.getElementById('task-id');
         const descriptionEl = document.getElementById('description');
@@ -918,6 +1143,7 @@
         const addStepAfterBtn = document.getElementById('add-step-after-btn');
         const deleteStepBtn = document.getElementById('delete-step-btn');
         const cursorModeIndicator = document.getElementById('cursor-mode-indicator');
+        const taskSelect = document.getElementById('task-select');
 
         const btnFirst = document.getElementById('btn-first');
         const btnPrev = document.getElementById('btn-prev');
@@ -925,24 +1151,66 @@
         const btnLast = document.getElementById('btn-last');
 
         fileInput.addEventListener('change', handleFileLoad);
+        directoryInput.addEventListener('change', handleDirectoryLoad);
         btnFirst.addEventListener('click', () => goToStep(0));
-        btnPrev.addEventListener('click', () => goToStep(currentStep - 1));
-        btnNext.addEventListener('click', () => goToStep(currentStep + 1));
-        btnLast.addEventListener('click', () => goToStep(evalData.states.length - 1));
+        btnPrev.addEventListener('click', () => goToStep(getEffectiveStep() - 1));
+        btnNext.addEventListener('click', () => goToStep(getEffectiveStep() + 1));
+        btnLast.addEventListener('click', () => goToStep(getTotalEffectiveSteps() - 1));
         syncScrollCheckbox.addEventListener('change', (e) => syncScroll = e.target.checked);
+        taskSelect.addEventListener('change', (e) => {
+            if (!evalData || !evalData.results) return;
+            const nextIndex = parseInt(e.target.value, 10);
+            if (Number.isNaN(nextIndex) || nextIndex === currentTaskIndex) return;
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                taskSelect.value = String(currentTaskIndex);
+                return;
+            }
+            currentTaskIndex = nextIndex;
+            currentStep = 0;
+            currentSampleIndex = -1;
+            activeFile = null;
+            updateTaskInfo();
+            renderStep();
+        });
         
         editModeCheckbox.addEventListener('change', (e) => {
+            // Don't allow edit mode when viewing samples
+            if (isViewingSamples() && e.target.checked) {
+                e.target.checked = false;
+                return;
+            }
             editMode = e.target.checked;
             evalSelector.style.display = editMode ? 'block' : 'none';
             stepEditor.style.display = editMode ? 'flex' : 'none';
+            // Preserve scroll position - use editor containers if they exist (when leaving edit mode)
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
             renderStep();
+            // Restore scroll position
+            // For edit mode, use code-editor-container for scrolling on both sides
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
+            }
         });
         
         saveBtn.addEventListener('click', saveYaml);
         
         evalSelect.addEventListener('change', (e) => {
-            if (!evalData || !editMode) return;
+            if (!evalData || !editMode || isViewingSamples()) return;
             const currState = getState(currentStep);
+            if (!currState) return;
             if (e.target.value === '') {
                 delete currState.eval;
             } else {
@@ -955,6 +1223,19 @@
         addStepBeforeBtn.addEventListener('click', () => addStep('before'));
         addStepAfterBtn.addEventListener('click', () => addStep('after'));
         deleteStepBtn.addEventListener('click', deleteCurrentStep);
+        
+        evalBadge.addEventListener('click', () => {
+            if (!evalData || isViewingSamples()) return;
+            const currState = getState(currentStep);
+            if (!currState) return;
+            if (currState.eval === 'EVAL') {
+                delete currState.eval;
+            } else {
+                currState.eval = 'EVAL';
+            }
+            markUnsaved();
+            updateEvalBadge();
+        });
 
         document.addEventListener('keydown', (e) => {
             if (!evalData) return;
@@ -968,20 +1249,57 @@
                 if (cursorMode) {
                     cursorMode = false;
                     cursorModeIndicator.classList.add('hidden');
+                    // Save scroll positions before re-render
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
                     renderStep();
+                    // Restore scroll positions after re-render
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
+                    }
                 } else if (editMode) {
                     editMode = false;
                     editModeCheckbox.checked = false;
                     evalSelector.style.display = 'none';
                     stepEditor.style.display = 'none';
+                    // Preserve scroll position - use editor containers when leaving edit mode
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
                     renderStep();
+                    // Restore scroll position
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
+                    }
                 }
                 return;
             }
             
-            // Cursor mode navigation with arrow keys
-            if (cursorMode && !isTyping) {
+            // Cursor mode navigation with arrow keys (not in sample mode)
+            if (cursorMode && !isTyping && !isViewingSamples()) {
                 const currState = getState(currentStep);
+                if (!currState) return;
                 if (!currState.cursor) {
                     // Initialize cursor if not present
                     const files = Object.keys(currState.files || {});
@@ -998,6 +1316,27 @@
                     const currentCol = currState.cursor.column;
                     const currentLineContent = lines[currentLine - 1] || '';
                     
+                    // Helper to render while preserving scroll position
+                    const renderPreservingScroll = () => {
+                        const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        const prevScrollTop = prevScroll?.scrollTop || 0;
+                        const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                        const currScrollTop = currScroll?.scrollTop || 0;
+                        const currScrollLeft = currScroll?.scrollLeft || 0;
+                        renderStep();
+                        const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        if (newPrevScroll) {
+                            newPrevScroll.scrollTop = prevScrollTop;
+                            newPrevScroll.scrollLeft = prevScrollLeft;
+                        }
+                        if (newCurrScroll) {
+                            newCurrScroll.scrollTop = currScrollTop;
+                            newCurrScroll.scrollLeft = currScrollLeft;
+                        }
+                    };
+
                     if (e.key === 'ArrowUp') {
                         e.preventDefault();
                         if (currentLine > 1) {
@@ -1006,7 +1345,7 @@
                             const newLineContent = lines[currentLine - 2] || '';
                             currState.cursor.column = Math.min(currentCol, newLineContent.length);
                             markUnsaved();
-                            renderStep();
+                            renderPreservingScroll();
                         }
                         return;
                     }
@@ -1018,7 +1357,7 @@
                             const newLineContent = lines[currentLine] || '';
                             currState.cursor.column = Math.min(currentCol, newLineContent.length);
                             markUnsaved();
-                            renderStep();
+                            renderPreservingScroll();
                         }
                         return;
                     }
@@ -1032,7 +1371,7 @@
                             currState.cursor.column = (lines[currentLine - 2] || '').length;
                         }
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     if (e.key === 'ArrowRight') {
@@ -1045,7 +1384,7 @@
                             currState.cursor.column = 0;
                         }
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     // Home/End for line start/end
@@ -1053,14 +1392,14 @@
                         e.preventDefault();
                         currState.cursor.column = 0;
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                     if (e.key === 'End') {
                         e.preventDefault();
                         currState.cursor.column = currentLineContent.length;
                         markUnsaved();
-                        renderStep();
+                        renderPreservingScroll();
                         return;
                     }
                 }
@@ -1069,32 +1408,97 @@
             // Don't process other shortcuts if typing
             if (isTyping) return;
             
-            // Toggle cursor mode with 'v'
-            if (e.key === 'v' && !cursorMode && !editMode) {
+            // Task navigation with Shift+A (previous) and Shift+D (next)
+            if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
                 e.preventDefault();
-                cursorMode = true;
-                cursorModeIndicator.classList.remove('hidden');
-                renderStep();
+                goToPreviousTask();
+                return;
+            }
+            if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+                e.preventDefault();
+                goToNextTask();
                 return;
             }
             
-            // Toggle edit mode with 'i' (enter)
-            if (e.key === 'i' && !editMode && !cursorMode) {
+            // Toggle cursor mode with 'v' (not in sample mode)
+            if (e.key === 'v' && !cursorMode && !editMode && !isViewingSamples()) {
+                e.preventDefault();
+                cursorMode = true;
+                cursorModeIndicator.classList.remove('hidden');
+                // Save scroll positions before re-render
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
+                renderStep();
+                // Restore scroll positions after re-render
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
+                }
+                return;
+            }
+            
+            // Toggle eval with 'w' (not in sample mode)
+            if (e.key === 'w' && !editMode && !cursorMode && !isViewingSamples()) {
+                e.preventDefault();
+                const currState = getState(currentStep);
+                if (!currState) return;
+                if (currState.eval === 'EVAL') {
+                    delete currState.eval;
+                } else {
+                    currState.eval = 'EVAL';
+                }
+                markUnsaved();
+                updateEvalBadge();
+                return;
+            }
+            
+            // Toggle edit mode with 'i' or 'e' (enter) - not in sample mode
+            if ((e.key === 'i' || e.key === 'e') && !editMode && !cursorMode && !isViewingSamples()) {
                 e.preventDefault();
                 editMode = true;
                 editModeCheckbox.checked = true;
                 evalSelector.style.display = 'block';
                 stepEditor.style.display = 'flex';
+                // Preserve scroll position
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
                 renderStep();
+                // Restore scroll position
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
+                }
                 return;
             }
             
             // Navigation shortcuts only work when not in cursor mode
             if (!cursorMode) {
-                if (e.key === 'ArrowLeft') { e.preventDefault(); goToStep(currentStep - 1); }
-                if (e.key === 'ArrowRight') { e.preventDefault(); goToStep(currentStep + 1); }
+                const effectiveStep = getEffectiveStep();
+                const totalSteps = getTotalEffectiveSteps();
+                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); goToStep(effectiveStep - 1); }
+                if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); goToStep(effectiveStep + 1); }
                 if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
-                if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
+                if (e.key === 'End') { e.preventDefault(); goToStep(totalSteps - 1); }
             }
         });
 
@@ -1103,10 +1507,25 @@
             if (!file) return;
             originalFileName = file.name;
             fileNameEl.textContent = file.name;
+            // Clear directory state when loading single file
+            directoryFiles = [];
+            currentFileIndex = -1;
+            updateFileNavInfo();
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
-                    evalData = jsyaml.load(event.target.result);
+                    const parsed = jsyaml.load(event.target.result);
+                    // Handle new multi-task format with results array
+                    if (parsed.results && Array.isArray(parsed.results)) {
+                        evalData = parsed;
+                        currentTaskIndex = 0;
+                        currentSampleIndex = -1;
+                    } else {
+                        // Legacy single-task format - wrap it
+                        evalData = { results: [parsed] };
+                        currentTaskIndex = 0;
+                        currentSampleIndex = -1;
+                    }
                     currentStep = 0;
                     activeFile = null;
                     hasUnsavedChanges = false;
@@ -1118,16 +1537,186 @@
             };
             reader.readAsText(file);
         }
+        
+        function handleDirectoryLoad(e) {
+            const files = Array.from(e.target.files);
+            if (!files || files.length === 0) return;
+            
+            // Filter for YAML files only
+            const yamlFiles = files.filter(f => 
+                f.name.endsWith('.yaml') || f.name.endsWith('.yml')
+            ).sort((a, b) => a.name.localeCompare(b.name));
+            
+            if (yamlFiles.length === 0) {
+                alert('No YAML files found in the selected directory.');
+                return;
+            }
+            
+            // Read all YAML files
+            directoryFiles = [];
+            let loadedCount = 0;
+            
+            yamlFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    directoryFiles[idx] = {
+                        name: file.name,
+                        content: event.target.result
+                    };
+                    loadedCount++;
+                    
+                    // When all files are loaded, initialize with the first one
+                    if (loadedCount === yamlFiles.length) {
+                        currentFileIndex = 0;
+                        loadCurrentDirectoryFile();
+                    }
+                };
+                reader.onerror = () => {
+                    loadedCount++;
+                    directoryFiles[idx] = null; // Mark as failed
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        function loadCurrentDirectoryFile() {
+            if (currentFileIndex < 0 || currentFileIndex >= directoryFiles.length) return;
+            
+            const fileData = directoryFiles[currentFileIndex];
+            if (!fileData) {
+                alert('Failed to load file at index ' + currentFileIndex);
+                return;
+            }
+            
+            originalFileName = fileData.name;
+            fileNameEl.textContent = fileData.name;
+            updateFileNavInfo();
+            
+            try {
+                const parsed = jsyaml.load(fileData.content);
+                // Handle new multi-task format with results array
+                if (parsed.results && Array.isArray(parsed.results)) {
+                    evalData = parsed;
+                    currentTaskIndex = 0;
+                    currentSampleIndex = -1;
+                } else {
+                    // Legacy single-task format - wrap it
+                    evalData = { results: [parsed] };
+                    currentTaskIndex = 0;
+                    currentSampleIndex = -1;
+                }
+                currentStep = 0;
+                activeFile = null;
+                hasUnsavedChanges = false;
+                updateSaveButton();
+                initializeReplayer();
+            } catch (err) {
+                alert('Error parsing YAML (' + fileData.name + '): ' + err.message);
+            }
+        }
+        
+        function goToPreviousFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function goToNextFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex < directoryFiles.length - 1) {
+                currentFileIndex++;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function updateFileNavInfo() {
+            if (directoryFiles.length > 0) {
+                fileNavInfo.textContent = `[File ${currentFileIndex + 1} / ${directoryFiles.length}]`;
+            } else {
+                fileNavInfo.textContent = '';
+            }
+        }
 
         function initializeReplayer() {
             taskInfo.style.display = 'flex';
             navControls.style.display = 'flex';
             editModeToggle.style.display = 'flex';
             emptyState.style.display = 'none';
-            taskIdEl.textContent = evalData.task_id || 'Unknown';
-            descriptionEl.textContent = evalData.description || '';
-            totalStepsEl.textContent = evalData.states.length - 1;
+            updateTaskSelector();
+            updateTaskInfo();
             renderStep();
+        }
+
+        function updateTaskSelector() {
+            if (!evalData || !evalData.results) return;
+            taskSelect.innerHTML = '';
+            evalData.results.forEach((task, idx) => {
+                const option = document.createElement('option');
+                const label = task.task_id || `Task ${idx + 1}`;
+                option.value = String(idx);
+                option.textContent = `${idx + 1}: ${label}`;
+                taskSelect.appendChild(option);
+            });
+            taskSelect.value = String(currentTaskIndex);
+        }
+        
+        function updateTaskInfo() {
+            const task = getCurrentTask();
+            if (!task) return;
+            
+            const totalTasks = evalData.results.length;
+            const taskLabel = totalTasks > 1 ? ` [Task ${currentTaskIndex + 1}/${totalTasks}]` : '';
+            taskIdEl.textContent = (task.task_id || 'Unknown') + taskLabel;
+            descriptionEl.textContent = task.description || '';
+            taskSelect.value = String(currentTaskIndex);
+            
+            // Update total steps display
+            const samples = getCurrentTaskSamples();
+            const maxStateStep = getMaxVisibleStateStep(task);
+            if (isViewingSamples()) {
+                totalStepsEl.textContent = `${maxStateStep} + Sample ${currentSampleIndex + 1}/${samples.length}`;
+            } else {
+                const sampleInfo = samples.length > 0 ? ` (+${samples.length} samples)` : '';
+                totalStepsEl.textContent = maxStateStep + sampleInfo;
+            }
+        }
+        
+        function goToNextTask() {
+            if (!evalData || !evalData.results) return;
+            if (currentTaskIndex < evalData.results.length - 1) {
+                currentTaskIndex++;
+                currentStep = 0;
+                currentSampleIndex = -1;
+                activeFile = null;
+                updateTaskInfo();
+                renderStep();
+            }
+        }
+        
+        function goToPreviousTask() {
+            if (!evalData || !evalData.results) return;
+            if (currentTaskIndex > 0) {
+                currentTaskIndex--;
+                currentStep = 0;
+                currentSampleIndex = -1;
+                activeFile = null;
+                updateTaskInfo();
+                renderStep();
+            }
         }
         
         function markUnsaved() {
@@ -1142,17 +1731,28 @@
         
         function updateEvalBadge() {
             const currState = getState(currentStep);
-            evalBadge.textContent = currState.eval || 'NO_EVAL';
-            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
-            evalSelect.value = currState.eval || '';
+            if (!currState) return;
+            
+            if (isViewingSamples()) {
+                const sample = getSampleState(currentSampleIndex);
+                const matchText = sample?._exactMatch ? 'MATCH' : 'NO MATCH';
+                evalBadge.textContent = matchText;
+                evalBadge.className = 'eval-badge ' + (sample?._exactMatch ? 'eval' : 'no-eval');
+            } else {
+                evalBadge.textContent = currState.eval || 'NO_EVAL';
+                evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+                evalSelect.value = currState.eval || '';
+            }
         }
         
         function saveYaml() {
             if (!evalData) return;
             
-            // Renumber steps to be sequential
-            evalData.states.forEach((state, idx) => {
-                state.step = idx;
+            // Renumber steps to be sequential for all tasks
+            evalData.results.forEach(task => {
+                task.states.forEach((state, idx) => {
+                    state.step = idx;
+                });
             });
             
             const yamlStr = jsyaml.dump(evalData, {
@@ -1177,7 +1777,8 @@
         }
         
         function addStep(position) {
-            if (!evalData) return;
+            const task = getCurrentTask();
+            if (!task || isViewingSamples()) return;
             
             const currState = getState(currentStep);
             // Deep clone the current state
@@ -1185,41 +1786,42 @@
             newState.step = position === 'before' ? currentStep : currentStep + 1;
             
             if (position === 'before') {
-                evalData.states.splice(currentStep, 0, newState);
+                task.states.splice(currentStep, 0, newState);
             } else {
-                evalData.states.splice(currentStep + 1, 0, newState);
+                task.states.splice(currentStep + 1, 0, newState);
                 currentStep++;
             }
             
             // Renumber all steps
-            evalData.states.forEach((state, idx) => {
+            task.states.forEach((state, idx) => {
                 state.step = idx;
             });
             
-            totalStepsEl.textContent = evalData.states.length - 1;
             markUnsaved();
+            updateTaskInfo();
             renderStep();
         }
         
         function deleteCurrentStep() {
-            if (!evalData || evalData.states.length <= 1) return;
+            const task = getCurrentTask();
+            if (!task || task.states.length <= 1 || isViewingSamples()) return;
             
             if (!confirm('Delete this step? This cannot be undone.')) return;
             
-            evalData.states.splice(currentStep, 1);
+            task.states.splice(currentStep, 1);
             
             // Renumber all steps
-            evalData.states.forEach((state, idx) => {
+            task.states.forEach((state, idx) => {
                 state.step = idx;
             });
             
             // Adjust current step if needed
-            if (currentStep >= evalData.states.length) {
-                currentStep = evalData.states.length - 1;
+            if (currentStep >= task.states.length) {
+                currentStep = task.states.length - 1;
             }
             
-            totalStepsEl.textContent = evalData.states.length - 1;
             markUnsaved();
+            updateTaskInfo();
             renderStep();
         }
         
@@ -1265,8 +1867,10 @@
         }
         
         function addNewFile() {
+            if (isViewingSamples()) return;
             showModal('Add New File', 'Enter filename (e.g., src/main.py)', (filename) => {
                 const currState = getState(currentStep);
+                if (!currState) return;
                 if (!currState.files) currState.files = {};
                 if (currState.files[filename]) {
                     alert('File already exists!');
@@ -1280,9 +1884,11 @@
         }
         
         function deleteFile(filename) {
+            if (isViewingSamples()) return;
             if (!confirm(`Delete file "${filename}"?`)) return;
             
             const currState = getState(currentStep);
+            if (!currState) return;
             delete currState.files[filename];
             
             // Update cursor if it was pointing to this file
@@ -1299,22 +1905,41 @@
         }
         
         function updateFileContent(content) {
-            if (!evalData || !activeFile) return;
+            if (!evalData || !activeFile || isViewingSamples()) return;
             const currState = getState(currentStep);
+            if (!currState) return;
             if (!currState.files) currState.files = {};
             currState.files[activeFile] = content;
             markUnsaved();
         }
         
+        function updatePrevFileContent(content) {
+            if (!evalData || !activeFile || isViewingSamples()) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            if (!prevState.files) prevState.files = {};
+            prevState.files[activeFile] = content;
+            markUnsaved();
+        }
+        
+        function updatePrevCursor(file, line, column) {
+            if (!evalData || isViewingSamples()) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            prevState.cursor = { file, line, column };
+            markUnsaved();
+        }
+        
         function updateCursor(file, line, column) {
-            if (!evalData) return;
+            if (!evalData || isViewingSamples()) return;
             const currState = getState(currentStep);
+            if (!currState) return;
             currState.cursor = { file, line, column };
             markUnsaved();
         }
         
         function handleCursorClick(e) {
-            if (!cursorMode || !activeFile) return;
+            if (!cursorMode || !activeFile || isViewingSamples()) return;
             
             // Find the clicked line element
             let lineEl = e.target;
@@ -1362,20 +1987,146 @@
                 Math.round((clickX - paddingLeft) / charWidth)
             ));
             
-            // Update cursor
+            // Update cursor and render while preserving scroll position
             updateCursor(activeFile, lineNumber, column);
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
             renderStep();
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
+            }
         }
 
         function goToStep(step) {
-            if (!evalData || step < 0 || step >= evalData.states.length) return;
-            currentStep = step;
+            const task = getCurrentTask();
+            if (!task) return;
+            
+            const samples = getCurrentTaskSamples();
+            const maxStateStep = getMaxVisibleStateStep(task);
+            
+            if (isViewingSamples()) {
+                // Currently viewing samples
+                if (step < maxStateStep) {
+                    // Go back to states
+                    currentSampleIndex = -1;
+                    currentStep = step;
+                } else if (step === maxStateStep) {
+                    // Go back to last state (exit sample mode)
+                    currentSampleIndex = -1;
+                    currentStep = maxStateStep;
+                } else {
+                    // Navigate within samples
+                    const sampleStep = step - maxStateStep - 1;
+                    if (sampleStep >= 0 && sampleStep < samples.length) {
+                        currentSampleIndex = sampleStep;
+                        currentStep = maxStateStep; // Keep at eval state
+                    } else if (sampleStep >= samples.length && evalData.results.length > currentTaskIndex + 1) {
+                        // Move to next task
+                        goToNextTask();
+                        return;
+                    }
+                }
+            } else {
+                // Currently viewing states
+                if (step < 0) {
+                    // Go to previous task's last step (or last sample if it has samples)
+                    if (currentTaskIndex > 0) {
+                        currentTaskIndex--;
+                        const prevTask = getCurrentTask();
+                        const prevSamples = getCurrentTaskSamples();
+                        const prevMaxStateStep = getMaxVisibleStateStep(prevTask);
+                        if (prevSamples.length > 0) {
+                            // Go to last sample of previous task
+                            currentStep = prevMaxStateStep;
+                            currentSampleIndex = prevSamples.length - 1;
+                        } else {
+                            // Go to last state of previous task
+                            currentStep = prevMaxStateStep;
+                            currentSampleIndex = -1;
+                        }
+                        activeFile = null; // Reset active file for new task
+                        updateTaskInfo();
+                        renderStep();
+                    }
+                    return;
+                }
+                if (step <= maxStateStep) {
+                    currentStep = step;
+                } else if (samples.length > 0) {
+                    // Transition to samples
+                    const sampleStep = step - maxStateStep - 1;
+                    if (sampleStep >= 0 && sampleStep < samples.length) {
+                        currentSampleIndex = sampleStep;
+                        currentStep = maxStateStep;
+                    }
+                } else if (evalData.results.length > currentTaskIndex + 1) {
+                    // No samples, move to next task
+                    goToNextTask();
+                    return;
+                }
+            }
+            
+            updateTaskInfo();
             renderStep();
+        }
+        
+        // Get effective step for navigation (including samples)
+        function getEffectiveStep() {
+            const task = getCurrentTask();
+            if (!task) return 0;
+            
+            if (isViewingSamples()) {
+                return getVisibleStateCount(task) + currentSampleIndex;
+            }
+            return currentStep;
+        }
+        
+        // Get total effective steps (states + samples)
+        function getTotalEffectiveSteps() {
+            const task = getCurrentTask();
+            if (!task) return 0;
+            
+            const samples = getCurrentTaskSamples();
+            return getVisibleStateCount(task) + samples.length;
         }
 
         function getState(index) {
-            if (index < 0 || index >= evalData.states.length) return null;
-            return evalData.states[index];
+            const task = getCurrentTask();
+            if (!task || index < 0 || index >= task.states.length) return null;
+            return task.states[index];
+        }
+        
+        // Get a sample's predicted state (constructs a state-like object from sample data)
+        function getSampleState(sampleIndex) {
+            const samples = getCurrentTaskSamples();
+            if (sampleIndex < 0 || sampleIndex >= samples.length) return null;
+            
+            const sample = samples[sampleIndex];
+            // Construct a state-like object from the sample
+            return {
+                step: `Sample ${sampleIndex}`,
+                files: sample.predicted_files || {},
+                cursor: sample.predicted_cursor || null,
+                terminal: null,
+                judge_assertions: null,
+                // Extra sample info
+                _sample: sample,
+                _sampleIdx: sample.sample_idx,
+                _exactMatch: sample.exact_match,
+                _predictionError: sample.prediction_error,
+                _predictedRaw: sample.predicted_raw
+            };
         }
 
         function getAllFiles(prevState, currState) {
@@ -1441,6 +2192,32 @@
             } catch (e) {
                 return escapeHtml(line);
             }
+        }
+
+        function renderEditableCode(content, filename, idPrefix = '') {
+            const lines = content.split('\n');
+            const language = getLanguageFromFilename(filename);
+            
+            let lineNumbersHtml = '';
+            let backdropHtml = '';
+            
+            lines.forEach((line, idx) => {
+                const lineNum = idx + 1;
+                const highlightedLine = highlightLine(line, language);
+                lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+            });
+            
+            const prefix = idPrefix ? idPrefix + '-' : '';
+            return `<div class="code-editor-wrapper" id="${prefix}code-editor-wrapper">
+                <div class="code-editor-container" id="${prefix}code-editor-container">
+                    <div class="code-editor-line-numbers" id="${prefix}code-editor-line-numbers">${lineNumbersHtml}</div>
+                    <div class="code-editor-content">
+                        <div class="code-editor-backdrop" id="${prefix}code-editor-backdrop">${backdropHtml}</div>
+                        <textarea class="code-editor-textarea" id="${prefix}code-editor" spellcheck="false">${escapeHtml(content)}</textarea>
+                    </div>
+                </div>
+            </div>`;
         }
 
         function renderCodeWithCursor(content, cursor, filename) {
@@ -1660,26 +2437,60 @@
         }
 
         function renderStep() {
-            const currState = getState(currentStep);
-            const prevState = getState(currentStep - 1);
+            const task = getCurrentTask();
+            if (!task) return;
             
-            currentStepEl.textContent = currState.step;
+            const samples = getCurrentTaskSamples();
+            const effectiveStep = getEffectiveStep();
+            const totalSteps = getTotalEffectiveSteps();
+            const maxStateStep = getMaxVisibleStateStep(task);
+            
+            // Determine what we're showing
+            let leftState, rightState, leftLabel, rightLabel;
+            
+            let leftPanelClass = 'panel-label prev';
+            let rightPanelClass = 'panel-label current';
+            
+            if (isViewingSamples()) {
+                // In sample mode: left = last ground truth state, right = predicted sample
+                leftState = getState(maxStateStep);
+                rightState = getSampleState(currentSampleIndex);
+                leftLabel = `Ground Truth (Step ${maxStateStep})`;
+                const matchBadge = rightState?._exactMatch 
+                    ? '<span style="background: rgba(78, 201, 176, 0.3); color: var(--success); padding: 2px 8px; border-radius: 3px; margin-left: 10px; font-size: 11px;">MATCH</span>'
+                    : '<span style="background: rgba(241, 76, 76, 0.3); color: var(--error); padding: 2px 8px; border-radius: 3px; margin-left: 10px; font-size: 11px;">NO MATCH</span>';
+                rightLabel = `Sample ${currentSampleIndex + 1}/${samples.length}${matchBadge}`;
+                currentStepEl.textContent = `Sample ${currentSampleIndex + 1}`;
+                leftPanelClass = 'panel-label ground-truth';
+                rightPanelClass = 'panel-label sample';
+            } else {
+                // Normal mode: left = previous state, right = current state
+                leftState = getState(currentStep - 1);
+                rightState = getState(currentStep);
+                leftLabel = `Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})`;
+                rightLabel = `Current Step (${currentStep})`;
+                currentStepEl.textContent = rightState?.step ?? currentStep;
+            }
+            
             updateEvalBadge();
+            updateTaskInfo();
             
-            btnFirst.disabled = currentStep === 0;
-            btnPrev.disabled = currentStep === 0;
-            btnNext.disabled = currentStep === evalData.states.length - 1;
-            btnLast.disabled = currentStep === evalData.states.length - 1;
-            deleteStepBtn.disabled = evalData.states.length <= 1;
+            btnFirst.disabled = effectiveStep === 0 && currentTaskIndex === 0;
+            btnPrev.disabled = effectiveStep === 0 && currentTaskIndex === 0;
+            btnNext.disabled = effectiveStep >= totalSteps - 1;
+            btnLast.disabled = effectiveStep >= totalSteps - 1;
+            deleteStepBtn.disabled = task.states.length <= 1;
             
             // Get all files from both states
-            const allFiles = getAllFiles(prevState, currState);
+            const allFiles = getAllFiles(leftState, rightState);
             
             // Determine active file
             if (!activeFile || !allFiles.includes(activeFile)) {
                 // Prefer cursor file, then first file
-                if (currState.cursor?.file && allFiles.includes(currState.cursor.file)) {
-                    activeFile = currState.cursor.file;
+                if (rightState?.cursor?.file && allFiles.includes(rightState.cursor.file)) {
+                    activeFile = rightState.cursor.file;
+                } else if (leftState?.cursor?.file && allFiles.includes(leftState.cursor.file)) {
+                    activeFile = leftState.cursor.file;
                 } else if (allFiles.length > 0) {
                     activeFile = allFiles[0];
                 } else {
@@ -1690,100 +2501,134 @@
             // Build file tabs
             let tabsHtml = '';
             allFiles.forEach(file => {
-                const prevHas = prevState?.files?.[file];
-                const currHas = currState?.files?.[file];
+                const leftHas = leftState?.files?.[file];
+                const rightHas = rightState?.files?.[file];
                 let tabClass = 'file-tab';
                 if (file === activeFile) tabClass += ' active';
-                if (!prevHas && currHas) tabClass += ' new';
-                else if (prevHas && currHas && prevState.files[file] !== currState.files[file]) tabClass += ' modified';
-                const deleteBtn = editMode && currHas ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
+                if (!leftHas && rightHas) tabClass += ' new';
+                else if (leftHas && rightHas && leftState.files[file] !== rightState.files[file]) tabClass += ' modified';
+                const deleteBtn = editMode && rightHas && !isViewingSamples() ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
                 tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}${deleteBtn}</div>`;
             });
             
-            // Add "new file" button in edit mode
-            const addFileBtn = editMode ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
+            // Add "new file" button in edit mode (not in sample mode)
+            const addFileBtn = editMode && !isViewingSamples() ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
             
             // Get file contents for diff
-            const prevContent = prevState?.files?.[activeFile] || null;
-            const currContent = currState?.files?.[activeFile] || null;
-            const prevCursor = prevState?.cursor;
-            const currCursor = currState?.cursor;
+            const leftContent = leftState?.files?.[activeFile] || null;
+            const rightContent = rightState?.files?.[activeFile] || null;
+            const leftCursor = leftState?.cursor;
+            const rightCursor = rightState?.cursor;
             
-            let prevHtml, currHtml;
+            let leftHtml, rightHtml;
             
-            if (editMode) {
-                // In edit mode, show editable textarea for current state
-                prevHtml = activeFile 
-                    ? renderCodeWithCursor(prevContent, prevCursor, activeFile)
-                    : '<div class="no-content">No file selected</div>';
-                currHtml = activeFile 
-                    ? `<textarea class="code-editor" id="code-editor">${escapeHtml(currContent || '')}</textarea>`
+            if (editMode && !isViewingSamples()) {
+                // In edit mode, show editable code with syntax highlighting on both sides
+                leftHtml = activeFile && currentStep > 0
+                    ? renderEditableCode(leftContent || '', activeFile, 'prev')
+                    : '<div class="no-content">No previous step to edit</div>';
+                rightHtml = activeFile 
+                    ? renderEditableCode(rightContent || '', activeFile)
                     : '<div class="no-content">No file selected</div>';
             } else {
                 const diffResult = activeFile 
-                    ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
+                    ? renderDiffView(leftContent, rightContent, leftCursor, rightCursor, activeFile)
                     : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
-                prevHtml = diffResult.prevHtml;
-                currHtml = diffResult.currHtml;
+                leftHtml = diffResult.prevHtml;
+                rightHtml = diffResult.currHtml;
             }
             
-            // Cursor editor for edit mode
-            const cursorEditorHtml = editMode ? `
+            // Cursor editor for edit mode (current step) - not in sample mode
+            const cursorEditorHtml = editMode && !isViewingSamples() ? `
                 <div class="cursor-editor">
                     <label>Cursor File:</label>
                     <select id="cursor-file-select">
                         <option value="">-- None --</option>
-                        ${allFiles.map(f => `<option value="${f}" ${currState.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                        ${allFiles.map(f => `<option value="${f}" ${rightState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
                     </select>
                     <label>Line:</label>
-                    <input type="number" id="cursor-line-input" min="1" value="${currState.cursor?.line || 1}">
+                    <input type="number" id="cursor-line-input" min="1" value="${rightState?.cursor?.line || 1}">
                     <label>Column:</label>
-                    <input type="number" id="cursor-col-input" min="0" value="${currState.cursor?.column || 0}">
+                    <input type="number" id="cursor-col-input" min="0" value="${rightState?.cursor?.column || 0}">
                 </div>
             ` : '';
             
+            // Cursor editor for edit mode (previous step) - not in sample mode
+            const leftCursorEditorHtml = editMode && currentStep > 0 && !isViewingSamples() ? `
+                <div class="cursor-editor">
+                    <label>Cursor File:</label>
+                    <select id="prev-cursor-file-select">
+                        <option value="">-- None --</option>
+                        ${allFiles.map(f => `<option value="${f}" ${leftState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                    </select>
+                    <label>Line:</label>
+                    <input type="number" id="prev-cursor-line-input" min="1" value="${leftState?.cursor?.line || 1}">
+                    <label>Column:</label>
+                    <input type="number" id="prev-cursor-col-input" min="0" value="${leftState?.cursor?.column || 0}">
+                </div>
+            ` : '';
+            
+            // Sample info display for sample mode (only show if there's an error)
+            const sampleInfoHtml = isViewingSamples() && rightState?._predictionError ? `
+                <div class="sample-info" style="padding: 8px 15px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-size: 12px;">
+                    <span style="color: var(--error);">Error: ${escapeHtml(rightState._predictionError)}</span>
+                </div>
+            ` : '';
+            
+            // Determine what to show in the right panel's assertions area
+            const rightAssertions = isViewingSamples() && rightState?._predictedRaw 
+                ? rightState._predictedRaw 
+                : (rightState?.judge_assertions || '');
+            const rightAssertionsTitle = isViewingSamples() ? 'Predicted Raw Output' : 'Judge Assertions';
+            
+            // Get the ground truth assertions for sample comparison
+            const groundTruthState = isViewingSamples() ? leftState : null;
+            
             mainContent.innerHTML = `
                 <div class="left-panel">
-                    <div class="panel-label prev">Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})</div>
+                    <div class="${leftPanelClass}">${leftLabel}</div>
                     <div class="files-section">
-                        <div class="section-header">Files</div>
+                        <div class="section-header">Files ${leftState?.cursor ? `| Cursor: ${leftState.cursor.file}:${leftState.cursor.line}:${leftState.cursor.column}` : ''}</div>
                         <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
-                        <div class="code-container" id="prev-code">${prevHtml}</div>
+                        ${leftCursorEditorHtml}
+                        <div class="code-container" id="prev-code">${leftHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="left"></div>
                     <div class="terminal-section" id="left-terminal">
                         <div class="section-header">Terminal</div>
-                        ${renderTerminal(prevState?.terminal)}
+                        ${renderTerminal(leftState?.terminal)}
                     </div>
-                    ${currState.judge_assertions ? `
-                        <div class="assertions-section" style="visibility: hidden;">
-                            <div class="assertions-title">Judge Assertions</div>
-                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                    ${groundTruthState?.judge_assertions ? `
+                        <div class="assertions-section">
+                            <div class="assertions-title">Judge Assertions (Ground Truth)</div>
+                            <div class="assertions-content">${escapeHtml(groundTruthState.judge_assertions)}</div>
                         </div>
                     ` : ''}
                 </div>
                 <div class="right-panel">
-                    <div class="panel-label current">Current Step (${currentStep})</div>
+                    <div class="${rightPanelClass}">${rightLabel}</div>
+                    ${sampleInfoHtml}
                     <div class="files-section">
-                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}${addFileBtn}</div>
+                        <div class="section-header">Files ${rightState?.cursor ? `| Cursor: ${rightState.cursor.file}:${rightState.cursor.line}:${rightState.cursor.column}` : ''}${addFileBtn}</div>
                         <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
                         ${cursorEditorHtml}
-                        <div class="code-container" id="curr-code">${currHtml}</div>
+                        <div class="code-container" id="curr-code">${rightHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="right"></div>
                     <div class="terminal-section" id="right-terminal">
                         <div class="section-header">Terminal</div>
-                        ${renderTerminal(currState.terminal)}
+                        ${renderTerminal(rightState?.terminal)}
                     </div>
-                    ${editMode ? `
-                        <div class="assertions-section">
+                    ${editMode && !isViewingSamples() ? `
+                        <div class="resize-handle" data-panel="assertions"></div>
+                        <div class="assertions-section resizable" id="right-assertions">
                             <div class="assertions-title">Judge Assertions</div>
-                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(currState.judge_assertions || '')}</textarea>
+                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(rightState?.judge_assertions || '')}</textarea>
                         </div>
-                    ` : (currState.judge_assertions ? `
+                    ` : (rightAssertions ? `
                         <div class="assertions-section">
-                            <div class="assertions-title">Judge Assertions</div>
-                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                            <div class="assertions-title">${rightAssertionsTitle}</div>
+                            <div class="assertions-content">${escapeHtml(rightAssertions)}</div>
                         </div>
                     ` : '')}
                 </div>
@@ -1816,11 +2661,65 @@
                 addFileBtnEl.addEventListener('click', addNewFile);
             }
             
-            // Code editor handler
+            // Code editor handler (current step - right side)
             const codeEditor = document.getElementById('code-editor');
-            if (codeEditor) {
+            const codeEditorContainer = document.getElementById('code-editor-container');
+            const codeEditorBackdrop = document.getElementById('code-editor-backdrop');
+            const codeEditorLineNumbers = document.getElementById('code-editor-line-numbers');
+            
+            if (codeEditor && codeEditorContainer && codeEditorBackdrop && codeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const currStateForCursor = getState(currentStep);
+                if (currStateForCursor?.cursor && currStateForCursor.cursor.file === activeFile) {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = currStateForCursor.cursor.line;
+                    const targetCol = currStateForCursor.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Set cursor position and focus
+                    codeEditor.focus();
+                    codeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updateBackdrop = () => {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    codeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    codeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
                 codeEditor.addEventListener('input', (e) => {
                     updateFileContent(e.target.value);
+                    updateBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                codeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    codeEditor.scrollTop = codeEditorContainer.scrollTop;
+                    codeEditor.scrollLeft = codeEditorContainer.scrollLeft;
                 });
                 
                 // Handle tab key in editor
@@ -1832,11 +2731,86 @@
                         codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
                         codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
                         updateFileContent(codeEditor.value);
+                        updateBackdrop();
                     }
                 });
             }
             
-            // Cursor editor handlers
+            // Code editor handler (previous step - left side)
+            const prevCodeEditor = document.getElementById('prev-code-editor');
+            const prevCodeEditorContainer = document.getElementById('prev-code-editor-container');
+            const prevCodeEditorBackdrop = document.getElementById('prev-code-editor-backdrop');
+            const prevCodeEditorLineNumbers = document.getElementById('prev-code-editor-line-numbers');
+            
+            if (prevCodeEditor && prevCodeEditorContainer && prevCodeEditorBackdrop && prevCodeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const prevState = getState(currentStep - 1);
+                if (prevState?.cursor && prevState.cursor.file === activeFile) {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = prevState.cursor.line;
+                    const targetCol = prevState.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Don't auto-focus the prev editor - let the user decide which to edit
+                    prevCodeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updatePrevBackdrop = () => {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    prevCodeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    prevCodeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
+                prevCodeEditor.addEventListener('input', (e) => {
+                    updatePrevFileContent(e.target.value);
+                    updatePrevBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                prevCodeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    prevCodeEditor.scrollTop = prevCodeEditorContainer.scrollTop;
+                    prevCodeEditor.scrollLeft = prevCodeEditorContainer.scrollLeft;
+                });
+                
+                // Handle tab key in editor
+                prevCodeEditor.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = prevCodeEditor.selectionStart;
+                        const end = prevCodeEditor.selectionEnd;
+                        prevCodeEditor.value = prevCodeEditor.value.substring(0, start) + '    ' + prevCodeEditor.value.substring(end);
+                        prevCodeEditor.selectionStart = prevCodeEditor.selectionEnd = start + 4;
+                        updatePrevFileContent(prevCodeEditor.value);
+                        updatePrevBackdrop();
+                    }
+                });
+            }
+            
+            // Cursor editor handlers (current step)
             const cursorFileSelect = document.getElementById('cursor-file-select');
             const cursorLineInput = document.getElementById('cursor-line-input');
             const cursorColInput = document.getElementById('cursor-col-input');
@@ -1859,6 +2833,33 @@
                 cursorFileSelect.addEventListener('change', updateCursorFromInputs);
                 cursorLineInput.addEventListener('change', updateCursorFromInputs);
                 cursorColInput.addEventListener('change', updateCursorFromInputs);
+            }
+            
+            // Cursor editor handlers (previous step)
+            const prevCursorFileSelect = document.getElementById('prev-cursor-file-select');
+            const prevCursorLineInput = document.getElementById('prev-cursor-line-input');
+            const prevCursorColInput = document.getElementById('prev-cursor-col-input');
+            
+            if (prevCursorFileSelect && prevCursorLineInput && prevCursorColInput) {
+                const updatePrevCursorFromInputs = () => {
+                    const file = prevCursorFileSelect.value;
+                    const line = parseInt(prevCursorLineInput.value) || 1;
+                    const column = parseInt(prevCursorColInput.value) || 0;
+                    if (file) {
+                        updatePrevCursor(file, line, column);
+                    } else {
+                        // Clear cursor if no file selected
+                        const prevState = getState(currentStep - 1);
+                        if (prevState) {
+                            delete prevState.cursor;
+                            markUnsaved();
+                        }
+                    }
+                };
+                
+                prevCursorFileSelect.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorLineInput.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorColInput.addEventListener('change', updatePrevCursorFromInputs);
             }
             
             // Assertions editor handler
@@ -1907,12 +2908,10 @@
                 });
                 
                 // Scroll cursor into view on current side (only when not in cursor mode to avoid jumps during editing)
-                if (currState.cursor?.file === activeFile && !cursorMode) {
+                if (rightState?.cursor?.file === activeFile && !cursorMode) {
                     const cursorLine = currCode.querySelector('.cursor-line');
                     if (cursorLine) {
-                        setTimeout(() => {
-                            cursorLine.scrollIntoView({ block: 'center', behavior: 'smooth' });
-                        }, 100);
+                        cursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
                     }
                 }
             }
@@ -1921,10 +2920,12 @@
         function setupResizeHandles() {
             const leftTerminal = document.getElementById('left-terminal');
             const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
             
             // Apply persisted height
             if (leftTerminal) leftTerminal.style.height = terminalHeight + 'px';
             if (rightTerminal) rightTerminal.style.height = terminalHeight + 'px';
+            if (rightAssertions) rightAssertions.style.height = assertionsHeight + 'px';
             
             document.querySelectorAll('.resize-handle').forEach(handle => {
                 handle.addEventListener('mousedown', initResize);
@@ -1938,24 +2939,30 @@
             const panel = handle.dataset.panel;
             const leftTerminal = document.getElementById('left-terminal');
             const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
             
             const startY = e.clientY;
-            const startHeight = terminalHeight;
+            const isAssertions = panel === 'assertions';
+            const startHeight = isAssertions ? assertionsHeight : terminalHeight;
             
             // Disable text selection during drag
             document.body.style.userSelect = 'none';
             document.body.style.cursor = 'ns-resize';
             
             function onMouseMove(e) {
-                // Calculate new height (dragging up increases terminal height)
+                // Calculate new height (dragging up increases height)
                 const deltaY = startY - e.clientY;
                 const newHeight = Math.max(80, Math.min(window.innerHeight * 0.7, startHeight + deltaY));
                 
-                terminalHeight = newHeight;
-                
-                // Apply to both terminals to keep them in sync
-                if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
-                if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+                if (isAssertions) {
+                    assertionsHeight = newHeight;
+                    if (rightAssertions) rightAssertions.style.height = newHeight + 'px';
+                } else {
+                    terminalHeight = newHeight;
+                    // Apply to both terminals to keep them in sync
+                    if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
+                    if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+                }
             }
             
             function onMouseUp() {
@@ -1971,4 +2978,3 @@
     </script>
 </body>
 </html>
-

@@ -1,120 +1,117 @@
 task_id: fix_import_path
-description: 'This eval tests correcting an import path to the proper module.'
+description: This eval tests correcting an import path to the proper module.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: python src/main.py
-    output: |-
-      Traceback (most recent call last):
-        File "src/main.py", line 6, in <module>
-          from utils import load_config
-      ImportError: cannot import name 'load_config' from 'utils'
-    exit_code: 1
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    src/common/config_utils.py: |-
-      import yaml
-      import os
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: python src/main.py
+      output: |-
+        Traceback (most recent call last):
+          File "src/main.py", line 6, in <module>
+            from utils import load_config
+        ImportError: cannot import name 'load_config' from 'utils'
+      exit_code: 1
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      src/common/config_utils.py: |-
+        import yaml
+        import os
 
-      def load_config(path):
-          if not os.path.exists(path):
-              return {}
-          with open(path, 'r') as f:
-              return yaml.safe_load(f)
+        def load_config(path):
+            if not os.path.exists(path):
+                return {}
+            with open(path, 'r') as f:
+                return yaml.safe_load(f)
 
-      def save_config(config, path):
-          with open(path, 'w') as f:
-              yaml.dump(config, f)
-  cursor:
-    file: src/common/config_utils.py
-    line: 1
-    column: 0
-- step: 2
-  eval: NO_EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the complete contents of the files are catted using the cat command with the -n flag
-    - do not use grep or any other command to filter the output
-    - nothing is being modified at all
-  terminal: null
-  files:
-    src/common/config_utils.py: |-
-      import yaml
-      import os
+        def save_config(config, path):
+            with open(path, 'w') as f:
+                yaml.dump(config, f)
+    cursor:
+      file: src/common/config_utils.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    judge_assertions: |-
+      Make sure that:
+      - nothing is being modified or run at all
+      - a new file is opened with the cursor at the start of `src/main.py`
+    terminal: null
+    files:
+      src/common/config_utils.py: |-
+        import yaml
+        import os
 
-      def load_config(path):
-          if not os.path.exists(path):
-              return {}
-          with open(path, 'r') as f:
-              return yaml.safe_load(f)
+        def load_config(path):
+            if not os.path.exists(path):
+                return {}
+            with open(path, 'r') as f:
+                return yaml.safe_load(f)
 
-      def save_config(config, path):
-          with open(path, 'w') as f:
-              yaml.dump(config, f)
-    src/main.py: |-
-      import os
-      import sys
-      import time
-      import logging
+        def save_config(config, path):
+            with open(path, 'w') as f:
+                yaml.dump(config, f)
+      src/main.py: |-
+        import os
+        import sys
+        import time
+        import logging
 
-      from utils import load_config
+        from utils import load_config
 
-      def main():
-          setup_logging()
-          config = load_config("config.yaml")
-          print(f"Loaded config: {config}")
+        def main():
+            setup_logging()
+            config = load_config("config.yaml")
+            print(f"Loaded config: {config}")
 
-      if __name__ == "__main__":
-          main()
-  cursor:
-    file: src/main.py
-    line: 1
-    column: 0
-- step: 3
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the import path is being changed to the correct path (from utils to common.config_utils)
-    - we edit the correct file
-    - nothing else is being modified at all
-    - we cat the correct file with the correct viewport (between line 1 and 10)
-  terminal: null
-  files:
-    src/common/config_utils.py: |-
-      import yaml
-      import os
+        if __name__ == "__main__":
+            main()
+    cursor:
+      file: src/main.py
+      line: 1
+      column: 0
+  - step: 3
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the import path is being changed to the correct path (from utils to common.config_utils)
+      - nothing else is being modified at all
+    terminal: null
+    files:
+      src/common/config_utils.py: |-
+        import yaml
+        import os
 
-      def load_config(path):
-          if not os.path.exists(path):
-              return {}
-          with open(path, 'r') as f:
-              return yaml.safe_load(f)
+        def load_config(path):
+            if not os.path.exists(path):
+                return {}
+            with open(path, 'r') as f:
+                return yaml.safe_load(f)
 
-      def save_config(config, path):
-          with open(path, 'w') as f:
-              yaml.dump(config, f)
-    src/main.py: |-
-      import os
-      import sys
-      import time
-      import logging
+        def save_config(config, path):
+            with open(path, 'w') as f:
+                yaml.dump(config, f)
+      src/main.py: |-
+        import os
+        import sys
+        import time
+        import logging
 
-      from common.config_utils import load_config
+        from common.config_utils import load_config
 
-      def main():
-          setup_logging()
-          config = load_config("config.yaml")
-          print(f"Loaded config: {config}")
+        def main():
+            setup_logging()
+            config = load_config("config.yaml")
+            print(f"Loaded config: {config}")
 
-      if __name__ == "__main__":
-          main()
-  cursor:
-    file: src/main.py
-    line: 7
-    column: 0
+        if __name__ == "__main__":
+            main()
+    cursor:
+      file: src/main.py
+      line: 6
+      column: 24

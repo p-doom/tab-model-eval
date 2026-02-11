@@ -1,79 +1,76 @@
 task_id: variable_rename
-description: 'This eval tests renaming a variable to fix a NameError.'
+description: This eval tests renaming a variable to fix a NameError.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: python src/process.py
-    output: |-
-      Traceback (most recent call last):
-        File "src/process.py", line 14, in <module>
-          process_data({"id": 123})
-        File "src/process.py", line 11, in process_data
-          if "id" in d.keys():
-      NameError: name 'd' is not defined
-    exit_code: 1
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - we cat the complete file using the cat command with the -n flag
-    - nothing else is being modified at all
-  terminal: null
-  files:
-    src/process.py: |-
-      import json
-      import os
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: python src/process.py
+      output: |-
+        Traceback (most recent call last):
+          File "src/process.py", line 14, in <module>
+            process_data({"id": 123})
+          File "src/process.py", line 11, in process_data
+            if "id" in d.keys():
+        NameError: name 'd' is not defined
+      exit_code: 1
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - we cat the complete file using the cat command with the -n flag
+      - nothing else is being modified at all
+    terminal: null
+    files:
+      src/process.py: |-
+        import json
 
-      def load_data(path):
-          with open(path) as f:
-              return json.load(f)
+        def load_data(path):
+            with open(path) as f:
+                return json.load(f)
 
-      def process_data(data):
-          # Process the data dictionary
-          # Check if id exists
-          if "id" in d.keys():
-              return data["id"]
-          return None
+        def process_data(data):
+            # Process the data dictionary
+            # Check if id exists
+            if "id" in d.keys():
+                return data["id"]
+            return None
 
-      if __name__ == "__main__":
-          process_data({"id": 123})
-  cursor:
-    file: src/process.py
-    line: 1
-    column: 0
-- step: 2
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the correct file is being edited (src/process.py)
-    - the correct line is being edited (line 11)
-    - the variable is being renamed from d to data
-    - nothing else is being modified at all
-    - the correct file is being catted with the correct viewport (between line 6 and 15)
-  terminal: null
-  files:
-    src/process.py: |-
-      import json
-      import os
+        if __name__ == "__main__":
+            process_data({"id": 123})
+    cursor:
+      file: src/process.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the correct file is being edited (src/process.py)
+      - the correct line is being edited (line 11)
+      - the variable is being renamed from d to data
+      - nothing else is being modified at all
+    terminal: null
+    files:
+      src/process.py: |-
+        import json
 
-      def load_data(path):
-          with open(path) as f:
-              return json.load(f)
+        def load_data(path):
+            with open(path) as f:
+                return json.load(f)
 
-      def process_data(data):
-          # Process the data dictionary
-          # Check if id exists
-          if "id" in data.keys():
-              return data["id"]
-          return None
+        def process_data(data):
+            # Process the data dictionary
+            # Check if id exists
+            if "id" in data.keys():
+                return data["id"]
+            return None
 
-      if __name__ == "__main__":
-          process_data({"id": 123})
-  cursor:
-    file: src/process.py
-    line: 8
-    column: 23
+        if __name__ == "__main__":
+            process_data({"id": 123})
+    cursor:
+      file: src/process.py
+      line: 10
+      column: 19

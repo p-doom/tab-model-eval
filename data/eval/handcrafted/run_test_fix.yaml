@@ -1,122 +1,121 @@
 task_id: run_test_fix
-description: 'This eval tests fixing a failing test and rerunning it.'
+description: This eval tests fixing a failing test and rerunning it.
 states:
-- step: 0
-  eval: NO_EVAL
-  terminal:
-    command: pytest tests/test_math.py
-    output: |-
-      ============================= test session starts ==============================
-      collected 1 item
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: pytest tests/test_math.py
+      output: |-
+        ============================= test session starts ==============================
+        collected 1 item
 
-      tests/test_math.py F                                                     [100%]
+        tests/test_math.py F                                                     [100%]
 
-      =================================== FAILURES ===================================
-      _________________________________ test_add __________________________________
+        =================================== FAILURES ===================================
+        _________________________________ test_add __________________________________
 
-          def test_add():
-      >       assert add(2, 2) == 5
-      E       assert 4 == 5
+            def test_add():
+        >       assert add(2, 2) == 5
+        E       assert 4 == 5
 
-      tests/test_math.py:12: AssertionError
-      =========================== 1 failed in 0.03s ============================
-    exit_code: 0
-    cwd: /project
-  files: {}
-  cursor: null
-- step: 1
-  eval: NO_EVAL
-  terminal: null
-  files:
-    tests/test_math.py: |-
-      import pytest
-      from src.math_utils import add, subtract
+        tests/test_math.py:12: AssertionError
+        =========================== 1 failed in 0.03s ============================
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      tests/test_math.py: |-
+        import pytest
+        from src.math_utils import add, subtract
 
-      def setup_module(module):
-          print("Setup")
+        def setup_module(module):
+            print("Setup")
 
-      def teardown_module(module):
-          print("Teardown")
+        def teardown_module(module):
+            print("Teardown")
 
-      def test_add():
-          # Basic addition test
-          assert add(2, 2) == 5
-          assert add(1, 1) == 2
+        def test_add():
+            # Basic addition test
+            assert add(2, 2) == 5
+            assert add(1, 1) == 2
 
-      def test_subtract():
-          assert subtract(2, 1) == 1
-  cursor:
-    file: tests/test_math.py
-    line: 1
-    column: 0
-- step: 2
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the correct file is being edited (tests/test_math.py)
-    - the correct line is being edited (line 12)
-    - the test is being fixed by changing the assertion from 5 to 4
-    - nothing else is being modified at all
-    - the correct file is being catted with the correct viewport (between line 7 and 16)
-  terminal: null
-  files:
-    tests/test_math.py: |-
-      import pytest
-      from src.math_utils import add, subtract
+        def test_subtract():
+            assert subtract(2, 1) == 1
+    cursor:
+      file: tests/test_math.py
+      line: 1
+      column: 0
+  - step: 2
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the correct file is being edited (tests/test_math.py)
+      - the correct line is being edited (line 12)
+      - the test is being fixed by changing the assertion from 5 to 4
+      - nothing else is being modified at all
+    terminal: null
+    files:
+      tests/test_math.py: |-
+        import pytest
+        from src.math_utils import add, subtract
 
-      def setup_module(module):
-          print("Setup")
+        def setup_module(module):
+            print("Setup")
 
-      def teardown_module(module):
-          print("Teardown")
+        def teardown_module(module):
+            print("Teardown")
 
-      def test_add():
-          # Basic addition test
-          assert add(2, 2) == 4
-          assert add(1, 1) == 2
+        def test_add():
+            # Basic addition test
+            assert add(2, 2) == 4
+            assert add(1, 1) == 2
 
-      def test_subtract():
-          assert subtract(2, 1) == 1
-  cursor:
-    file: tests/test_math.py
-    line: 9
-    column: 0
-- step: 3
-  eval: EVAL
-  judge_assertions: |-
-    Make sure that:
-    - the test is being run again
-    - nothing else is being modified at all
-  terminal:
-    command: pytest tests/test_math.py
-    output: |-
-      ============================= test session starts ==============================
-      collected 1 item
+        def test_subtract():
+            assert subtract(2, 1) == 1
+    cursor:
+      file: tests/test_math.py
+      line: 12
+      column: 25
+  - step: 3
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the test is being run again
+      - nothing else is being modified at all
+    terminal:
+      command: pytest tests/test_math.py
+      output: |-
+        ============================= test session starts ==============================
+        collected 1 item
 
-      tests/test_math.py .                                                     [100%]
+        tests/test_math.py .                                                     [100%]
 
-      ============================== 1 passed in 0.01s ===============================
-    exit_code: 0
-    cwd: /project
-  files:
-    tests/test_math.py: |-
-      import pytest
-      from src.math_utils import add, subtract
+        ============================== 1 passed in 0.01s ===============================
+      exit_code: 0
+      cwd: /project
+    files:
+      tests/test_math.py: |-
+        import pytest
+        from src.math_utils import add, subtract
 
-      def setup_module(module):
-          print("Setup")
+        def setup_module(module):
+            print("Setup")
 
-      def teardown_module(module):
-          print("Teardown")
+        def teardown_module(module):
+            print("Teardown")
 
-      def test_add():
-          # Basic addition test
-          assert add(2, 2) == 4
-          assert add(1, 1) == 2
+        def test_add():
+            # Basic addition test
+            assert add(2, 2) == 4
+            assert add(1, 1) == 2
 
-      def test_subtract():
-          assert subtract(2, 1) == 1
-  cursor:
-    file: tests/test_math.py
-    line: 9
-    column: 0
+        def test_subtract():
+            assert subtract(2, 1) == 1
+    cursor:
+      file: tests/test_math.py
+      line: 12
+      column: 25
