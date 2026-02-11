@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eval Step Visualizer</title>
+    <title>Handcrafted Task Visualizer</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
     <!-- Prism.js for syntax highlighting -->
@@ -179,28 +179,6 @@
             margin-left: auto;
             font-size: 12px;
             color: var(--text-secondary);
-        }
-
-        .task-selector {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: 10px;
-        }
-
-        .task-selector label {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .task-selector select {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 6px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            min-width: 240px;
         }
 
         kbd {
@@ -945,24 +923,6 @@
             color: var(--text-secondary);
             font-weight: normal;
         }
-
-        /* Sample mode styles */
-        .sample-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .panel-label.sample {
-            color: #ff9800;
-            background: rgba(255, 152, 0, 0.1);
-        }
-
-        .panel-label.ground-truth {
-            color: var(--success);
-            background: rgba(78, 201, 176, 0.1);
-        }
     </style>
 </head>
 <body>
@@ -996,10 +956,6 @@
         <div class="step-indicator">
             Step <strong id="current-step">0</strong> / <span id="total-steps">0</span>
         </div>
-        <div class="task-selector">
-            <label for="task-select">Task</label>
-            <select id="task-select"></select>
-        </div>
         <button class="nav-btn" id="btn-next">Next</button>
         <button class="nav-btn" id="btn-last">Last</button>
         <span class="eval-badge" id="eval-badge">NO_EVAL</span>
@@ -1023,7 +979,7 @@
             <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
         </div>
         <div class="keyboard-hint">
-            <kbd>←</kbd><kbd>→</kbd> Steps/Samples <kbd>Shift+A</kbd>/<kbd>Shift+D</kbd> Tasks <kbd>w</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>Shift+A</kbd>/<kbd>Shift+D</kbd> Files <kbd>w</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
         </div>
     </div>
 
@@ -1050,73 +1006,6 @@
         // Directory navigation state
         let directoryFiles = []; // Array of {name, content} objects
         let currentFileIndex = -1;
-        
-        // Multi-task support
-        let currentTaskIndex = 0;
-        let currentSampleIndex = -1; // -1 means viewing states, 0+ means viewing samples
-        
-        // Helper to get current task
-        function getCurrentTask() {
-            if (!evalData || !evalData.results || evalData.results.length === 0) return null;
-            return evalData.results[currentTaskIndex];
-        }
-
-        // Helper to infer the eval step for the current task
-        function getEvalStepForTask(task) {
-            if (!task) return null;
-            
-            // Prefer explicit step in task_id (e.g. ".../step_5")
-            if (typeof task.task_id === 'string') {
-                const match = task.task_id.match(/(?:^|\/)step_(\d+)\b/);
-                if (match) {
-                    const parsed = parseInt(match[1], 10);
-                    if (!Number.isNaN(parsed)) return parsed;
-                }
-            }
-            
-            // Fall back to sample step (usually a single eval step)
-            if (Array.isArray(task.samples) && task.samples.length > 0) {
-                const sampleSteps = task.samples
-                    .map(sample => sample?.step)
-                    .filter(step => Number.isFinite(step));
-                if (sampleSteps.length > 0) {
-                    return sampleSteps[0];
-                }
-            }
-            
-            // Fall back to the last explicit EVAL marker
-            if (Array.isArray(task.states)) {
-                for (let i = task.states.length - 1; i >= 0; i--) {
-                    if (task.states[i]?.eval === 'EVAL') return i;
-                }
-            }
-            
-            return null;
-        }
-
-        function getMaxVisibleStateStep(task) {
-            if (!task || !Array.isArray(task.states) || task.states.length === 0) return 0;
-            const lastStateStep = task.states.length - 1;
-            const evalStep = getEvalStepForTask(task);
-            if (!Number.isFinite(evalStep)) return lastStateStep;
-            return Math.min(Math.max(evalStep, 0), lastStateStep);
-        }
-
-        function getVisibleStateCount(task) {
-            return getMaxVisibleStateStep(task) + 1;
-        }
-        
-        // Helper to check if we're in sample viewing mode
-        function isViewingSamples() {
-            return currentSampleIndex >= 0;
-        }
-        
-        // Get the samples for current task at the last eval step
-        function getCurrentTaskSamples() {
-            const task = getCurrentTask();
-            if (!task || !task.samples) return [];
-            return task.samples;
-        }
 
         const fileInput = document.getElementById('yaml-file');
         const directoryInput = document.getElementById('yaml-directory');
@@ -1143,7 +1032,6 @@
         const addStepAfterBtn = document.getElementById('add-step-after-btn');
         const deleteStepBtn = document.getElementById('delete-step-btn');
         const cursorModeIndicator = document.getElementById('cursor-mode-indicator');
-        const taskSelect = document.getElementById('task-select');
 
         const btnFirst = document.getElementById('btn-first');
         const btnPrev = document.getElementById('btn-prev');
@@ -1153,33 +1041,12 @@
         fileInput.addEventListener('change', handleFileLoad);
         directoryInput.addEventListener('change', handleDirectoryLoad);
         btnFirst.addEventListener('click', () => goToStep(0));
-        btnPrev.addEventListener('click', () => goToStep(getEffectiveStep() - 1));
-        btnNext.addEventListener('click', () => goToStep(getEffectiveStep() + 1));
-        btnLast.addEventListener('click', () => goToStep(getTotalEffectiveSteps() - 1));
+        btnPrev.addEventListener('click', () => goToStep(currentStep - 1));
+        btnNext.addEventListener('click', () => goToStep(currentStep + 1));
+        btnLast.addEventListener('click', () => goToStep(evalData.states.length - 1));
         syncScrollCheckbox.addEventListener('change', (e) => syncScroll = e.target.checked);
-        taskSelect.addEventListener('change', (e) => {
-            if (!evalData || !evalData.results) return;
-            const nextIndex = parseInt(e.target.value, 10);
-            if (Number.isNaN(nextIndex) || nextIndex === currentTaskIndex) return;
-            // Warn about unsaved changes
-            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
-                taskSelect.value = String(currentTaskIndex);
-                return;
-            }
-            currentTaskIndex = nextIndex;
-            currentStep = 0;
-            currentSampleIndex = -1;
-            activeFile = null;
-            updateTaskInfo();
-            renderStep();
-        });
         
         editModeCheckbox.addEventListener('change', (e) => {
-            // Don't allow edit mode when viewing samples
-            if (isViewingSamples() && e.target.checked) {
-                e.target.checked = false;
-                return;
-            }
             editMode = e.target.checked;
             evalSelector.style.display = editMode ? 'block' : 'none';
             stepEditor.style.display = editMode ? 'flex' : 'none';
@@ -1208,9 +1075,8 @@
         saveBtn.addEventListener('click', saveYaml);
         
         evalSelect.addEventListener('change', (e) => {
-            if (!evalData || !editMode || isViewingSamples()) return;
+            if (!evalData || !editMode) return;
             const currState = getState(currentStep);
-            if (!currState) return;
             if (e.target.value === '') {
                 delete currState.eval;
             } else {
@@ -1225,9 +1091,8 @@
         deleteStepBtn.addEventListener('click', deleteCurrentStep);
         
         evalBadge.addEventListener('click', () => {
-            if (!evalData || isViewingSamples()) return;
+            if (!evalData) return;
             const currState = getState(currentStep);
-            if (!currState) return;
             if (currState.eval === 'EVAL') {
                 delete currState.eval;
             } else {
@@ -1296,10 +1161,9 @@
                 return;
             }
             
-            // Cursor mode navigation with arrow keys (not in sample mode)
-            if (cursorMode && !isTyping && !isViewingSamples()) {
+            // Cursor mode navigation with arrow keys
+            if (cursorMode && !isTyping) {
                 const currState = getState(currentStep);
-                if (!currState) return;
                 if (!currState.cursor) {
                     // Initialize cursor if not present
                     const files = Object.keys(currState.files || {});
@@ -1408,20 +1272,20 @@
             // Don't process other shortcuts if typing
             if (isTyping) return;
             
-            // Task navigation with Shift+A (previous) and Shift+D (next)
-            if (e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+            // File navigation with Shift+A (previous) and Shift+D (next)
+            if (e.shiftKey && (e.key === 'A' || e.key === 'a') && directoryFiles.length > 0) {
                 e.preventDefault();
-                goToPreviousTask();
+                goToPreviousFile();
                 return;
             }
-            if (e.shiftKey && (e.key === 'D' || e.key === 'd')) {
+            if (e.shiftKey && (e.key === 'D' || e.key === 'd') && directoryFiles.length > 0) {
                 e.preventDefault();
-                goToNextTask();
+                goToNextFile();
                 return;
             }
             
-            // Toggle cursor mode with 'v' (not in sample mode)
-            if (e.key === 'v' && !cursorMode && !editMode && !isViewingSamples()) {
+            // Toggle cursor mode with 'v'
+            if (e.key === 'v' && !cursorMode && !editMode) {
                 e.preventDefault();
                 cursorMode = true;
                 cursorModeIndicator.classList.remove('hidden');
@@ -1447,11 +1311,10 @@
                 return;
             }
             
-            // Toggle eval with 'w' (not in sample mode)
-            if (e.key === 'w' && !editMode && !cursorMode && !isViewingSamples()) {
+            // Toggle eval with 'w'
+            if (e.key === 'w' && !editMode && !cursorMode) {
                 e.preventDefault();
                 const currState = getState(currentStep);
-                if (!currState) return;
                 if (currState.eval === 'EVAL') {
                     delete currState.eval;
                 } else {
@@ -1462,8 +1325,8 @@
                 return;
             }
             
-            // Toggle edit mode with 'i' or 'e' (enter) - not in sample mode
-            if ((e.key === 'i' || e.key === 'e') && !editMode && !cursorMode && !isViewingSamples()) {
+            // Toggle edit mode with 'i' or 'e' (enter)
+            if ((e.key === 'i' || e.key === 'e') && !editMode && !cursorMode) {
                 e.preventDefault();
                 editMode = true;
                 editModeCheckbox.checked = true;
@@ -1493,12 +1356,10 @@
             
             // Navigation shortcuts only work when not in cursor mode
             if (!cursorMode) {
-                const effectiveStep = getEffectiveStep();
-                const totalSteps = getTotalEffectiveSteps();
-                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); goToStep(effectiveStep - 1); }
-                if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); goToStep(effectiveStep + 1); }
+                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); goToStep(currentStep - 1); }
+                if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); goToStep(currentStep + 1); }
                 if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
-                if (e.key === 'End') { e.preventDefault(); goToStep(totalSteps - 1); }
+                if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
             }
         });
 
@@ -1514,18 +1375,7 @@
             const reader = new FileReader();
             reader.onload = (event) => {
                 try {
-                    const parsed = jsyaml.load(event.target.result);
-                    // Handle new multi-task format with results array
-                    if (parsed.results && Array.isArray(parsed.results)) {
-                        evalData = parsed;
-                        currentTaskIndex = 0;
-                        currentSampleIndex = -1;
-                    } else {
-                        // Legacy single-task format - wrap it
-                        evalData = { results: [parsed] };
-                        currentTaskIndex = 0;
-                        currentSampleIndex = -1;
-                    }
+                    evalData = jsyaml.load(event.target.result);
                     currentStep = 0;
                     activeFile = null;
                     hasUnsavedChanges = false;
@@ -1593,18 +1443,7 @@
             updateFileNavInfo();
             
             try {
-                const parsed = jsyaml.load(fileData.content);
-                // Handle new multi-task format with results array
-                if (parsed.results && Array.isArray(parsed.results)) {
-                    evalData = parsed;
-                    currentTaskIndex = 0;
-                    currentSampleIndex = -1;
-                } else {
-                    // Legacy single-task format - wrap it
-                    evalData = { results: [parsed] };
-                    currentTaskIndex = 0;
-                    currentSampleIndex = -1;
-                }
+                evalData = jsyaml.load(fileData.content);
                 currentStep = 0;
                 activeFile = null;
                 hasUnsavedChanges = false;
@@ -1656,67 +1495,10 @@
             navControls.style.display = 'flex';
             editModeToggle.style.display = 'flex';
             emptyState.style.display = 'none';
-            updateTaskSelector();
-            updateTaskInfo();
+            taskIdEl.textContent = evalData.task_id || 'Unknown';
+            descriptionEl.textContent = evalData.description || '';
+            totalStepsEl.textContent = evalData.states.length - 1;
             renderStep();
-        }
-
-        function updateTaskSelector() {
-            if (!evalData || !evalData.results) return;
-            taskSelect.innerHTML = '';
-            evalData.results.forEach((task, idx) => {
-                const option = document.createElement('option');
-                const label = task.task_id || `Task ${idx + 1}`;
-                option.value = String(idx);
-                option.textContent = `${idx + 1}: ${label}`;
-                taskSelect.appendChild(option);
-            });
-            taskSelect.value = String(currentTaskIndex);
-        }
-        
-        function updateTaskInfo() {
-            const task = getCurrentTask();
-            if (!task) return;
-            
-            const totalTasks = evalData.results.length;
-            const taskLabel = totalTasks > 1 ? ` [Task ${currentTaskIndex + 1}/${totalTasks}]` : '';
-            taskIdEl.textContent = (task.task_id || 'Unknown') + taskLabel;
-            descriptionEl.textContent = task.description || '';
-            taskSelect.value = String(currentTaskIndex);
-            
-            // Update total steps display
-            const samples = getCurrentTaskSamples();
-            const maxStateStep = getMaxVisibleStateStep(task);
-            if (isViewingSamples()) {
-                totalStepsEl.textContent = `${maxStateStep} + Sample ${currentSampleIndex + 1}/${samples.length}`;
-            } else {
-                const sampleInfo = samples.length > 0 ? ` (+${samples.length} samples)` : '';
-                totalStepsEl.textContent = maxStateStep + sampleInfo;
-            }
-        }
-        
-        function goToNextTask() {
-            if (!evalData || !evalData.results) return;
-            if (currentTaskIndex < evalData.results.length - 1) {
-                currentTaskIndex++;
-                currentStep = 0;
-                currentSampleIndex = -1;
-                activeFile = null;
-                updateTaskInfo();
-                renderStep();
-            }
-        }
-        
-        function goToPreviousTask() {
-            if (!evalData || !evalData.results) return;
-            if (currentTaskIndex > 0) {
-                currentTaskIndex--;
-                currentStep = 0;
-                currentSampleIndex = -1;
-                activeFile = null;
-                updateTaskInfo();
-                renderStep();
-            }
         }
         
         function markUnsaved() {
@@ -1731,28 +1513,17 @@
         
         function updateEvalBadge() {
             const currState = getState(currentStep);
-            if (!currState) return;
-            
-            if (isViewingSamples()) {
-                const sample = getSampleState(currentSampleIndex);
-                const matchText = sample?._exactMatch ? 'MATCH' : 'NO MATCH';
-                evalBadge.textContent = matchText;
-                evalBadge.className = 'eval-badge ' + (sample?._exactMatch ? 'eval' : 'no-eval');
-            } else {
-                evalBadge.textContent = currState.eval || 'NO_EVAL';
-                evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
-                evalSelect.value = currState.eval || '';
-            }
+            evalBadge.textContent = currState.eval || 'NO_EVAL';
+            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+            evalSelect.value = currState.eval || '';
         }
         
         function saveYaml() {
             if (!evalData) return;
             
-            // Renumber steps to be sequential for all tasks
-            evalData.results.forEach(task => {
-                task.states.forEach((state, idx) => {
-                    state.step = idx;
-                });
+            // Renumber steps to be sequential
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
             });
             
             const yamlStr = jsyaml.dump(evalData, {
@@ -1777,8 +1548,7 @@
         }
         
         function addStep(position) {
-            const task = getCurrentTask();
-            if (!task || isViewingSamples()) return;
+            if (!evalData) return;
             
             const currState = getState(currentStep);
             // Deep clone the current state
@@ -1786,42 +1556,41 @@
             newState.step = position === 'before' ? currentStep : currentStep + 1;
             
             if (position === 'before') {
-                task.states.splice(currentStep, 0, newState);
+                evalData.states.splice(currentStep, 0, newState);
             } else {
-                task.states.splice(currentStep + 1, 0, newState);
+                evalData.states.splice(currentStep + 1, 0, newState);
                 currentStep++;
             }
             
             // Renumber all steps
-            task.states.forEach((state, idx) => {
+            evalData.states.forEach((state, idx) => {
                 state.step = idx;
             });
             
+            totalStepsEl.textContent = evalData.states.length - 1;
             markUnsaved();
-            updateTaskInfo();
             renderStep();
         }
         
         function deleteCurrentStep() {
-            const task = getCurrentTask();
-            if (!task || task.states.length <= 1 || isViewingSamples()) return;
+            if (!evalData || evalData.states.length <= 1) return;
             
             if (!confirm('Delete this step? This cannot be undone.')) return;
             
-            task.states.splice(currentStep, 1);
+            evalData.states.splice(currentStep, 1);
             
             // Renumber all steps
-            task.states.forEach((state, idx) => {
+            evalData.states.forEach((state, idx) => {
                 state.step = idx;
             });
             
             // Adjust current step if needed
-            if (currentStep >= task.states.length) {
-                currentStep = task.states.length - 1;
+            if (currentStep >= evalData.states.length) {
+                currentStep = evalData.states.length - 1;
             }
             
+            totalStepsEl.textContent = evalData.states.length - 1;
             markUnsaved();
-            updateTaskInfo();
             renderStep();
         }
         
@@ -1867,10 +1636,8 @@
         }
         
         function addNewFile() {
-            if (isViewingSamples()) return;
             showModal('Add New File', 'Enter filename (e.g., src/main.py)', (filename) => {
                 const currState = getState(currentStep);
-                if (!currState) return;
                 if (!currState.files) currState.files = {};
                 if (currState.files[filename]) {
                     alert('File already exists!');
@@ -1884,11 +1651,9 @@
         }
         
         function deleteFile(filename) {
-            if (isViewingSamples()) return;
             if (!confirm(`Delete file "${filename}"?`)) return;
             
             const currState = getState(currentStep);
-            if (!currState) return;
             delete currState.files[filename];
             
             // Update cursor if it was pointing to this file
@@ -1905,16 +1670,15 @@
         }
         
         function updateFileContent(content) {
-            if (!evalData || !activeFile || isViewingSamples()) return;
+            if (!evalData || !activeFile) return;
             const currState = getState(currentStep);
-            if (!currState) return;
             if (!currState.files) currState.files = {};
             currState.files[activeFile] = content;
             markUnsaved();
         }
         
         function updatePrevFileContent(content) {
-            if (!evalData || !activeFile || isViewingSamples()) return;
+            if (!evalData || !activeFile) return;
             const prevState = getState(currentStep - 1);
             if (!prevState) return;
             if (!prevState.files) prevState.files = {};
@@ -1923,7 +1687,7 @@
         }
         
         function updatePrevCursor(file, line, column) {
-            if (!evalData || isViewingSamples()) return;
+            if (!evalData) return;
             const prevState = getState(currentStep - 1);
             if (!prevState) return;
             prevState.cursor = { file, line, column };
@@ -1931,15 +1695,14 @@
         }
         
         function updateCursor(file, line, column) {
-            if (!evalData || isViewingSamples()) return;
+            if (!evalData) return;
             const currState = getState(currentStep);
-            if (!currState) return;
             currState.cursor = { file, line, column };
             markUnsaved();
         }
         
         function handleCursorClick(e) {
-            if (!cursorMode || !activeFile || isViewingSamples()) return;
+            if (!cursorMode || !activeFile) return;
             
             // Find the clicked line element
             let lineEl = e.target;
@@ -2009,124 +1772,14 @@
         }
 
         function goToStep(step) {
-            const task = getCurrentTask();
-            if (!task) return;
-            
-            const samples = getCurrentTaskSamples();
-            const maxStateStep = getMaxVisibleStateStep(task);
-            
-            if (isViewingSamples()) {
-                // Currently viewing samples
-                if (step < maxStateStep) {
-                    // Go back to states
-                    currentSampleIndex = -1;
-                    currentStep = step;
-                } else if (step === maxStateStep) {
-                    // Go back to last state (exit sample mode)
-                    currentSampleIndex = -1;
-                    currentStep = maxStateStep;
-                } else {
-                    // Navigate within samples
-                    const sampleStep = step - maxStateStep - 1;
-                    if (sampleStep >= 0 && sampleStep < samples.length) {
-                        currentSampleIndex = sampleStep;
-                        currentStep = maxStateStep; // Keep at eval state
-                    } else if (sampleStep >= samples.length && evalData.results.length > currentTaskIndex + 1) {
-                        // Move to next task
-                        goToNextTask();
-                        return;
-                    }
-                }
-            } else {
-                // Currently viewing states
-                if (step < 0) {
-                    // Go to previous task's last step (or last sample if it has samples)
-                    if (currentTaskIndex > 0) {
-                        currentTaskIndex--;
-                        const prevTask = getCurrentTask();
-                        const prevSamples = getCurrentTaskSamples();
-                        const prevMaxStateStep = getMaxVisibleStateStep(prevTask);
-                        if (prevSamples.length > 0) {
-                            // Go to last sample of previous task
-                            currentStep = prevMaxStateStep;
-                            currentSampleIndex = prevSamples.length - 1;
-                        } else {
-                            // Go to last state of previous task
-                            currentStep = prevMaxStateStep;
-                            currentSampleIndex = -1;
-                        }
-                        activeFile = null; // Reset active file for new task
-                        updateTaskInfo();
-                        renderStep();
-                    }
-                    return;
-                }
-                if (step <= maxStateStep) {
-                    currentStep = step;
-                } else if (samples.length > 0) {
-                    // Transition to samples
-                    const sampleStep = step - maxStateStep - 1;
-                    if (sampleStep >= 0 && sampleStep < samples.length) {
-                        currentSampleIndex = sampleStep;
-                        currentStep = maxStateStep;
-                    }
-                } else if (evalData.results.length > currentTaskIndex + 1) {
-                    // No samples, move to next task
-                    goToNextTask();
-                    return;
-                }
-            }
-            
-            updateTaskInfo();
+            if (!evalData || step < 0 || step >= evalData.states.length) return;
+            currentStep = step;
             renderStep();
-        }
-        
-        // Get effective step for navigation (including samples)
-        function getEffectiveStep() {
-            const task = getCurrentTask();
-            if (!task) return 0;
-            
-            if (isViewingSamples()) {
-                return getVisibleStateCount(task) + currentSampleIndex;
-            }
-            return currentStep;
-        }
-        
-        // Get total effective steps (states + samples)
-        function getTotalEffectiveSteps() {
-            const task = getCurrentTask();
-            if (!task) return 0;
-            
-            const samples = getCurrentTaskSamples();
-            return getVisibleStateCount(task) + samples.length;
         }
 
         function getState(index) {
-            const task = getCurrentTask();
-            if (!task || index < 0 || index >= task.states.length) return null;
-            return task.states[index];
-        }
-        
-        // Get a sample's predicted state (constructs a state-like object from sample data)
-        function getSampleState(sampleIndex) {
-            const samples = getCurrentTaskSamples();
-            if (sampleIndex < 0 || sampleIndex >= samples.length) return null;
-            
-            const sample = samples[sampleIndex];
-            // Construct a state-like object from the sample
-            return {
-                step: `Sample ${sampleIndex}`,
-                files: sample.predicted_files || {},
-                cursor: sample.predicted_cursor || null,
-                terminal: null,
-                judge_assertions: null,
-                // Extra sample info
-                _sample: sample,
-                _sampleIdx: sample.sample_idx,
-                _exactMatch: sample.exact_match,
-                _predictionError: sample.prediction_error,
-                _predictedRaw: sample.predicted_raw
-            };
+            if (index < 0 || index >= evalData.states.length) return null;
+            return evalData.states[index];
         }
 
         function getAllFiles(prevState, currState) {
@@ -2437,60 +2090,26 @@
         }
 
         function renderStep() {
-            const task = getCurrentTask();
-            if (!task) return;
+            const currState = getState(currentStep);
+            const prevState = getState(currentStep - 1);
             
-            const samples = getCurrentTaskSamples();
-            const effectiveStep = getEffectiveStep();
-            const totalSteps = getTotalEffectiveSteps();
-            const maxStateStep = getMaxVisibleStateStep(task);
-            
-            // Determine what we're showing
-            let leftState, rightState, leftLabel, rightLabel;
-            
-            let leftPanelClass = 'panel-label prev';
-            let rightPanelClass = 'panel-label current';
-            
-            if (isViewingSamples()) {
-                // In sample mode: left = last ground truth state, right = predicted sample
-                leftState = getState(maxStateStep);
-                rightState = getSampleState(currentSampleIndex);
-                leftLabel = `Ground Truth (Step ${maxStateStep})`;
-                const matchBadge = rightState?._exactMatch 
-                    ? '<span style="background: rgba(78, 201, 176, 0.3); color: var(--success); padding: 2px 8px; border-radius: 3px; margin-left: 10px; font-size: 11px;">MATCH</span>'
-                    : '<span style="background: rgba(241, 76, 76, 0.3); color: var(--error); padding: 2px 8px; border-radius: 3px; margin-left: 10px; font-size: 11px;">NO MATCH</span>';
-                rightLabel = `Sample ${currentSampleIndex + 1}/${samples.length}${matchBadge}`;
-                currentStepEl.textContent = `Sample ${currentSampleIndex + 1}`;
-                leftPanelClass = 'panel-label ground-truth';
-                rightPanelClass = 'panel-label sample';
-            } else {
-                // Normal mode: left = previous state, right = current state
-                leftState = getState(currentStep - 1);
-                rightState = getState(currentStep);
-                leftLabel = `Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})`;
-                rightLabel = `Current Step (${currentStep})`;
-                currentStepEl.textContent = rightState?.step ?? currentStep;
-            }
-            
+            currentStepEl.textContent = currState.step;
             updateEvalBadge();
-            updateTaskInfo();
             
-            btnFirst.disabled = effectiveStep === 0 && currentTaskIndex === 0;
-            btnPrev.disabled = effectiveStep === 0 && currentTaskIndex === 0;
-            btnNext.disabled = effectiveStep >= totalSteps - 1;
-            btnLast.disabled = effectiveStep >= totalSteps - 1;
-            deleteStepBtn.disabled = task.states.length <= 1;
+            btnFirst.disabled = currentStep === 0;
+            btnPrev.disabled = currentStep === 0;
+            btnNext.disabled = currentStep === evalData.states.length - 1;
+            btnLast.disabled = currentStep === evalData.states.length - 1;
+            deleteStepBtn.disabled = evalData.states.length <= 1;
             
             // Get all files from both states
-            const allFiles = getAllFiles(leftState, rightState);
+            const allFiles = getAllFiles(prevState, currState);
             
             // Determine active file
             if (!activeFile || !allFiles.includes(activeFile)) {
                 // Prefer cursor file, then first file
-                if (rightState?.cursor?.file && allFiles.includes(rightState.cursor.file)) {
-                    activeFile = rightState.cursor.file;
-                } else if (leftState?.cursor?.file && allFiles.includes(leftState.cursor.file)) {
-                    activeFile = leftState.cursor.file;
+                if (currState.cursor?.file && allFiles.includes(currState.cursor.file)) {
+                    activeFile = currState.cursor.file;
                 } else if (allFiles.length > 0) {
                     activeFile = allFiles[0];
                 } else {
@@ -2501,134 +2120,117 @@
             // Build file tabs
             let tabsHtml = '';
             allFiles.forEach(file => {
-                const leftHas = leftState?.files?.[file];
-                const rightHas = rightState?.files?.[file];
+                const prevHas = prevState?.files?.[file];
+                const currHas = currState?.files?.[file];
                 let tabClass = 'file-tab';
                 if (file === activeFile) tabClass += ' active';
-                if (!leftHas && rightHas) tabClass += ' new';
-                else if (leftHas && rightHas && leftState.files[file] !== rightState.files[file]) tabClass += ' modified';
-                const deleteBtn = editMode && rightHas && !isViewingSamples() ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
+                if (!prevHas && currHas) tabClass += ' new';
+                else if (prevHas && currHas && prevState.files[file] !== currState.files[file]) tabClass += ' modified';
+                const deleteBtn = editMode && currHas ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
                 tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}${deleteBtn}</div>`;
             });
             
-            // Add "new file" button in edit mode (not in sample mode)
-            const addFileBtn = editMode && !isViewingSamples() ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
+            // Add "new file" button in edit mode
+            const addFileBtn = editMode ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
             
             // Get file contents for diff
-            const leftContent = leftState?.files?.[activeFile] || null;
-            const rightContent = rightState?.files?.[activeFile] || null;
-            const leftCursor = leftState?.cursor;
-            const rightCursor = rightState?.cursor;
+            const prevContent = prevState?.files?.[activeFile] || null;
+            const currContent = currState?.files?.[activeFile] || null;
+            const prevCursor = prevState?.cursor;
+            const currCursor = currState?.cursor;
             
-            let leftHtml, rightHtml;
+            let prevHtml, currHtml;
             
-            if (editMode && !isViewingSamples()) {
+            if (editMode) {
                 // In edit mode, show editable code with syntax highlighting on both sides
-                leftHtml = activeFile && currentStep > 0
-                    ? renderEditableCode(leftContent || '', activeFile, 'prev')
+                prevHtml = activeFile && currentStep > 0
+                    ? renderEditableCode(prevContent || '', activeFile, 'prev')
                     : '<div class="no-content">No previous step to edit</div>';
-                rightHtml = activeFile 
-                    ? renderEditableCode(rightContent || '', activeFile)
+                currHtml = activeFile 
+                    ? renderEditableCode(currContent || '', activeFile)
                     : '<div class="no-content">No file selected</div>';
             } else {
                 const diffResult = activeFile 
-                    ? renderDiffView(leftContent, rightContent, leftCursor, rightCursor, activeFile)
+                    ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
                     : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
-                leftHtml = diffResult.prevHtml;
-                rightHtml = diffResult.currHtml;
+                prevHtml = diffResult.prevHtml;
+                currHtml = diffResult.currHtml;
             }
             
-            // Cursor editor for edit mode (current step) - not in sample mode
-            const cursorEditorHtml = editMode && !isViewingSamples() ? `
+            // Cursor editor for edit mode (current step)
+            const cursorEditorHtml = editMode ? `
                 <div class="cursor-editor">
                     <label>Cursor File:</label>
                     <select id="cursor-file-select">
                         <option value="">-- None --</option>
-                        ${allFiles.map(f => `<option value="${f}" ${rightState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                        ${allFiles.map(f => `<option value="${f}" ${currState.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
                     </select>
                     <label>Line:</label>
-                    <input type="number" id="cursor-line-input" min="1" value="${rightState?.cursor?.line || 1}">
+                    <input type="number" id="cursor-line-input" min="1" value="${currState.cursor?.line || 1}">
                     <label>Column:</label>
-                    <input type="number" id="cursor-col-input" min="0" value="${rightState?.cursor?.column || 0}">
+                    <input type="number" id="cursor-col-input" min="0" value="${currState.cursor?.column || 0}">
                 </div>
             ` : '';
             
-            // Cursor editor for edit mode (previous step) - not in sample mode
-            const leftCursorEditorHtml = editMode && currentStep > 0 && !isViewingSamples() ? `
+            // Cursor editor for edit mode (previous step)
+            const prevCursorEditorHtml = editMode && currentStep > 0 ? `
                 <div class="cursor-editor">
                     <label>Cursor File:</label>
                     <select id="prev-cursor-file-select">
                         <option value="">-- None --</option>
-                        ${allFiles.map(f => `<option value="${f}" ${leftState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                        ${allFiles.map(f => `<option value="${f}" ${prevState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
                     </select>
                     <label>Line:</label>
-                    <input type="number" id="prev-cursor-line-input" min="1" value="${leftState?.cursor?.line || 1}">
+                    <input type="number" id="prev-cursor-line-input" min="1" value="${prevState?.cursor?.line || 1}">
                     <label>Column:</label>
-                    <input type="number" id="prev-cursor-col-input" min="0" value="${leftState?.cursor?.column || 0}">
+                    <input type="number" id="prev-cursor-col-input" min="0" value="${prevState?.cursor?.column || 0}">
                 </div>
             ` : '';
-            
-            // Sample info display for sample mode (only show if there's an error)
-            const sampleInfoHtml = isViewingSamples() && rightState?._predictionError ? `
-                <div class="sample-info" style="padding: 8px 15px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); font-size: 12px;">
-                    <span style="color: var(--error);">Error: ${escapeHtml(rightState._predictionError)}</span>
-                </div>
-            ` : '';
-            
-            // Determine what to show in the right panel's assertions area
-            const rightAssertions = isViewingSamples() && rightState?._predictedRaw 
-                ? rightState._predictedRaw 
-                : (rightState?.judge_assertions || '');
-            const rightAssertionsTitle = isViewingSamples() ? 'Predicted Raw Output' : 'Judge Assertions';
-            
-            // Get the ground truth assertions for sample comparison
-            const groundTruthState = isViewingSamples() ? leftState : null;
             
             mainContent.innerHTML = `
                 <div class="left-panel">
-                    <div class="${leftPanelClass}">${leftLabel}</div>
+                    <div class="panel-label prev">Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})</div>
                     <div class="files-section">
-                        <div class="section-header">Files ${leftState?.cursor ? `| Cursor: ${leftState.cursor.file}:${leftState.cursor.line}:${leftState.cursor.column}` : ''}</div>
+                        <div class="section-header">Files ${prevState?.cursor ? `| Cursor: ${prevState.cursor.file}:${prevState.cursor.line}:${prevState.cursor.column}` : ''}</div>
                         <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
-                        ${leftCursorEditorHtml}
-                        <div class="code-container" id="prev-code">${leftHtml}</div>
+                        ${prevCursorEditorHtml}
+                        <div class="code-container" id="prev-code">${prevHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="left"></div>
                     <div class="terminal-section" id="left-terminal">
                         <div class="section-header">Terminal</div>
-                        ${renderTerminal(leftState?.terminal)}
+                        ${renderTerminal(prevState?.terminal)}
                     </div>
-                    ${groundTruthState?.judge_assertions ? `
-                        <div class="assertions-section">
-                            <div class="assertions-title">Judge Assertions (Ground Truth)</div>
-                            <div class="assertions-content">${escapeHtml(groundTruthState.judge_assertions)}</div>
+                    ${currState.judge_assertions ? `
+                        <div class="assertions-section" style="visibility: hidden;">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
                         </div>
                     ` : ''}
                 </div>
                 <div class="right-panel">
-                    <div class="${rightPanelClass}">${rightLabel}</div>
-                    ${sampleInfoHtml}
+                    <div class="panel-label current">Current Step (${currentStep})</div>
                     <div class="files-section">
-                        <div class="section-header">Files ${rightState?.cursor ? `| Cursor: ${rightState.cursor.file}:${rightState.cursor.line}:${rightState.cursor.column}` : ''}${addFileBtn}</div>
+                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}${addFileBtn}</div>
                         <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
                         ${cursorEditorHtml}
-                        <div class="code-container" id="curr-code">${rightHtml}</div>
+                        <div class="code-container" id="curr-code">${currHtml}</div>
                     </div>
                     <div class="resize-handle" data-panel="right"></div>
                     <div class="terminal-section" id="right-terminal">
                         <div class="section-header">Terminal</div>
-                        ${renderTerminal(rightState?.terminal)}
+                        ${renderTerminal(currState.terminal)}
                     </div>
-                    ${editMode && !isViewingSamples() ? `
+                    ${editMode ? `
                         <div class="resize-handle" data-panel="assertions"></div>
                         <div class="assertions-section resizable" id="right-assertions">
                             <div class="assertions-title">Judge Assertions</div>
-                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(rightState?.judge_assertions || '')}</textarea>
+                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(currState.judge_assertions || '')}</textarea>
                         </div>
-                    ` : (rightAssertions ? `
+                    ` : (currState.judge_assertions ? `
                         <div class="assertions-section">
-                            <div class="assertions-title">${rightAssertionsTitle}</div>
-                            <div class="assertions-content">${escapeHtml(rightAssertions)}</div>
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
                         </div>
                     ` : '')}
                 </div>
@@ -2669,12 +2271,12 @@
             
             if (codeEditor && codeEditorContainer && codeEditorBackdrop && codeEditorLineNumbers) {
                 // Position the cursor in the textarea based on eval state cursor
-                const currStateForCursor = getState(currentStep);
-                if (currStateForCursor?.cursor && currStateForCursor.cursor.file === activeFile) {
+                const currState = getState(currentStep);
+                if (currState.cursor && currState.cursor.file === activeFile) {
                     const content = codeEditor.value;
                     const lines = content.split('\n');
-                    const targetLine = currStateForCursor.cursor.line;
-                    const targetCol = currStateForCursor.cursor.column;
+                    const targetLine = currState.cursor.line;
+                    const targetCol = currState.cursor.column;
                     
                     // Calculate character offset from line and column
                     let charOffset = 0;
@@ -2908,7 +2510,7 @@
                 });
                 
                 // Scroll cursor into view on current side (only when not in cursor mode to avoid jumps during editing)
-                if (rightState?.cursor?.file === activeFile && !cursorMode) {
+                if (currState.cursor?.file === activeFile && !cursorMode) {
                     const cursorLine = currCode.querySelector('.cursor-line');
                     if (cursorLine) {
                         cursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
@@ -2978,3 +2580,4 @@
     </script>
 </body>
 </html>
+
