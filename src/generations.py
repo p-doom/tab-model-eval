@@ -25,7 +25,9 @@ from src.utils.types import (
     TestCaseWithYaml,
 )
 
-from .formats import FormatConverter, SEDConverter, ZetaConverter
+from src.formats.base import FormatConverter
+from src.formats.sed import SEDConverter
+from src.formats.zeta import ZetaConverter
 
 
 @dataclass
