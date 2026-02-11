@@ -1,0 +1,109 @@
+task_id: '0032'
+description: 'Converted from zeta eval: 0032'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    script/verify_server.py: "from fastapi import FastAPI, HTTPException, Query\n\
+      from fastapi.responses import HTMLResponse, JSONResponse\nfrom fastapi.staticfiles\
+      \ import StaticFiles\nimport uvicorn\nimport os\nimport shutil\nfrom pathlib\
+      \ import Path\nimport glob\nfrom typing import List, Optional\nimport argparse\n\
+      import os.path\n\napp = FastAPI()\n\n# Global variables to store paths\nFEEDBACK_DIR\
+      \ = None\nTRAIN_DIR = None\nTRASH_DIR = None\n\ndef get_next_train_number()\
+      \ -> int:\n    \"\"\"Get the next available number for training examples.\"\"\
+      \"\n    files = glob.glob(os.path.join(TRAIN_DIR, \"*.md\"))\n    if not files:\n\
+      \        return 1\n    numbers = [int(os.path.basename(f).replace(\".md\", \"\
+      \")) for f in files]\n    return max(numbers) + 1\n\ndef get_feedback_files()\
+      \ -> List[str]:\n    \"\"\"Get list of feedback files.\"\"\"\n    return sorted(glob.glob(os.path.join(FEEDBACK_DIR,\
+      \ \"*.md\")))\n\n@app.get(\"/api/files\")\nasync def get_files():\n    \"\"\"\
+      Get list of feedback files.\"\"\"\n    files = get_feedback_files()\n    return\
+      \ {\"files\": [os.path.basename(f) for f in files]}\n\n@app.get(\"/api/file/{filename}\"\
+      )\nasync def get_file_content(filename: str):\n    \"\"\"Get content of a specific\
+      \ file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR, filename)\n    try:\n\
+      \        with open(filepath, 'r') as f:\n            content = f.read()\n  \
+      \      return {\"content\": content}\n    except FileNotFoundError:\n      \
+      \  raise HTTPException(status_code=404, detail=\"File not found\")\n\n@app.post(\"\
+      /api/rate/{filename}\")\nasync def rate_file(filename: str, action: str = Query(...)):\n\
+      \    \"\"\"Handle rating action for a file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR,\
+      \ filename)\n    \n    try:\n        if action == \"good\":\n            # Move\
+      \ to train directory with next number\n            next_num = get_next_train_number()\n\
+      \            new_filename = f\"{next_num:04d}.md\"\n            new_filepath\
+      \ = os.path.join(TRAIN_DIR, new_filename)\n            shutil.move(filepath,\
+      \ new_filepath)\n        elif action == \"bad\":\n            # Move to trash\
+      \ directory\n            trash_filepath = os.path.join(TRASH_DIR, filename)\n\
+      \            shutil.move(filepath, trash_filepath)\n        else:\n        \
+      \    raise HTTPException(status_code=400, detail=\"Invalid action\")"
+  cursor:
+    file: script/verify_server.py
+    line: 1
+    column: 0
+- step: 1
+  eval: EVAL
+  terminal: null
+  files:
+    script/verify_server.py: "from fastapi import FastAPI, HTTPException, Query\n\
+      from fastapi.responses import HTMLResponse, JSONResponse\nfrom fastapi.staticfiles\
+      \ import StaticFiles\nimport uvicorn\nimport os\nimport shutil\nfrom pathlib\
+      \ import Path\nimport glob\nfrom typing import List, Optional\nimport argparse\n\
+      import os.path\n\napp = FastAPI()\n\n# Global variables to store paths\nFEEDBACK_DIR\
+      \ = None\nTRAIN_DIR = None\nTRASH_DIR = None\n\ndef get_next_train_number()\
+      \ -> int:\n    \"\"\"Get the next available number for training examples.\"\"\
+      \"\n    files = glob.glob(os.path.join(TRAIN_DIR, \"*.md\"))\n    if not files:\n\
+      \        return 1\n    numbers = [int(os.path.basename(f).replace(\".md\", \"\
+      \")) for f in files]\n    return max(numbers) + 1\n\ndef get_feedback_files()\
+      \ -> List[str]:\n    \"\"\"Get list of feedback files.\"\"\"\n    return sorted(glob.glob(os.path.join(FEEDBACK_DIR,\
+      \ \"*.md\")))\n\n@app.get(\"/api/files\")\nasync def get_files():\n    \"\"\"\
+      Get list of feedback files.\"\"\"\n    files = get_feedback_files()\n    return\
+      \ {\"files\": [os.path.basename(f) for f in files]}\n\n@app.get(\"/api/file/{filename}\"\
+      )\nasync def get_file_content(filename: str):\n    \"\"\"Get content of a specific\
+      \ file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR, filename)\n    try:\n\
+      \        with open(filepath, 'r') as f:\n            content = f.read()\n  \
+      \      return {\"content\": content}\n    except FileNotFoundError:\n      \
+      \  raise HTTPException(status_code=404, detail=\"File not found\")\n\n@app.post(\"\
+      /api/rate/{filename}\")\nasync def rate_file(filename: str, action: str = Query(...)):\n\
+      \    \"\"\"Handle rating action for a file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR,\
+      \ filename)\n    \n    try:\n        if action == \"good\":\n            # Move\
+      \ to train directory with next number\n            next_num = get_next_train_number()\n\
+      \            new_filename = f\"{next_num:04d}.md\"\n            new_filepath\
+      \ = os.path.join(TRAIN_DIR, new_filename)\n            shutil.move(filepath,\
+      \ new_filepath)\n        elif action == \"bad\":\n            # Move to trash\
+      \ directory\n            trash_filepath = os.path.join(TRASH_DIR, filename)\n\
+      \            shutil.move(filepath, trash_filepath)\n        else:\n        \
+      \    raise HTTPException(status_code=400, detail=\"Invalid action\")"
+  cursor:
+    file: script/verify_server.py
+    line: 1
+    column: 49
+  judge_assertions: "The model output should be exactly the same as the input. If\
+    \ it's even slightly different, the score should be 0:\n\nInput:\n```script/verify_server.py\n\
+    <|start_of_file|>\n<|editable_region_start|>\nfrom fastapi import FastAPI, HTTPException,\
+    \ Query\nfrom fastapi.responses import HTMLResponse, JSONResponse\nfrom fastapi.staticfiles\
+    \ import StaticFiles\nimport uvicorn\nimport os\nimport shutil\nfrom pathlib import\
+    \ Path\nimport glob\nfrom typing import List, Optional\nimport argparse\nimport\
+    \ os.path\n\napp = FastAPI()\n\n# Global variables to store paths\nFEEDBACK_DIR\
+    \ = None\nTRAIN_DIR = None\nTRASH_DIR = None\n\ndef get_next_train_number() ->\
+    \ int:\n    \"\"\"Get the next available number for training examples.\"\"\"\n\
+    \    files = glob.glob(os.path.join(TRAIN_DIR, \"*.md\"))\n    if not files:\n\
+    \        return 1\n    numbers = [int(os.path.basename(f).replace(\".md\", \"\"\
+    )) for f in files]\n    return max(numbers) + 1\n\ndef get_feedback_files() ->\
+    \ List[str]:\n    \"\"\"Get list of feedback files.\"\"\"\n    return sorted(glob.glob(os.path.join(FEEDBACK_DIR,\
+    \ \"*.md\")))\n\n@app.get(\"/api/files\")\nasync def get_files():\n    \"\"\"\
+    Get list of feedback files.\"\"\"\n    files = get_feedback_files()\n    return\
+    \ {\"files\": [os.path.basename(f) for f in files]}\n\n@app.get(\"/api/file/{filename}\"\
+    )\nasync def get_file_content(filename: str):\n    \"\"\"Get content of a specific\
+    \ file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR, filename)\n    try:\n\
+    \        with open(filepath, 'r') as f:\n            content = f.read()\n    \
+    \    return {\"content\": content}\n    except FileNotFoundError:\n        raise\
+    \ HTTPException(status_code=404, detail=\"File not found\")\n\n@app.post(\"/api/rate/{filename}\"\
+    )\nasync def rate_file(filename: str, action: str = Query(...)):\n    \"\"\"Handle\
+    \ rating action for a file.\"\"\"\n    filepath = os.path.join(FEEDBACK_DIR, filename)\n\
+    \    \n    try:\n        if action == \"good\":\n            # Move to train directory\
+    \ with next number\n            next_num = get_next_train_number()\n         \
+    \   new_filename = f\"{next_num:04d}.md\"\n            new_filepath = os.path.join(TRAIN_DIR,\
+    \ new_filename)\n            shutil.move(filepath, new_filepath)\n        elif\
+    \ action == \"bad\":\n            # Move to trash directory\n            trash_filepath\
+    \ = os.path.join(TRASH_DIR, filename)\n            shutil.move(filepath, trash_filepath)\n\
+    \        else:\n<|editable_region_end|>\n            raise HTTPException(status_code=400,\
+    \ detail=\"Invalid action\")\n```"
+labels: no-op,infer-intent

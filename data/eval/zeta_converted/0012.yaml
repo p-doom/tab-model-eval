@@ -1,0 +1,85 @@
+task_id: '0012'
+description: 'Converted from zeta eval: 0012'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      struct Element {
+          height: usize,
+          width: usize,
+          layout: Layout,
+          bg_color: Color,
+          fg_color: Color
+      }
+
+      impl Element {
+          fn height(&self) -> usize {
+              self.height
+          }
+
+          fn width(&self) -> usize {
+              self.width
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      struct Element {
+          height: usize,
+          wedge: usize,
+          layout: Layout,
+          bg_color: Color,
+          fg_color: Color
+      }
+
+      impl Element {
+          fn height(&self) -> usize {
+              self.height
+          }
+
+          fn width(&self) -> usize {
+              self.width
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 3
+    column: 9
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/main.rs: |-
+      struct Element {
+          height: usize,
+          wedge: usize,
+          layout: Layout,
+          bg_color: Color,
+          fg_color: Color
+      }
+
+      impl Element {
+          fn height(&self) -> usize {
+              self.height
+          }
+
+          fn wedge(&self) -> usize {
+              self.wedge
+          }
+      }
+  cursor:
+    file: src/main.rs
+    line: 15
+    column: 18
+  judge_assertions: |-
+    Ensure that `Element` has a `wedge` field.
+    Ensure that `Element` has a method that returns `self.wedge`.
+labels: non-local-edit,infer-intent

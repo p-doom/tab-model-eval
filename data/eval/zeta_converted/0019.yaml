@@ -1,0 +1,568 @@
+task_id: 0019
+description: 'Converted from zeta eval: 0019'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+      use ui::{prelude::*, List, ListItem, ListItemSpacing, TintColor, Tooltip};
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+              if let Some(active) = &self.active_completion {
+                  if active.feedback_editor.read(cx).text(cx).is_empty() {
+                      return;
+                  }
+
+                  self.zeta.update(cx, |zeta, cx| {
+                  });
+              }
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+              let feedback_empty = active_completion
+                  .feedback_editor
+                  .read(cx)
+                  .text(cx)
+                  .is_empty();
+                                              .disabled(rated || feedback_empty)
+                                              .when(feedback_empty, |this| {
+                                                  this.tooltip(|cx| {
+                                                      Tooltip::text("Explain why this completion is bad before reporting it", cx)
+                                                  })
+                                              })
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+              if let Some(active) = &self.active_completion {
+                  if active.feedback_editor.read(cx).text(cx).is_empty() {
+                      return;
+                  }
+
+                  self.zeta.update(cx, |zeta, cx| {
+                  });
+              }
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+              let feedback_empty = active_completion
+                  .feedback_editor
+                  .read(cx)
+                  .text(cx)
+                  .is_empty();
+                                              .disabled(rated || feedback_empty)
+                                              .when(feedback_empty, |this| {
+                                                  this.tooltip(|cx| {
+                                                      Tooltip::text("Explain why this completion is bad before reporting it", cx)
+                                                  })
+                                              })
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+      use ui::{prelude::*, List, ListItem, ListItemSpacing, TintColor};
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+              if let Some(active) = &self.active_completion {
+                  if active.feedback_editor.read(cx).text(cx).is_empty() {
+                      return;
+                  }
+
+                  self.zeta.update(cx, |zeta, cx| {
+                  });
+              }
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+              let feedback_empty = active_completion
+                  .feedback_editor
+                  .read(cx)
+                  .text(cx)
+                  .is_empty();
+                                              .disabled(rated || feedback_empty)
+                                              .when(feedback_empty, |this| {
+                                                  this.tooltip(|cx| {
+                                                      Tooltip::text("Explain why this completion is bad before reporting it", cx)
+                                                  })
+                                              })
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 111
+    column: 54
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+      use ui::{prelude::*, List, ListItem, ListItemSpacing, TintColor, Tooltip};
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+              if let Some(active) = &self.active_completion {
+                  if active.feedback_editor.read(cx).text(cx).is_empty() {
+                      return;
+                  }
+
+                  self.zeta.update(cx, |zeta, cx| {
+                  });
+              }
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+              let feedback_empty = active_completion
+                  .feedback_editor
+                  .read(cx)
+                  .text(cx)
+                  .is_empty();
+                                              .disabled(rated || feedback_empty)
+                                              .when(feedback_empty, |this| {
+                                                  this.tooltip(|cx| {
+                                                      Tooltip::text("Explain why this completion is bad before reporting it", cx)
+                                                  })
+                                              })
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 83
+    column: 42
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+      use ui::{prelude::*, List, ListItem, ListItemSpacing, TintColor};
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+          fn thumbs_down(&mut self, _: &ThumbsDown, cx: &mut ViewContext<Self>) {
+              self.zeta.update(cx, |zeta, cx| {
+                  let completion = zeta
+                      .recent_completions()
+                      .skip(self.selected_index)
+                      .next()
+                      .cloned();
+
+                  if let Some(completion) = completion {
+                      zeta.rate_completion(
+                          &completion,
+                          InlineCompletionRating::Negative,
+                          "".to_string(),
+                          cx,
+                      );
+                  }
+              });
+              self.select_next_edit(&Default::default(), cx);
+              cx.notify();
+          }
+
+              self.zeta.update(cx, |zeta, cx| {
+                  if let Some(active) = &self.active_completion {
+                  }
+              });
+                      editor.set_placeholder_text("Add your feedback about this completion…", cx);
+                                              .disabled(rated)
+                  .on_action(cx.listener(Self::thumbs_down))
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 63
+    column: 54
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+                      let mut editor = Editor::multi_line(cx);
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 35
+    column: 40
+- step: 5
+  eval: NO_EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+                      let mut editor = Editor::multi_line(cx);
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 18
+    column: 26
+- step: 6
+  eval: EVAL
+  terminal: null
+  files:
+    crates/zeta/src/rate_completion_modal.rs: |-
+      cx.focus_view(&prev_completion.feedback_editor);
+                          }
+                          return;
+                      }
+                  }
+              }
+
+              self.active_completion = completion.map(|completion| ActiveCompletion {
+                  completion,
+                  feedback_editor: cx.new_view(|cx| {
+                      let mut editor = Editor::multi_line(cx);
+                      editor.set_soft_wrap_mode(language_settings::SoftWrap::EditorWidth, cx);
+                      editor.set_show_line_numbers(false, cx);
+                      editor.set_show_git_diff_gutter(false, cx);
+                      editor.set_show_code_actions(false, cx);
+                      editor.set_show_runnables(false, cx);
+                      editor.set_show_wrap_guides(false, cx);
+                      editor.set
+                      editor.set_show_indent_guides(false, cx);
+                      editor.set_show_inline_completions(Some(false), cx);
+                      editor.set_placeholder_text("Add your feedback about this completion… (Negative feedback requires an explanation for why it was bad, and what you expected instead.)", cx);
+                      if focus {
+                          cx.focus_self();
+                      }
+                      editor
+                  }),
+              });
+              cx.notify();
+          }
+
+          fn render_active_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<impl IntoElement> {
+              let active_completion = self.active_completion.as_ref()?;
+              let completion_id = active_completion.completion.id;
+
+              let mut diff = active_completion
+  cursor:
+    file: crates/zeta/src/rate_completion_modal.rs
+    line: 18
+    column: 26
+  judge_assertions: |-
+    Ensure the code contains a line that starts with `editor.set` between the two lines that contain `editor.set_show_wrap_guides` and `editor.set_show_indent_guides`. Like this:
+
+    ```
+    editor.set_show_wrap_guides(false, cx);
+    editor.set
+    editor.set_show_indent_guides(false, cx);
+    ```
+labels: local-edit,complete-pattern

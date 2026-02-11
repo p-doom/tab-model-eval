@@ -1,0 +1,25 @@
+task_id: git_push_simple
+description: 'This eval tests pushing local changes to the remote repository.'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal:
+    command: gi push
+    output: 'bash: gi: command not found'
+    exit_code: 127
+    cwd: /project
+  files: {}
+  cursor: null
+- step: 1
+  eval: EVAL
+  judge_assertions: |-
+    Make sure that:
+    - we push the changes to the remote repository
+    - nothing else is being modified at all
+  terminal:
+    command: git push
+    output: Everything up-to-date
+    exit_code: 0
+    cwd: /project
+  files: {}
+  cursor: null

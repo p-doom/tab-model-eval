@@ -1,0 +1,224 @@
+task_id: 0029
+description: 'Converted from zeta eval: 0029'
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/ui/link.tsx: |-
+      import NextLink from "next/link"
+      import clsx from "clsx"
+
+      export const primaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-300/20 dark:hover:decoration-blue-400/80",
+      )
+
+      export const secondaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-400/40 dark:hover:decoration-blue-400/80",
+      )
+
+      export function Link({
+          href,
+          children,
+          title,
+          className,
+          notBlueText,
+          ...rest
+      }: {
+          href?: string
+          children: React.ReactNode
+          title?: string
+          className?: string
+          notBlueText?: boolean
+      }) {
+          return (
+              <NextLink
+                  className={clsx(
+                      "fv-style inline",
+                      notBlueText
+                          ? "text-black dark:text-offgray-100"
+                          : "text-accent-blue dark:text-blue-300",
+                      primaryDecorationStyles,
+                      className,
+                  )}
+                  href={href || "#"}
+                  title={title}
+                  {...rest}
+              >
+                  {children}
+              </NextLink>
+          )
+      }
+  cursor:
+    file: src/ui/link.tsx
+    line: 1
+    column: 0
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    src/ui/link.tsx: |-
+      import NextLink from "next/link"
+      import clsx from "clsx"
+
+
+      export const primaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-300/20 dark:hover:decoration-blue-400/80",
+      )
+
+      export const secondaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-400/40 dark:hover:decoration-blue-400/80",
+      )
+
+      export function Link({
+          href,
+          children,
+          title,
+          className,
+          notBlueText,
+          ...rest
+      }: {
+          href?: string
+          children: React.ReactNode
+          title?: string
+          className?: string
+          notBlueText?: boolean
+      }) {
+          return (
+              <NextLink
+                  className={clsx(
+                      "fv-style inline",
+                      notBlueText
+                          ? "text-black dark:text-offgray-100"
+                          : "text-accent-blue dark:text-blue-300",
+                      primaryDecorationStyles,
+                      className,
+                  )}
+                  href={href || "#"}
+                  title={title}
+                  {...rest}
+              >
+                  {children}
+              </NextLink>
+          )
+      }
+  cursor:
+    file: src/ui/link.tsx
+    line: 4
+    column: 0
+- step: 2
+  eval: EVAL
+  terminal: null
+  files:
+    src/ui/link.tsx: |-
+      import NextLink from "next/link"
+      import clsx from "clsx"
+
+
+      export const primaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-300/20 dark:hover:decoration-blue-400/80",
+      )
+
+      export const secondaryDecorationStyles = clsx(
+          "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+          "dark:decoration-blue-400/40 dark:hover:decoration-blue-400/80",
+      )
+
+      export function Link({
+          href,
+          children,
+          title,
+          className,
+          notBlueText,
+          ...rest
+      }: {
+          href?: string
+          children: React.ReactNode
+          title?: string
+          className?: string
+          notBlueText?: boolean
+      }) {
+          return (
+              <NextLink
+                  className={clsx(
+                      "fv-style inline",
+                      notBlueText
+                          ? "text-black dark:text-offgray-100"
+                          : "text-accent-blue dark:text-blue-300",
+                      primaryDecorationStyles,
+                      className,
+                  )}
+                  href={href || "#"}
+                  title={title}
+                  {...rest}
+              >
+                  {children}
+              </NextLink>
+          )
+      }
+  cursor:
+    file: src/ui/link.tsx
+    line: 4
+    column: 0
+  judge_assertions: |-
+    The model output should be exactly the same as the input. If it's even slightly different, the score should be 0:
+
+    Input:
+    ```src/ui/link.tsx
+    <|start_of_file|>
+    <|editable_region_start|>
+    import NextLink from "next/link"
+    import clsx from "clsx"
+
+
+    export const primaryDecorationStyles = clsx(
+        "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+        "dark:decoration-blue-300/20 dark:hover:decoration-blue-400/80",
+    )
+
+    export const secondaryDecorationStyles = clsx(
+        "underline decoration-accent-blue/20 hover:decoration-accent-blue/80",
+        "dark:decoration-blue-400/40 dark:hover:decoration-blue-400/80",
+    )
+
+    export function Link({
+        href,
+        children,
+        title,
+        className,
+        notBlueText,
+        ...rest
+    }: {
+        href?: string
+        children: React.ReactNode
+        title?: string
+        className?: string
+        notBlueText?: boolean
+    }) {
+        return (
+            <NextLink
+                className={clsx(
+                    "fv-style inline",
+                    notBlueText
+                        ? "text-black dark:text-offgray-100"
+                        : "text-accent-blue dark:text-blue-300",
+                    primaryDecorationStyles,
+                    className,
+                )}
+                href={href || "#"}
+                title={title}
+                {...rest}
+            >
+                {children}
+            </NextLink>
+        )
+    }
+
+    <|editable_region_end|>
+    ```
+labels: no-op,infer-intent

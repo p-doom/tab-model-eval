@@ -1,0 +1,797 @@
+task_id: "0021"
+description: "Converted from zeta eval: 0021"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 27
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 39
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+                    
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 51
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.
+
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+                    
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 51
+  - step: 5
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.cursor::<DiffSummary>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 78
+  - step: 6
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 65
+  - step: 7
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.cursor::<Difftsu<D>>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 70
+  - step: 8
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 65
+  - step: 9
+    eval: EVAL
+    terminal: null
+    files:
+      crates/multi_buffer/src/multi_buffer.rs: |2-
+                cursor.seek(&Some(locator), Bias::Left, &());
+                if cursor.item().is_none() {
+                    cursor.next(&());
+                }
+
+                let mut position = cursor.start().1;
+                if let Some(excerpt) = cursor.item() {
+                    if excerpt.id == anchor.excerpt_id {
+                        let excerpt_buffer_start = excerpt
+                            .buffer
+                            .offset_for_anchor(&excerpt.range.context.start);
+                        let excerpt_buffer_end =
+                            excerpt.buffer.offset_for_anchor(&excerpt.range.context.end);
+                        let buffer_position = cmp::min(
+                            excerpt_buffer_end,
+                            excerpt.buffer.offset_for_anchor(&anchor.text_anchor),
+                        );
+                        if buffer_position > excerpt_buffer_start {
+                            position += buffer_position - excerpt_buffer_start;
+                        }
+                    }
+                }
+                ExcerptOffset::new(position)
+            }
+
+            pub fn summaries_for_anchors<'a, D, I>(&'a self, anchors: I) -> Vec<D>
+            where
+                D: TextDimension + Ord + Sub<D, Output = D>,
+                I: 'a + IntoIterator<Item = &'a Anchor>,
+            {
+                let mut anchors = anchors.into_iter().peekable();
+                let mut cursor = self.excerpts.cursor::<ExcerptSummary>(&());
+                let mut diff_cursor = self.diff_transforms.cursor::<DiffTransformSummary>(&());
+                let mut summaries = Vec::new();
+                while let Some(anchor) = anchors.peek() {
+                    let excerpt_id = anchor.excerpt_id;
+                    let excerpt_anchors = iter::from_fn(|| {
+                        let anchor = anchors.peek()?;
+                        if anchor.excerpt_id == excerpt_id {
+                            Some(&anchors.next().unwrap().text_anchor)
+                        } else {
+                            None
+                        }
+                    });
+
+                    let locator = self.excerpt_locator_for_id(excerpt_id);
+                    cursor.seek_forward(locator, Bias::Left, &());
+                    if cursor.item().is_none() {
+                        cursor.next(&());
+                    }
+
+                    let position = D::from_text_summary(&cursor.start().text);
+                    if let Some(excerpt) = cursor.item() {
+                        if excerpt.id == excerpt_id {
+                            let excerpt_buffer_start =
+                                excerpt.range.context.start.summary::<D>(&excerpt.buffer);
+                            let excerpt_buffer_end =
+                                excerpt.range.context.end.summary::<D>(&excerpt.buffer);
+                            summaries.extend(
+                                excerpt
+                                    .buffer
+                                    .summaries_for_anchors::<D, _>(excerpt_anchors)
+                                    .map(move |summary| {
+                                        let summary = cmp::min(excerpt_buffer_end.clone(), summary);
+                                        let mut position = position.clone();
+                                        let excerpt_buffer_start = excerpt_buffer_start.clone();
+                                        let mut diff_cursor = self.diff_transforms.cursor::<Difft>(&());
+                                        let mut summaries = Vec::new();
+                                        while let Some(anchor) = anchors.peek() {
+                                            let excerpt_id = anchor.excerpt_id;
+    cursor:
+      file: crates/multi_buffer/src/multi_buffer.rs
+      line: 33
+      column: 80
+    judge_assertions: Ensure that the `let mut diff_cursor = self.diff_transforms.cursor ...` line, the `cursor()` call uses `<DiffTransformSummary>` as the generic parameter
+labels: local-edit,complete-implementation

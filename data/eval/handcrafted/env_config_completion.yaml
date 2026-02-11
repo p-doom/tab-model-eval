@@ -1,0 +1,682 @@
+task_id: env_config_completion
+description: This eval tests completing an env var lookup using a .env example.
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 24
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user  892 Jan 19 09:58 .env.example
+        -rw-r--r-- 1 user user  234 Jan 19 09:58 .gitignore
+        -rw-r--r-- 1 user user 1234 Jan 19 09:58 main.py
+        -rw-r--r-- 1 user user 2456 Jan 19 09:58 payments.py
+        -rw-r--r-- 1 user user  456 Jan 19 09:58 requirements.txt
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      .env.example: |-
+        # Application settings
+        APP_NAME=MyApp
+        APP_ENV=development
+        APP_DEBUG=true
+        APP_PORT=8000
+
+        # Database configuration
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=myapp_dev
+        DATABASE_USER=postgres
+        DATABASE_PASSWORD=your_password_here
+
+        # Redis configuration
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        REDIS_PASSWORD=
+
+        # Stripe payment configuration
+        STRIPE_SECRET_KEY=sk_test_your_key_here
+        STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+        STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+
+        # AWS S3 configuration
+        AWS_ACCESS_KEY_ID=your_access_key
+        AWS_SECRET_ACCESS_KEY=your_secret_key
+        AWS_S3_BUCKET=myapp-uploads
+        AWS_REGION=us-east-1
+
+        # Email configuration
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USER=your_email@gmail.com
+        SMTP_PASSWORD=your_app_password
+
+        # JWT configuration
+        JWT_SECRET=your_jwt_secret_here
+        JWT_EXPIRY=3600
+    cursor:
+      file: .env.example
+      line: 1
+      column: 0
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      .env.example: |-
+        # Application settings
+        APP_NAME=MyApp
+        APP_ENV=development
+        APP_DEBUG=true
+        APP_PORT=8000
+
+        # Database configuration
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=myapp_dev
+        DATABASE_USER=postgres
+        DATABASE_PASSWORD=your_password_here
+
+        # Redis configuration
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        REDIS_PASSWORD=
+
+        # Stripe payment configuration
+        STRIPE_SECRET_KEY=sk_test_your_key_here
+        STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+        STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+
+        # AWS S3 configuration
+        AWS_ACCESS_KEY_ID=your_access_key
+        AWS_SECRET_ACCESS_KEY=your_secret_key
+        AWS_S3_BUCKET=myapp-uploads
+        AWS_REGION=us-east-1
+
+        # Email configuration
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USER=your_email@gmail.com
+        SMTP_PASSWORD=your_app_password
+
+        # JWT configuration
+        JWT_SECRET=your_jwt_secret_here
+        JWT_EXPIRY=3600
+      payments.py: |-
+        import os
+        import stripe
+        from typing import Dict, Optional
+        from dataclasses import dataclass
+        from datetime import datetime
+
+
+        @dataclass
+        class PaymentResult:
+            success: bool
+            transaction_id: Optional[str]
+            error_message: Optional[str]
+            amount: int
+            currency: str
+            timestamp: datetime
+
+
+        class PaymentProcessor:
+            def __init__(self):
+                self.api_key = None
+                self.webhook_secret = None
+                self._initialized = False
+
+            def initialize(self):
+                if self._initialized:
+                    return
+                self.api_key = os.getenv("STRIPE_SECRET_KEY")
+                self.webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+                if not self.api_key:
+                    raise ValueError("Stripe API key not configured")
+                stripe.api_key = self.api_key
+                self._initialized = True
+
+            def create_payment_intent(
+                self,
+                amount: int,
+                currency: str = "usd",
+                metadata: Optional[Dict] = None
+            ) -> PaymentResult:
+                self.initialize()
+                try:
+                    intent = stripe.PaymentIntent.create(
+                        amount=amount,
+                        currency=currency,
+                        metadata=metadata or {}
+                    )
+                    return PaymentResult(
+                        success=True,
+                        transaction_id=intent.id,
+                        error_message=None,
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+                except stripe.error.StripeError as e:
+                    return PaymentResult(
+                        success=False,
+                        transaction_id=None,
+                        error_message=str(e),
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+
+            def verify_webhook(self, payload: bytes, signature: str) -> bool:
+                try:
+                    stripe.Webhook.construct_event(
+                        payload, signature, self.webhook_secret
+                    )
+                    return True
+                except ValueError:
+                    return False
+
+
+        def get_publishable_key() -> str:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            if not key:
+                raise ValueError("Stripe publishable key not configured")
+            return key
+
+
+        def create_customer(email: str, name: str) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            customer = stripe.Customer.create(email=email, name=name)
+            return {"id": customer.id, "email": email}
+
+
+        def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            refund = stripe.Refund.create(
+                payment_intent=payment_intent_id,
+                amount=amount
+            )
+            return {"refund_id": refund.id, "status": refund.status}
+
+
+        def is_test_mode() -> bool:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            return key is not None and key.startswith("pk_test_")
+    cursor:
+      file: payments.py
+      line: 1
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      .env.example: |-
+        # Application settings
+        APP_NAME=MyApp
+        APP_ENV=development
+        APP_DEBUG=true
+        APP_PORT=8000
+
+        # Database configuration
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=myapp_dev
+        DATABASE_USER=postgres
+        DATABASE_PASSWORD=your_password_here
+
+        # Redis configuration
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        REDIS_PASSWORD=
+
+        # Stripe payment configuration
+        STRIPE_SECRET_KEY=sk_test_your_key_here
+        STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+        STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+
+        # AWS S3 configuration
+        AWS_ACCESS_KEY_ID=your_access_key
+        AWS_SECRET_ACCESS_KEY=your_secret_key
+        AWS_S3_BUCKET=myapp-uploads
+        AWS_REGION=us-east-1
+
+        # Email configuration
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USER=your_email@gmail.com
+        SMTP_PASSWORD=your_app_password
+
+        # JWT configuration
+        JWT_SECRET=your_jwt_secret_here
+        JWT_EXPIRY=3600
+      payments.py: |-
+        import os
+        import stripe
+        from typing import Dict, Optional
+        from dataclasses import dataclass
+        from datetime import datetime
+
+
+        @dataclass
+        class PaymentResult:
+            success: bool
+            transaction_id: Optional[str]
+            error_message: Optional[str]
+            amount: int
+            currency: str
+            timestamp: datetime
+
+
+        class PaymentProcessor:
+            def __init__(self):
+                self.api_key = None
+                self.webhook_secret = None
+                self._initialized = False
+
+            def initialize(self):
+                if self._initialized:
+                    return
+                self.api_key = os.getenv("STRIPE_SECRET_KEY")
+                self.webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+                if not self.api_key:
+                    raise ValueError("Stripe API key not configured")
+                stripe.api_key = self.api_key
+                self._initialized = True
+
+            def create_payment_intent(
+                self,
+                amount: int,
+                currency: str = "usd",
+                metadata: Optional[Dict] = None
+            ) -> PaymentResult:
+                self.initialize()
+                try:
+                    intent = stripe.PaymentIntent.create(
+                        amount=amount,
+                        currency=currency,
+                        metadata=metadata or {}
+                    )
+                    return PaymentResult(
+                        success=True,
+                        transaction_id=intent.id,
+                        error_message=None,
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+                except stripe.error.StripeError as e:
+                    return PaymentResult(
+                        success=False,
+                        transaction_id=None,
+                        error_message=str(e),
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+
+            def verify_webhook(self, payload: bytes, signature: str) -> bool:
+                try:
+                    stripe.Webhook.construct_event(
+                        payload, signature, self.webhook_secret
+                    )
+                    return True
+                except ValueError:
+                    return False
+
+
+        def get_publishable_key() -> str:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            if not key:
+                raise ValueError("Stripe publishable key not configured")
+            return key
+
+
+        def create_customer(email: str, name: str) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            customer = stripe.Customer.create(email=email, name=name)
+            return {"id": customer.id, "email": email}
+
+
+        def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            refund = stripe.Refund.create(
+                payment_intent=payment_intent_id,
+                amount=amount
+            )
+            return {"refund_id": refund.id, "status": refund.status}
+
+
+        def is_test_mode() -> bool:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            return key is not None and key.startswith("pk_test_")
+    cursor:
+      file: payments.py
+      line: 101
+      column: 57
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      .env.example: |-
+        # Application settings
+        APP_NAME=MyApp
+        APP_ENV=development
+        APP_DEBUG=true
+        APP_PORT=8000
+
+        # Database configuration
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=myapp_dev
+        DATABASE_USER=postgres
+        DATABASE_PASSWORD=your_password_here
+
+        # Redis configuration
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        REDIS_PASSWORD=
+
+        # Stripe payment configuration
+        STRIPE_SECRET_KEY=sk_test_your_key_here
+        STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+        STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+
+        # AWS S3 configuration
+        AWS_ACCESS_KEY_ID=your_access_key
+        AWS_SECRET_ACCESS_KEY=your_secret_key
+        AWS_S3_BUCKET=myapp-uploads
+        AWS_REGION=us-east-1
+
+        # Email configuration
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USER=your_email@gmail.com
+        SMTP_PASSWORD=your_app_password
+
+        # JWT configuration
+        JWT_SECRET=your_jwt_secret_here
+        JWT_EXPIRY=3600
+      payments.py: |-
+        import os
+        import stripe
+        from typing import Dict, Optional
+        from dataclasses import dataclass
+        from datetime import datetime
+
+
+        @dataclass
+        class PaymentResult:
+            success: bool
+            transaction_id: Optional[str]
+            error_message: Optional[str]
+            amount: int
+            currency: str
+            timestamp: datetime
+
+
+        class PaymentProcessor:
+            def __init__(self):
+                self.api_key = None
+                self.webhook_secret = None
+                self._initialized = False
+
+            def initialize(self):
+                if self._initialized:
+                    return
+                self.api_key = os.getenv("STRIPE_SECRET_KEY")
+                self.webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+                if not self.api_key:
+                    raise ValueError("Stripe API key not configured")
+                stripe.api_key = self.api_key
+                self._initialized = True
+
+            def create_payment_intent(
+                self,
+                amount: int,
+                currency: str = "usd",
+                metadata: Optional[Dict] = None
+            ) -> PaymentResult:
+                self.initialize()
+                try:
+                    intent = stripe.PaymentIntent.create(
+                        amount=amount,
+                        currency=currency,
+                        metadata=metadata or {}
+                    )
+                    return PaymentResult(
+                        success=True,
+                        transaction_id=intent.id,
+                        error_message=None,
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+                except stripe.error.StripeError as e:
+                    return PaymentResult(
+                        success=False,
+                        transaction_id=None,
+                        error_message=str(e),
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+
+            def verify_webhook(self, payload: bytes, signature: str) -> bool:
+                try:
+                    stripe.Webhook.construct_event(
+                        payload, signature, self.webhook_secret
+                    )
+                    return True
+                except ValueError:
+                    return False
+
+
+        def get_publishable_key() -> str:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            if not key:
+                raise ValueError("Stripe publishable key not configured")
+            return key
+
+
+        def create_customer(email: str, name: str) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            customer = stripe.Customer.create(email=email, name=name)
+            return {"id": customer.id, "email": email}
+
+
+        def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            refund = stripe.Refund.create(
+                payment_intent=payment_intent_id,
+                amount=amount
+            )
+            return {"refund_id": refund.id, "status": refund.status}
+
+
+        def is_test_mode() -> bool:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            return key is not None and key.startswith("pk_test_")
+
+
+        def get_webhook_secret() -> str:
+            secret = os.getenv("STRIPE_W
+    cursor:
+      file: payments.py
+      line: 105
+      column: 32
+  - step: 5
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the model completes os.getenv with "STRIPE_WEBHOOK_SECRET"
+      - this matches the key name from .env.example (line 22: STRIPE_WEBHOOK_SECRET=whsec_your_secret_here)
+      - the model follows the pattern of other getter functions in the file (check, raise, return)
+      - the correct file is being edited (payments.py)
+      Notes: 
+      - ommiting the if check is also ok
+    terminal: null
+    files:
+      .env.example: |-
+        # Application settings
+        APP_NAME=MyApp
+        APP_ENV=development
+        APP_DEBUG=true
+        APP_PORT=8000
+
+        # Database configuration
+        DATABASE_HOST=localhost
+        DATABASE_PORT=5432
+        DATABASE_NAME=myapp_dev
+        DATABASE_USER=postgres
+        DATABASE_PASSWORD=your_password_here
+
+        # Redis configuration
+        REDIS_HOST=localhost
+        REDIS_PORT=6379
+        REDIS_PASSWORD=
+
+        # Stripe payment configuration
+        STRIPE_SECRET_KEY=sk_test_your_key_here
+        STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+        STRIPE_WEBHOOK_SECRET=whsec_your_secret_here
+
+        # AWS S3 configuration
+        AWS_ACCESS_KEY_ID=your_access_key
+        AWS_SECRET_ACCESS_KEY=your_secret_key
+        AWS_S3_BUCKET=myapp-uploads
+        AWS_REGION=us-east-1
+
+        # Email configuration
+        SMTP_HOST=smtp.gmail.com
+        SMTP_PORT=587
+        SMTP_USER=your_email@gmail.com
+        SMTP_PASSWORD=your_app_password
+
+        # JWT configuration
+        JWT_SECRET=your_jwt_secret_here
+        JWT_EXPIRY=3600
+      payments.py: |-
+        import os
+        import stripe
+        from typing import Dict, Optional
+        from dataclasses import dataclass
+        from datetime import datetime
+
+
+        @dataclass
+        class PaymentResult:
+            success: bool
+            transaction_id: Optional[str]
+            error_message: Optional[str]
+            amount: int
+            currency: str
+            timestamp: datetime
+
+
+        class PaymentProcessor:
+            def __init__(self):
+                self.api_key = None
+                self.webhook_secret = None
+                self._initialized = False
+
+            def initialize(self):
+                if self._initialized:
+                    return
+                self.api_key = os.getenv("STRIPE_SECRET_KEY")
+                self.webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+                if not self.api_key:
+                    raise ValueError("Stripe API key not configured")
+                stripe.api_key = self.api_key
+                self._initialized = True
+
+            def create_payment_intent(
+                self,
+                amount: int,
+                currency: str = "usd",
+                metadata: Optional[Dict] = None
+            ) -> PaymentResult:
+                self.initialize()
+                try:
+                    intent = stripe.PaymentIntent.create(
+                        amount=amount,
+                        currency=currency,
+                        metadata=metadata or {}
+                    )
+                    return PaymentResult(
+                        success=True,
+                        transaction_id=intent.id,
+                        error_message=None,
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+                except stripe.error.StripeError as e:
+                    return PaymentResult(
+                        success=False,
+                        transaction_id=None,
+                        error_message=str(e),
+                        amount=amount,
+                        currency=currency,
+                        timestamp=datetime.now()
+                    )
+
+            def verify_webhook(self, payload: bytes, signature: str) -> bool:
+                try:
+                    stripe.Webhook.construct_event(
+                        payload, signature, self.webhook_secret
+                    )
+                    return True
+                except ValueError:
+                    return False
+
+
+        def get_publishable_key() -> str:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            if not key:
+                raise ValueError("Stripe publishable key not configured")
+            return key
+
+
+        def create_customer(email: str, name: str) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            customer = stripe.Customer.create(email=email, name=name)
+            return {"id": customer.id, "email": email}
+
+
+        def process_refund(payment_intent_id: str, amount: Optional[int] = None) -> Dict:
+            processor = PaymentProcessor()
+            processor.initialize()
+            refund = stripe.Refund.create(
+                payment_intent=payment_intent_id,
+                amount=amount
+            )
+            return {"refund_id": refund.id, "status": refund.status}
+
+
+        def is_test_mode() -> bool:
+            key = os.getenv("STRIPE_PUBLISHABLE_KEY")
+            return key is not None and key.startswith("pk_test_")
+
+
+        def get_webhook_secret() -> str:
+            secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+            if not secret:
+                raise ValueError("Stripe webhook secret not configured")
+            return secret
+    cursor:
+      file: payments.py
+      line: 108
+      column: 17

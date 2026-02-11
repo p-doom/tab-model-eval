@@ -1,0 +1,1909 @@
+task_id: eval_replace
+description: ''
+states:
+- step: 0
+  eval: NO_EVAL
+  terminal:
+    command: ls -l slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/
+    output: |-
+      total 144
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1321 Dec 23 18:47 train_tokenizer_16_nodes.sbatch
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1307 Dec 23 18:47 train_tokenizer_1_nodes.sbatch
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1320 Dec 23 18:47 train_tokenizer_2_nodes.sbatch
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1322 Dec 23 18:47 train_tokenizer_32_nodes.sbatch
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1309 Dec 23 18:47 train_tokenizer_4_nodes.sbatch
+      -rw-rw---- 1 alfred.nguyen alfred.nguyen 1317 Dec 23 18:47 train_tokenizer_8_nodes.sbatch
+    exit_code: 0
+    cwd: /project
+  files: {}
+  cursor: null
+- step: 1
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch
+    line: 1
+    column: 0
+- step: 2
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch
+    line: 8
+    column: 98
+- step: 3
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch
+    line: 1
+    column: 0
+- step: 4
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch
+    line: 8
+    column: 20
+- step: 5
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch
+    line: 1
+    column: 0
+- step: 6
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch
+    line: 8
+    column: 20
+- step: 7
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch
+    line: 1
+    column: 0
+- step: 8
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch
+    line: 8
+    column: 20
+- step: 9
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=16
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_16_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=768 \
+          --min_lr=0 \
+          --max_lr=4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-16-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 16-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch
+    line: 1
+    column: 0
+- step: 10
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=16
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_16_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=768 \
+          --min_lr=0 \
+          --max_lr=4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-16-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 16-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch
+    line: 8
+    column: 20
+- step: 11
+  eval: NO_EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=16
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_16_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=768 \
+          --min_lr=0 \
+          --max_lr=4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-16-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 16-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_32_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=32
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_32_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=1536 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-32-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 32-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_32_nodes.sbatch
+    line: 1
+    column: 0
+- step: 12
+  eval: EVAL
+  terminal: null
+  files:
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_1_nodes.sbatch: |-
+      #!/usr/bin/env bash
+      #SBATCH --nodes=1
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=05:00:00
+      #SBATCH --time=48:00:00
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_1_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=48 \
+          --min_lr=0 \
+          --max_lr=1e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-1-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 1-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_2_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=2
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_2_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=96 \
+          --min_lr=0 \
+          --max_lr=1.4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-2-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 2-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_4_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=4
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_4_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=192 \
+          --min_lr=0 \
+          --max_lr=2e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-4-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 4-node sqrt-lr \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_8_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=8
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_8_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=384 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-8-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 8-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_16_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=16
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_16_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=768 \
+          --min_lr=0 \
+          --max_lr=4e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-16-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 16-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+    slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_32_nodes.sbatch: |-
+      #!/usr/bin/env bash
+
+      #SBATCH --nodes=32
+      #SBATCH --ntasks-per-node=4
+      #SBATCH --time=48:00:00
+      #SBATCH --partition=accelerated
+      #SBATCH --cpus-per-task=5
+      #SBATCH --gres=gpu:4
+      #SBATCH --output=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --error=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/logs/logs_mihir/%x_%j.log
+      #SBATCH --job-name=train_tokenizer_batch_size_scaling_32_node
+
+      # Log the sbatch script
+      cat $0
+
+      module unload mpi/openmpi/5.0
+      module unload devel/cuda/12.4
+      source .venv/bin/activate
+
+      array_records_dir=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data_new/open_ai_minecraft_arrayrecords/10fps_160x90
+
+      job_name=$SLURM_JOB_NAME
+      slurm_job_id=$SLURM_JOB_ID
+
+      CHECKPOINT_DIR=/hkfs/work/workspace/scratch/tum_ind3695-jafa_ws_shared/data/checkpoints/$job_name/$slurm_job_id
+      mkdir -p $CHECKPOINT_DIR
+
+      env | grep SLURM
+
+      srun python jasmine/train_tokenizer.py \
+          --ckpt_dir $CHECKPOINT_DIR \
+          --batch_size=1536 \
+          --min_lr=0 \
+          --max_lr=3e-4 \
+          --log_image_interval=1000 \
+          --log_checkpoint_interval=1000 \
+          --log \
+          --name=tokenizer-batch-size-scaling-32-node-sqrt-lr-$slurm_job_id \
+          --tags tokenizer batch-size-scaling 32-node sqrt-lr-scaling \
+          --entity instant-uv \
+          --project jafar \
+          --data_dir $array_records_dir
+  cursor:
+    file: slurm/jobs/mihir/horeka/batchsize_scaling/tokenizer/sqrt_lr/train_tokenizer_32_nodes.sbatch
+    line: 8
+    column: 20

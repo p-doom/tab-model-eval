@@ -1,0 +1,135 @@
+task_id: "0020"
+description: "Converted from zeta eval: 0020"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/editor.rs: |2-
+            fn take_active_inline_completion(
+                &mut self,
+                cx: &mut ViewContext<Self>,
+            ) -> Option<InlineCompletion> {
+                let active_inline_completion = self.active_inline_completion.take()?;
+                self.splice_inlays(active_inline_completion.inlay_ids, Default::default(), cx);
+                self.clear_highlights::<InlineCompletionHighlight>(cx);
+                Some(active_inline_completion.completion)
+            }
+
+            fn update_visible_inline_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<()> {
+                let selection = self.selections.newest_anchor();
+                let cursor = selection.head();
+                let multibuffer = self.buffer.read(cx).snapshot(cx);
+                let offset_selection = selection.map(|endpoint| endpoint.to_offset(&multibuffer));
+                let excerpt_id = cursor.excerpt_id;
+
+                if 
+                    || !offset_selection.is_empty()
+                    || self
+                        .active_inline_completion
+                        .as_ref()
+                        .map_or(false, |completion| {
+                            let invalidation_range = completion.invalidation_range.to_offset(&multibuffer);
+                            let invalidation_range = invalidation_range.start..=invalidation_range.end;
+                            !invalidation_range.contains(&offset_selection.head())
+                        })
+                {
+                    self.discard_inline_completion(false, cx);
+                    return None;
+                }
+
+                self.take_active_inline_completion(cx);
+                let provider = self.inline_completion_provider()?;
+                if self.context_menu.read().is_some()
+                    || (!self.completion_tasks.is_empty() && !self.has_active_inline_completion())
+    cursor:
+      file: crates/editor/src/editor.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/editor/src/editor.rs: |2-
+            fn take_active_inline_completion(
+                &mut self,
+                cx: &mut ViewContext<Self>,
+            ) -> Option<InlineCompletion> {
+                let active_inline_completion = self.active_inline_completion.take()?;
+                self.splice_inlays(active_inline_completion.inlay_ids, Default::default(), cx);
+                self.clear_highlights::<InlineCompletionHighlight>(cx);
+                Some(active_inline_completion.completion)
+            }
+
+            fn update_visible_inline_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<()> {
+                let selection = self.selections.newest_anchor();
+                let cursor = selection.head();
+                let multibuffer = self.buffer.read(cx).snapshot(cx);
+                let offset_selection = selection.map(|endpoint| endpoint.to_offset(&multibuffer));
+                let excerpt_id = cursor.excerpt_id;
+
+                if 
+                    || !offset_selection.is_empty()
+                    || self
+                        .active_inline_completion
+                        .as_ref()
+                        .map_or(false, |completion| {
+                            let invalidation_range = completion.invalidation_range.to_offset(&multibuffer);
+                            let invalidation_range = invalidation_range.start..=invalidation_range.end;
+                            !invalidation_range.contains(&offset_selection.head())
+                        })
+                {
+                    self.discard_inline_completion(false, cx);
+                    return None;
+                }
+
+                self.take_active_inline_completion(cx);
+                let provider = self.inline_completion_provider()?;
+    cursor:
+      file: crates/editor/src/editor.rs
+      line: 34
+      column: 58
+  - step: 2
+    eval: EVAL
+    terminal: null
+    files:
+      crates/editor/src/editor.rs: |2-
+            fn take_active_inline_completion(
+                &mut self,
+                cx: &mut ViewContext<Self>,
+            ) -> Option<InlineCompletion> {
+                let active_inline_completion = self.active_inline_completion.take()?;
+                self.splice_inlays(active_inline_completion.inlay_ids, Default::default(), cx);
+                self.clear_highlights::<InlineCompletionHighlight>(cx);
+                Some(active_inline_completion.completion)
+            }
+
+            fn update_visible_inline_completion(&mut self, cx: &mut ViewContext<Self>) -> Option<()> {
+                let selection = self.selections.newest_anchor();
+                let cursor = selection.head();
+                let multibuffer = self.buffer.read(cx).snapshot(cx);
+                let offset_selection = selection.map(|endpoint| endpoint.to_offset(&multibuffer));
+                let excerpt_id = cursor.excerpt_id;
+
+                if !offset_selection.is_empty()
+                    || self
+                        .active_inline_completion
+                        .as_ref()
+                        .map_or(false, |completion| {
+                            let invalidation_range = completion.invalidation_range.to_offset(&multibuffer);
+                            let invalidation_range = invalidation_range.start..=invalidation_range.end;
+                            !invalidation_range.contains(&offset_selection.head())
+                        })
+                {
+                    self.discard_inline_completion(false, cx);
+                    return None;
+                }
+
+                self.take_active_inline_completion(cx);
+                let provider = self.inline_completion_provider()?;
+    cursor:
+      file: crates/editor/src/editor.rs
+      line: 18
+      column: 39
+    judge_assertions: Ensure the condition in `update_visible_inline_completion` does not contain `self.context_menu.read().is_some()` and the `completion_task.is_empty()` and `has_active_inline_completion` checks.
+labels: non-local-edit,infer-intent

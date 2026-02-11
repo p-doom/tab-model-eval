@@ -61,7 +61,7 @@ We accept arbitrary bash commands to run scripts, tests, git commands, tools, de
 Compare the commands and respond with this exact JSON:
 
 {{
-  "reason": "<brief reasoning>",
+  "reasoning": "<brief reasoning>",
   "equivalent": <1 or 0>
 }}
 

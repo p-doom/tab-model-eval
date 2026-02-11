@@ -1,0 +1,159 @@
+task_id: "0014"
+description: "Converted from zeta eval: 0014"
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+            let args = flatpak::set_bin_if_no_escape(args);
+
+            let app = Detect::detect(args.zed.as_deref()).context("Bundle detection")?;
+
+            if args.version {
+                println!("{}", app.zed_version_string());
+                return Ok(());
+            }
+
+            if
+
+            let (server, server_name) =
+                IpcOneShotServer::<IpcHandshake>::new().context("Handshake before Zed spawn")?;
+            let url = format!("zed-cli://{server_name}");
+
+            let open_new_workspace = if args.new {
+                Some(true)
+            } else if args.add {
+                Some(false)
+            } else {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 1
+      column: 0
+  - step: 1
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+            let args = flatpak::set_bin_if_no_escape(args);
+
+            let app = Detect::detect(args.zed.as_deref()).context("Bundle detection")?;
+
+            if args.version {
+                println!("{}", app.zed_version_string());
+                return Ok(());
+            }
+
+            if
+
+            let (server, server_name) =
+                IpcOneShotServer::<IpcHandshake>::new().context("Handshake before Zed spawn")?;
+            let url = format!("zed-cli://{server_name}");
+
+            let open_new_workspace = if args.new {
+                Some(true)
+            } else if args.add {
+                Some(false)
+            } else {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 1
+      column: 55
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+            let args = flatpak::set_bin_if_no_escape(args);
+
+            let app = Detect::detect(args.zed.as_deref()).context("Bundle detection")?;
+
+            if args.version {
+                println!("{}", app.zed_version_string());
+                return Ok(());
+            }
+
+            if
+
+            let (server, server_name) =
+                IpcOneShotServer::<IpcHandshake>::new().context("Handshake before Zed spawn")?;
+            let url = format!("zed-cli://{server_name}");
+
+            let open_new_workspace = if args.new {
+                Some(true)
+            } else if args.add {
+                Some(false)
+            } else {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 1
+      column: 55
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+            let args = flatpak::set_bin_if_no_escape(args);
+
+            let app = Detect::detect(args.zed.as_deref()).context("Bundle detection")?;
+
+            if args.version {
+                println!("{}", app.zed_version_string());
+                return Ok(());
+            }
+
+            if
+
+            let (server, server_name) =
+                IpcOneShotServer::<IpcHandshake>::new().context("Handshake before Zed spawn")?;
+            let url = format!("zed-cli://{server_name}");
+
+            let open_new_workspace = if args.new {
+                Some(true)
+            } else if args.add {
+                Some(false)
+            } else {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 11
+      column: 6
+  - step: 4
+    eval: EVAL
+    terminal: null
+    files:
+      crates/cli/src/main.rs: |2-
+            #[cfg(any(target_os = "linux", target_os = "freebsd"))]
+            let args = flatpak::set_bin_if_no_escape(args);
+
+            let app = Detect::detect(args.zed.as_deref()).context("Bundle detection")?;
+
+            if args.version {
+                println!("{}", app.zed_version_string());
+                return Ok(());
+            }
+
+            if args.update {
+                
+            }
+
+            let (server, server_name) =
+                IpcOneShotServer::<IpcHandshake>::new().context("Handshake before Zed spawn")?;
+            let url = format!("zed-cli://{server_name}");
+
+            let open_new_workspace = if args.new {
+                Some(true)
+            } else if args.add {
+                Some(false)
+            } else {
+    cursor:
+      file: crates/cli/src/main.rs
+      line: 13
+      column: 5
+    judge_assertions: |-
+      Ensure that the `main` function contains an if-expression checking if an update-flag in args is set.
+      It's okay if the body of that if-expression does not contain logic yet. It's fine if it only contains placeholder comments.
+labels: local-edit,infer-intent

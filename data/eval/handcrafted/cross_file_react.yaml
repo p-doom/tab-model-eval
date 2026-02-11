@@ -1,0 +1,296 @@
+task_id: cross_file_react
+description: This eval tests completing a named import with the correct React path.
+states:
+  - step: 0
+    eval: NO_EVAL
+    terminal:
+      command: ls -la
+      output: |-
+        total 20
+        drwxr-xr-x 3 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 4 user user 4096 Jan 19 09:55 ..
+        -rw-r--r-- 1 user user 1247 Jan 19 09:58 App.jsx
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 components
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 1
+    eval: NO_EVAL
+    terminal:
+      command: ls -la components/
+      output: |-
+        total 8
+        drwxr-xr-x 2 user user 4096 Jan 19 10:00 .
+        drwxr-xr-x 3 user user 4096 Jan 19 10:00 ..
+        -rw-r--r-- 1 user user    0 Jan 19 10:00 Button.jsx
+      exit_code: 0
+      cwd: /project
+    files: {}
+    cursor: null
+  - step: 2
+    eval: NO_EVAL
+    terminal: null
+    files:
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
+    cursor:
+      file: components/Button.jsx
+      line: 1
+      column: 0
+  - step: 3
+    eval: NO_EVAL
+    terminal: null
+    files:
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
+    cursor:
+      file: components/Button.jsx
+      line: 11
+      column: 4
+  - step: 4
+    eval: NO_EVAL
+    terminal: null
+    files:
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
+      App.jsx: |-
+        import React, { useState, useCallback } from 'react';
+
+        function App() {
+            const [count, setCount] = useState(0);
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleIncrement = useCallback(() => {
+                setCount(prev => prev + 1);
+            }, []);
+
+            const handleDecrement = useCallback(() => {
+                setCount(prev => Math.max(0, prev - 1));
+            }, []);
+
+            const handleReset = useCallback(async () => {
+                setIsLoading(true);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                setCount(0);
+                setIsLoading(false);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-lg p-8">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-6">Counter</h1>
+                        <p className="text-5xl font-mono text-center mb-8">{count}</p>
+                        <div className="flex gap-3">
+                            {/* TODO: Add Button components */}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        export default App;
+    cursor:
+      file: App.jsx
+      line: 1
+      column: 0
+  - step: 5
+    eval: NO_EVAL
+    terminal: null
+    files:
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
+      App.jsx: |-
+        import React, { useState, useCallback } from 'react';
+        import { But
+
+        function App() {
+            const [count, setCount] = useState(0);
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleIncrement = useCallback(() => {
+                setCount(prev => prev + 1);
+            }, []);
+
+            const handleDecrement = useCallback(() => {
+                setCount(prev => Math.max(0, prev - 1));
+            }, []);
+
+            const handleReset = useCallback(async () => {
+                setIsLoading(true);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                setCount(0);
+                setIsLoading(false);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-lg p-8">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-6">Counter</h1>
+                        <p className="text-5xl font-mono text-center mb-8">{count}</p>
+                        <div className="flex gap-3">
+                            {/* TODO: Add Button components */}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        export default App;
+    cursor:
+      file: App.jsx
+      line: 2
+      column: 12
+  - step: 6
+    eval: EVAL
+    judge_assertions: |-
+      Make sure that:
+      - the import statement is completed with `Button }` (matching the exported function from components/Button.jsx)
+      - the import path is `'./components/Button'` (correct relative path based on the ls output showing components/ directory)
+      - the correct file is being edited (App.jsx)
+      - the correct line is being edited (line 2)
+    terminal: null
+    files:
+      components/Button.jsx: |-
+        import React from 'react';
+        import PropTypes from 'prop-types';
+
+        export function Button({
+            variant = 'primary',
+            size = 'medium',
+            disabled = false,
+            loading = false,
+            onClick,
+            children
+        }) {
+            const baseClasses = 'btn font-medium rounded-lg transition-colors focus:outline-none focus:ring-2';
+            const variantClasses = {
+                primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300',
+                secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-300',
+                danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-300',
+            };
+            const sizeClasses = {
+                small: 'px-3 py-1.5 text-sm',
+                medium: 'px-4 py-2 text-base',
+                large: 'px-6 py-3 text-lg',
+      App.jsx: |-
+        import React, { useState, useCallback } from 'react';
+        import { Button } from './components/Button';
+
+        function App() {
+            const [count, setCount] = useState(0);
+            const [isLoading, setIsLoading] = useState(false);
+
+            const handleIncrement = useCallback(() => {
+                setCount(prev => prev + 1);
+            }, []);
+
+            const handleDecrement = useCallback(() => {
+                setCount(prev => Math.max(0, prev - 1));
+            }, []);
+
+            const handleReset = useCallback(async () => {
+                setIsLoading(true);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                setCount(0);
+                setIsLoading(false);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                    <div className="bg-white rounded-xl shadow-lg p-8">
+                        <h1 className="text-3xl font-bold text-gray-800 mb-6">Counter</h1>
+                        <p className="text-5xl font-mono text-center mb-8">{count}</p>
+                        <div className="flex gap-3">
+                            {/* TODO: Add Button components */}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        export default App;
+    cursor:
+      file: App.jsx
+      line: 2
+      column: 45

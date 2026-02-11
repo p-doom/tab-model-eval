@@ -1,0 +1,2583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handcrafted Task Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-tsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-rust.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #252526;
+            --bg-tertiary: #2d2d30;
+            --text-primary: #d4d4d4;
+            --text-secondary: #808080;
+            --accent: #0e639c;
+            --accent-hover: #1177bb;
+            --border: #3c3c3c;
+            --success: #4ec9b0;
+            --warning: #dcdcaa;
+            --error: #f14c4c;
+            --line-highlight: #264f78;
+            --diff-added-bg: rgba(35, 134, 54, 0.2);
+            --diff-added-text: #85e89d;
+            --diff-removed-bg: rgba(248, 81, 73, 0.2);
+            --diff-removed-text: #f97583;
+            --cursor-color: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-input-wrapper label {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .file-input-wrapper label:hover {
+            background: var(--accent-hover);
+        }
+
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+
+        .task-info {
+            display: flex;
+            gap: 20px;
+            margin-left: auto;
+            font-size: 13px;
+        }
+
+        .task-info span { color: var(--text-secondary); }
+        .task-info strong { color: var(--success); }
+
+        /* Navigation */
+        .nav-controls {
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .step-indicator {
+            font-size: 14px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .step-indicator strong { color: var(--success); }
+
+        .eval-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .eval-badge:hover {
+            opacity: 0.8;
+        }
+
+        .eval-badge.eval {
+            background: rgba(78, 201, 176, 0.2);
+            color: var(--success);
+        }
+
+        .eval-badge.no-eval {
+            background: rgba(128, 128, 128, 0.2);
+            color: var(--text-secondary);
+        }
+
+        .keyboard-hint {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        kbd {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            border-right: 2px solid var(--accent);
+        }
+
+        .panel-label {
+            background: var(--bg-tertiary);
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .panel-label.prev { color: var(--error); }
+        .panel-label.current { color: var(--success); }
+
+        /* Files Section */
+        .files-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            background: var(--bg-secondary);
+            padding: 8px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-tabs {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+
+        .file-tab {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .file-tab:hover { background: var(--bg-secondary); }
+        .file-tab.active {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .file-tab.new { color: var(--diff-added-text); }
+        .file-tab.modified { color: var(--warning); }
+
+        .code-container {
+            flex: 1;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .code-line {
+            display: flex;
+            min-height: 20px;
+            position: relative;
+        }
+
+        .code-line.cursor-line {
+            background: var(--line-highlight);
+        }
+
+        .code-line.added { background: var(--diff-added-bg); }
+        .code-line.removed { background: var(--diff-removed-bg); }
+        .code-line.placeholder { 
+            background: var(--bg-secondary); 
+            opacity: 0.5;
+            min-height: 20px;
+        }
+
+        .line-number {
+            min-width: 45px;
+            padding: 0 8px;
+            text-align: right;
+            color: var(--text-secondary);
+            user-select: none;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .line-content {
+            padding: 0 8px;
+            white-space: pre;
+            flex: 1;
+        }
+
+        /* Cursor visualization */
+        .cursor-marker {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: var(--cursor-color);
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+            margin-left: -1px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .cursor-info {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--cursor-color);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Resize handle */
+        .resize-handle {
+            height: 6px;
+            background: var(--bg-tertiary);
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover {
+            background: var(--accent);
+        }
+
+        .resize-handle::after {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+        }
+
+        .resize-handle:hover::after {
+            background: white;
+        }
+
+        /* Terminal Section */
+        .terminal-section {
+            height: 200px;
+            min-height: 80px;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .terminal-content {
+            flex: 1;
+            overflow: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 10px 15px;
+            background: #0c0c0c;
+            color: #cccccc;
+        }
+
+        .terminal-cwd {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .terminal-command {
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+
+        .terminal-command::before {
+            content: '$ ';
+            color: var(--warning);
+        }
+
+        .terminal-output {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .terminal-exit {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .terminal-exit.success { color: var(--success); }
+        .terminal-exit.error { color: var(--error); }
+
+        /* Judge Assertions */
+        .assertions-section {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 10px 15px;
+            max-height: 250px;
+            overflow: auto;
+        }
+
+        .assertions-section.resizable {
+            height: 150px;
+            min-height: 80px;
+            max-height: 80%;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .assertions-section.resizable .assertions-title {
+            padding: 8px 15px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+        }
+
+        .assertions-section.resizable .assertions-editor {
+            flex: 1;
+            margin: 0 15px 10px 15px;
+            min-height: 0;
+            resize: none;
+        }
+
+        .assertions-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--warning);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .assertions-content {
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: var(--text-secondary);
+        }
+
+        .assertions-editor {
+            width: 100%;
+            min-height: 100px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 8px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .assertions-editor:focus {
+            border-color: var(--accent);
+        }
+
+        .assertions-editor::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Empty states */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .no-content {
+            padding: 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+            text-align: center;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* Prism.js overrides to fit our theme */
+        .line-content code {
+            background: transparent !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            white-space: pre !important;
+        }
+
+        .line-content .token {
+            background: transparent !important;
+        }
+
+        /* Ensure syntax colors work on diff backgrounds */
+        .code-line.added .line-content code,
+        .code-line.removed .line-content code {
+            background: transparent !important;
+        }
+
+        /* Sync scroll indicator */
+        .sync-scroll {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .sync-scroll input { cursor: pointer; }
+
+        /* Editing mode styles */
+        .edit-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 20px;
+        }
+
+        .edit-mode-toggle label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .edit-mode-toggle input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .save-btn {
+            background: var(--success);
+            border: none;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .save-btn:hover {
+            background: #5ddcc3;
+        }
+
+        .save-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Editable code container */
+        .code-editor-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .code-editor-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .code-editor-line-numbers {
+            min-width: 45px;
+            padding: 0;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .code-editor-line-numbers .line-num {
+            display: block;
+            padding: 0 8px;
+            text-align: right;
+            color: var(--text-secondary);
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            height: 19.5px; /* Match line height of 13px * 1.5 */
+        }
+
+        .code-editor-content {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            min-height: fit-content;
+        }
+
+        .code-editor-backdrop {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 0 8px;
+            white-space: pre;
+        }
+
+        .code-editor-backdrop .highlighted-line {
+            display: block;
+            min-height: 19.5px;
+        }
+
+        .code-editor-backdrop code {
+            background: transparent !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            font-size: inherit !important;
+            white-space: pre !important;
+        }
+
+        .code-editor-textarea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            background: transparent;
+            color: transparent;
+            caret-color: var(--cursor-color);
+            border: none;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 0 8px;
+            margin: 0;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow: hidden;
+            tab-size: 4;
+            z-index: 1;
+        }
+
+        .code-editor-textarea:focus {
+            outline: none;
+        }
+
+        .code-editor-wrapper:focus-within {
+            outline: 1px solid var(--accent);
+        }
+
+        /* Cursor position editor */
+        .cursor-editor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .cursor-editor label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .cursor-editor input[type="number"] {
+            width: 60px;
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .cursor-editor input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .cursor-editor select {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 200px;
+        }
+
+        .cursor-editor select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Add file button */
+        .add-file-btn {
+            background: transparent;
+            border: 1px dashed var(--border);
+            color: var(--text-secondary);
+            padding: 1px 1px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            margin-left: 5px;
+        }
+
+        .add-file-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .delete-file-btn {
+            background: transparent;
+            border: none;
+            color: var(--error);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 5px;
+            opacity: 0.7;
+        }
+
+        .delete-file-btn:hover {
+            opacity: 1;
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .modal input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .modal input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            border: none;
+        }
+
+        .modal-btn.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Unsaved changes indicator */
+        .unsaved-indicator {
+            color: var(--warning);
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Step editor */
+        .step-editor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-editor .add-step-btn,
+        .step-editor .delete-step-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .step-editor .add-step-btn:hover {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .step-editor .delete-step-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .step-editor .delete-step-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Eval selector */
+        .eval-selector {
+            margin-left: 10px;
+        }
+
+        .eval-selector select {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Cursor mode styles */
+        .cursor-mode-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 12px;
+            background: rgba(255, 204, 0, 0.2);
+            border: 1px solid var(--cursor-color);
+            border-radius: 4px;
+            color: var(--cursor-color);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .cursor-mode-indicator.hidden {
+            display: none;
+        }
+
+        .code-container.cursor-mode {
+            cursor: crosshair;
+        }
+
+        .code-container.cursor-mode .code-line:hover {
+            background: rgba(255, 204, 0, 0.1);
+        }
+
+        .cursor-mode-help {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Eval Step Visualizer</h1>
+        <div class="file-input-wrapper">
+            <label for="yaml-file">Load YAML File</label>
+            <input type="file" id="yaml-file" accept=".yaml,.yml">
+        </div>
+        <div class="file-input-wrapper">
+            <label for="yaml-directory">Load Directory</label>
+            <input type="file" id="yaml-directory" webkitdirectory directory accept=".yaml,.yml">
+        </div>
+        <span id="file-name" style="color: var(--text-secondary); font-size: 13px;"></span>
+        <span id="file-nav-info" style="color: var(--text-secondary); font-size: 12px; margin-left: 10px;"></span>
+        <div class="edit-mode-toggle" id="edit-mode-toggle" style="display: none;">
+            <input type="checkbox" id="edit-mode-checkbox">
+            <label for="edit-mode-checkbox">Edit Mode</label>
+            <button class="save-btn" id="save-btn" disabled>Save YAML</button>
+            <span class="unsaved-indicator" id="unsaved-indicator" style="display: none;">● Unsaved changes</span>
+        </div>
+        <div class="task-info" id="task-info" style="display: none;">
+            <span>Task: <strong id="task-id"></strong></span>
+            <span id="description" style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
+        </div>
+    </div>
+
+    <div class="nav-controls" id="nav-controls" style="display: none;">
+        <button class="nav-btn" id="btn-first">First</button>
+        <button class="nav-btn" id="btn-prev">Prev</button>
+        <div class="step-indicator">
+            Step <strong id="current-step">0</strong> / <span id="total-steps">0</span>
+        </div>
+        <button class="nav-btn" id="btn-next">Next</button>
+        <button class="nav-btn" id="btn-last">Last</button>
+        <span class="eval-badge" id="eval-badge">NO_EVAL</span>
+        <div class="eval-selector" id="eval-selector" style="display: none;">
+            <select id="eval-select">
+                <option value="">NO_EVAL</option>
+                <option value="EVAL">EVAL</option>
+            </select>
+        </div>
+        <div class="step-editor" id="step-editor" style="display: none;">
+            <button class="add-step-btn" id="add-step-before-btn" title="Add step before current">+ Before</button>
+            <button class="add-step-btn" id="add-step-after-btn" title="Add step after current">+ After</button>
+            <button class="delete-step-btn" id="delete-step-btn" title="Delete current step">Delete Step</button>
+        </div>
+        <div class="sync-scroll">
+            <input type="checkbox" id="sync-scroll-checkbox" checked>
+            <label for="sync-scroll-checkbox">Sync scroll</label>
+        </div>
+        <div class="cursor-mode-indicator hidden" id="cursor-mode-indicator">
+            CURSOR MODE
+            <span class="cursor-mode-help">Arrow keys to move, click to place, Esc to exit</span>
+        </div>
+        <div class="keyboard-hint">
+            <kbd>←</kbd><kbd>→</kbd> Steps <kbd>Shift+A</kbd>/<kbd>Shift+D</kbd> Files <kbd>w</kbd> Eval <kbd>i</kbd>/<kbd>e</kbd> Edit <kbd>v</kbd> Cursor <kbd>Esc</kbd> Exit
+        </div>
+    </div>
+
+    <div class="main-content" id="main-content">
+        <div class="empty-state" id="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <h2>Load an Eval YAML File</h2>
+            <p>Click "Load YAML File" to visualize eval steps with side-by-side diff view.</p>
+        </div>
+    </div>
+
+    <script>
+        let evalData = null;
+        let currentStep = 0;
+        let activeFile = null;
+        let syncScroll = true;
+        let terminalHeight = 200; // Persisted terminal height
+        let assertionsHeight = 150; // Persisted assertions height
+        let editMode = false;
+        let cursorMode = false;
+        let hasUnsavedChanges = false;
+        let originalFileName = '';
+        
+        // Directory navigation state
+        let directoryFiles = []; // Array of {name, content} objects
+        let currentFileIndex = -1;
+
+        const fileInput = document.getElementById('yaml-file');
+        const directoryInput = document.getElementById('yaml-directory');
+        const fileNameEl = document.getElementById('file-name');
+        const fileNavInfo = document.getElementById('file-nav-info');
+        const taskInfo = document.getElementById('task-info');
+        const taskIdEl = document.getElementById('task-id');
+        const descriptionEl = document.getElementById('description');
+        const navControls = document.getElementById('nav-controls');
+        const mainContent = document.getElementById('main-content');
+        const emptyState = document.getElementById('empty-state');
+        const currentStepEl = document.getElementById('current-step');
+        const totalStepsEl = document.getElementById('total-steps');
+        const evalBadge = document.getElementById('eval-badge');
+        const syncScrollCheckbox = document.getElementById('sync-scroll-checkbox');
+        const editModeToggle = document.getElementById('edit-mode-toggle');
+        const editModeCheckbox = document.getElementById('edit-mode-checkbox');
+        const saveBtn = document.getElementById('save-btn');
+        const unsavedIndicator = document.getElementById('unsaved-indicator');
+        const evalSelector = document.getElementById('eval-selector');
+        const evalSelect = document.getElementById('eval-select');
+        const stepEditor = document.getElementById('step-editor');
+        const addStepBeforeBtn = document.getElementById('add-step-before-btn');
+        const addStepAfterBtn = document.getElementById('add-step-after-btn');
+        const deleteStepBtn = document.getElementById('delete-step-btn');
+        const cursorModeIndicator = document.getElementById('cursor-mode-indicator');
+
+        const btnFirst = document.getElementById('btn-first');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnLast = document.getElementById('btn-last');
+
+        fileInput.addEventListener('change', handleFileLoad);
+        directoryInput.addEventListener('change', handleDirectoryLoad);
+        btnFirst.addEventListener('click', () => goToStep(0));
+        btnPrev.addEventListener('click', () => goToStep(currentStep - 1));
+        btnNext.addEventListener('click', () => goToStep(currentStep + 1));
+        btnLast.addEventListener('click', () => goToStep(evalData.states.length - 1));
+        syncScrollCheckbox.addEventListener('change', (e) => syncScroll = e.target.checked);
+        
+        editModeCheckbox.addEventListener('change', (e) => {
+            editMode = e.target.checked;
+            evalSelector.style.display = editMode ? 'block' : 'none';
+            stepEditor.style.display = editMode ? 'flex' : 'none';
+            // Preserve scroll position - use editor containers if they exist (when leaving edit mode)
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
+            renderStep();
+            // Restore scroll position
+            // For edit mode, use code-editor-container for scrolling on both sides
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
+            }
+        });
+        
+        saveBtn.addEventListener('click', saveYaml);
+        
+        evalSelect.addEventListener('change', (e) => {
+            if (!evalData || !editMode) return;
+            const currState = getState(currentStep);
+            if (e.target.value === '') {
+                delete currState.eval;
+            } else {
+                currState.eval = e.target.value;
+            }
+            markUnsaved();
+            updateEvalBadge();
+        });
+        
+        addStepBeforeBtn.addEventListener('click', () => addStep('before'));
+        addStepAfterBtn.addEventListener('click', () => addStep('after'));
+        deleteStepBtn.addEventListener('click', deleteCurrentStep);
+        
+        evalBadge.addEventListener('click', () => {
+            if (!evalData) return;
+            const currState = getState(currentStep);
+            if (currState.eval === 'EVAL') {
+                delete currState.eval;
+            } else {
+                currState.eval = 'EVAL';
+            }
+            markUnsaved();
+            updateEvalBadge();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (!evalData) return;
+            
+            // Don't handle shortcuts when typing in an input/textarea (except Escape)
+            const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+            
+            // Escape exits any mode
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (cursorMode) {
+                    cursorMode = false;
+                    cursorModeIndicator.classList.add('hidden');
+                    // Save scroll positions before re-render
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
+                    renderStep();
+                    // Restore scroll positions after re-render
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
+                    }
+                } else if (editMode) {
+                    editMode = false;
+                    editModeCheckbox.checked = false;
+                    evalSelector.style.display = 'none';
+                    stepEditor.style.display = 'none';
+                    // Preserve scroll position - use editor containers when leaving edit mode
+                    const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    const prevScrollTop = prevScroll?.scrollTop || 0;
+                    const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                    const currScrollTop = currScroll?.scrollTop || 0;
+                    const currScrollLeft = currScroll?.scrollLeft || 0;
+                    renderStep();
+                    // Restore scroll position
+                    const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                    const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                    if (newPrevScroll) {
+                        newPrevScroll.scrollTop = prevScrollTop;
+                        newPrevScroll.scrollLeft = prevScrollLeft;
+                    }
+                    if (newCurrScroll) {
+                        newCurrScroll.scrollTop = currScrollTop;
+                        newCurrScroll.scrollLeft = currScrollLeft;
+                    }
+                }
+                return;
+            }
+            
+            // Cursor mode navigation with arrow keys
+            if (cursorMode && !isTyping) {
+                const currState = getState(currentStep);
+                if (!currState.cursor) {
+                    // Initialize cursor if not present
+                    const files = Object.keys(currState.files || {});
+                    if (files.length > 0) {
+                        currState.cursor = { file: activeFile || files[0], line: 1, column: 0 };
+                        markUnsaved();
+                    }
+                }
+                
+                if (currState.cursor) {
+                    const fileContent = currState.files?.[currState.cursor.file] || '';
+                    const lines = fileContent.split('\n');
+                    const currentLine = currState.cursor.line;
+                    const currentCol = currState.cursor.column;
+                    const currentLineContent = lines[currentLine - 1] || '';
+                    
+                    // Helper to render while preserving scroll position
+                    const renderPreservingScroll = () => {
+                        const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        const prevScrollTop = prevScroll?.scrollTop || 0;
+                        const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                        const currScrollTop = currScroll?.scrollTop || 0;
+                        const currScrollLeft = currScroll?.scrollLeft || 0;
+                        renderStep();
+                        const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                        const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                        if (newPrevScroll) {
+                            newPrevScroll.scrollTop = prevScrollTop;
+                            newPrevScroll.scrollLeft = prevScrollLeft;
+                        }
+                        if (newCurrScroll) {
+                            newCurrScroll.scrollTop = currScrollTop;
+                            newCurrScroll.scrollLeft = currScrollLeft;
+                        }
+                    };
+
+                    if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (currentLine > 1) {
+                            currState.cursor.line = currentLine - 1;
+                            // Clamp column to new line length
+                            const newLineContent = lines[currentLine - 2] || '';
+                            currState.cursor.column = Math.min(currentCol, newLineContent.length);
+                            markUnsaved();
+                            renderPreservingScroll();
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (currentLine < lines.length) {
+                            currState.cursor.line = currentLine + 1;
+                            // Clamp column to new line length
+                            const newLineContent = lines[currentLine] || '';
+                            currState.cursor.column = Math.min(currentCol, newLineContent.length);
+                            markUnsaved();
+                            renderPreservingScroll();
+                        }
+                        return;
+                    }
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        if (currentCol > 0) {
+                            currState.cursor.column = currentCol - 1;
+                        } else if (currentLine > 1) {
+                            // Move to end of previous line
+                            currState.cursor.line = currentLine - 1;
+                            currState.cursor.column = (lines[currentLine - 2] || '').length;
+                        }
+                        markUnsaved();
+                        renderPreservingScroll();
+                        return;
+                    }
+                    if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        if (currentCol < currentLineContent.length) {
+                            currState.cursor.column = currentCol + 1;
+                        } else if (currentLine < lines.length) {
+                            // Move to start of next line
+                            currState.cursor.line = currentLine + 1;
+                            currState.cursor.column = 0;
+                        }
+                        markUnsaved();
+                        renderPreservingScroll();
+                        return;
+                    }
+                    // Home/End for line start/end
+                    if (e.key === 'Home') {
+                        e.preventDefault();
+                        currState.cursor.column = 0;
+                        markUnsaved();
+                        renderPreservingScroll();
+                        return;
+                    }
+                    if (e.key === 'End') {
+                        e.preventDefault();
+                        currState.cursor.column = currentLineContent.length;
+                        markUnsaved();
+                        renderPreservingScroll();
+                        return;
+                    }
+                }
+            }
+            
+            // Don't process other shortcuts if typing
+            if (isTyping) return;
+            
+            // File navigation with Shift+A (previous) and Shift+D (next)
+            if (e.shiftKey && (e.key === 'A' || e.key === 'a') && directoryFiles.length > 0) {
+                e.preventDefault();
+                goToPreviousFile();
+                return;
+            }
+            if (e.shiftKey && (e.key === 'D' || e.key === 'd') && directoryFiles.length > 0) {
+                e.preventDefault();
+                goToNextFile();
+                return;
+            }
+            
+            // Toggle cursor mode with 'v'
+            if (e.key === 'v' && !cursorMode && !editMode) {
+                e.preventDefault();
+                cursorMode = true;
+                cursorModeIndicator.classList.remove('hidden');
+                // Save scroll positions before re-render
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
+                renderStep();
+                // Restore scroll positions after re-render
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
+                }
+                return;
+            }
+            
+            // Toggle eval with 'w'
+            if (e.key === 'w' && !editMode && !cursorMode) {
+                e.preventDefault();
+                const currState = getState(currentStep);
+                if (currState.eval === 'EVAL') {
+                    delete currState.eval;
+                } else {
+                    currState.eval = 'EVAL';
+                }
+                markUnsaved();
+                updateEvalBadge();
+                return;
+            }
+            
+            // Toggle edit mode with 'i' or 'e' (enter)
+            if ((e.key === 'i' || e.key === 'e') && !editMode && !cursorMode) {
+                e.preventDefault();
+                editMode = true;
+                editModeCheckbox.checked = true;
+                evalSelector.style.display = 'block';
+                stepEditor.style.display = 'flex';
+                // Preserve scroll position
+                const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                const prevScrollTop = prevScroll?.scrollTop || 0;
+                const prevScrollLeft = prevScroll?.scrollLeft || 0;
+                const currScrollTop = currScroll?.scrollTop || 0;
+                const currScrollLeft = currScroll?.scrollLeft || 0;
+                renderStep();
+                // Restore scroll position
+                const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+                const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+                if (newPrevScroll) {
+                    newPrevScroll.scrollTop = prevScrollTop;
+                    newPrevScroll.scrollLeft = prevScrollLeft;
+                }
+                if (newCurrScroll) {
+                    newCurrScroll.scrollTop = currScrollTop;
+                    newCurrScroll.scrollLeft = currScrollLeft;
+                }
+                return;
+            }
+            
+            // Navigation shortcuts only work when not in cursor mode
+            if (!cursorMode) {
+                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); goToStep(currentStep - 1); }
+                if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); goToStep(currentStep + 1); }
+                if (e.key === 'Home') { e.preventDefault(); goToStep(0); }
+                if (e.key === 'End') { e.preventDefault(); goToStep(evalData.states.length - 1); }
+            }
+        });
+
+        function handleFileLoad(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            originalFileName = file.name;
+            fileNameEl.textContent = file.name;
+            // Clear directory state when loading single file
+            directoryFiles = [];
+            currentFileIndex = -1;
+            updateFileNavInfo();
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    evalData = jsyaml.load(event.target.result);
+                    currentStep = 0;
+                    activeFile = null;
+                    hasUnsavedChanges = false;
+                    updateSaveButton();
+                    initializeReplayer();
+                } catch (err) {
+                    alert('Error parsing YAML: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function handleDirectoryLoad(e) {
+            const files = Array.from(e.target.files);
+            if (!files || files.length === 0) return;
+            
+            // Filter for YAML files only
+            const yamlFiles = files.filter(f => 
+                f.name.endsWith('.yaml') || f.name.endsWith('.yml')
+            ).sort((a, b) => a.name.localeCompare(b.name));
+            
+            if (yamlFiles.length === 0) {
+                alert('No YAML files found in the selected directory.');
+                return;
+            }
+            
+            // Read all YAML files
+            directoryFiles = [];
+            let loadedCount = 0;
+            
+            yamlFiles.forEach((file, idx) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    directoryFiles[idx] = {
+                        name: file.name,
+                        content: event.target.result
+                    };
+                    loadedCount++;
+                    
+                    // When all files are loaded, initialize with the first one
+                    if (loadedCount === yamlFiles.length) {
+                        currentFileIndex = 0;
+                        loadCurrentDirectoryFile();
+                    }
+                };
+                reader.onerror = () => {
+                    loadedCount++;
+                    directoryFiles[idx] = null; // Mark as failed
+                };
+                reader.readAsText(file);
+            });
+        }
+        
+        function loadCurrentDirectoryFile() {
+            if (currentFileIndex < 0 || currentFileIndex >= directoryFiles.length) return;
+            
+            const fileData = directoryFiles[currentFileIndex];
+            if (!fileData) {
+                alert('Failed to load file at index ' + currentFileIndex);
+                return;
+            }
+            
+            originalFileName = fileData.name;
+            fileNameEl.textContent = fileData.name;
+            updateFileNavInfo();
+            
+            try {
+                evalData = jsyaml.load(fileData.content);
+                currentStep = 0;
+                activeFile = null;
+                hasUnsavedChanges = false;
+                updateSaveButton();
+                initializeReplayer();
+            } catch (err) {
+                alert('Error parsing YAML (' + fileData.name + '): ' + err.message);
+            }
+        }
+        
+        function goToPreviousFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function goToNextFile() {
+            if (directoryFiles.length === 0) return;
+            
+            // Warn about unsaved changes
+            if (hasUnsavedChanges && !confirm('You have unsaved changes. Continue without saving?')) {
+                return;
+            }
+            
+            if (currentFileIndex < directoryFiles.length - 1) {
+                currentFileIndex++;
+                loadCurrentDirectoryFile();
+            }
+        }
+        
+        function updateFileNavInfo() {
+            if (directoryFiles.length > 0) {
+                fileNavInfo.textContent = `[File ${currentFileIndex + 1} / ${directoryFiles.length}]`;
+            } else {
+                fileNavInfo.textContent = '';
+            }
+        }
+
+        function initializeReplayer() {
+            taskInfo.style.display = 'flex';
+            navControls.style.display = 'flex';
+            editModeToggle.style.display = 'flex';
+            emptyState.style.display = 'none';
+            taskIdEl.textContent = evalData.task_id || 'Unknown';
+            descriptionEl.textContent = evalData.description || '';
+            totalStepsEl.textContent = evalData.states.length - 1;
+            renderStep();
+        }
+        
+        function markUnsaved() {
+            hasUnsavedChanges = true;
+            updateSaveButton();
+        }
+        
+        function updateSaveButton() {
+            saveBtn.disabled = !hasUnsavedChanges;
+            unsavedIndicator.style.display = hasUnsavedChanges ? 'inline' : 'none';
+        }
+        
+        function updateEvalBadge() {
+            const currState = getState(currentStep);
+            evalBadge.textContent = currState.eval || 'NO_EVAL';
+            evalBadge.className = 'eval-badge ' + (currState.eval === 'EVAL' ? 'eval' : 'no-eval');
+            evalSelect.value = currState.eval || '';
+        }
+        
+        function saveYaml() {
+            if (!evalData) return;
+            
+            // Renumber steps to be sequential
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            const yamlStr = jsyaml.dump(evalData, {
+                lineWidth: -1,  // Don't wrap lines
+                noRefs: true,
+                quotingType: '"',
+                forceQuotes: false
+            });
+            
+            const blob = new Blob([yamlStr], { type: 'text/yaml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = originalFileName || 'eval.yaml';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            hasUnsavedChanges = false;
+            updateSaveButton();
+        }
+        
+        function addStep(position) {
+            if (!evalData) return;
+            
+            const currState = getState(currentStep);
+            // Deep clone the current state
+            const newState = JSON.parse(JSON.stringify(currState));
+            newState.step = position === 'before' ? currentStep : currentStep + 1;
+            
+            if (position === 'before') {
+                evalData.states.splice(currentStep, 0, newState);
+            } else {
+                evalData.states.splice(currentStep + 1, 0, newState);
+                currentStep++;
+            }
+            
+            // Renumber all steps
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            totalStepsEl.textContent = evalData.states.length - 1;
+            markUnsaved();
+            renderStep();
+        }
+        
+        function deleteCurrentStep() {
+            if (!evalData || evalData.states.length <= 1) return;
+            
+            if (!confirm('Delete this step? This cannot be undone.')) return;
+            
+            evalData.states.splice(currentStep, 1);
+            
+            // Renumber all steps
+            evalData.states.forEach((state, idx) => {
+                state.step = idx;
+            });
+            
+            // Adjust current step if needed
+            if (currentStep >= evalData.states.length) {
+                currentStep = evalData.states.length - 1;
+            }
+            
+            totalStepsEl.textContent = evalData.states.length - 1;
+            markUnsaved();
+            renderStep();
+        }
+        
+        function showModal(title, placeholder, callback) {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `
+                <div class="modal">
+                    <h3>${title}</h3>
+                    <input type="text" id="modal-input" placeholder="${placeholder}">
+                    <div class="modal-buttons">
+                        <button class="modal-btn secondary" id="modal-cancel">Cancel</button>
+                        <button class="modal-btn primary" id="modal-confirm">OK</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            const input = document.getElementById('modal-input');
+            input.focus();
+            
+            const close = () => document.body.removeChild(overlay);
+            
+            document.getElementById('modal-cancel').onclick = close;
+            document.getElementById('modal-confirm').onclick = () => {
+                const value = input.value.trim();
+                if (value) {
+                    callback(value);
+                }
+                close();
+            };
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    const value = input.value.trim();
+                    if (value) {
+                        callback(value);
+                    }
+                    close();
+                } else if (e.key === 'Escape') {
+                    close();
+                }
+            };
+        }
+        
+        function addNewFile() {
+            showModal('Add New File', 'Enter filename (e.g., src/main.py)', (filename) => {
+                const currState = getState(currentStep);
+                if (!currState.files) currState.files = {};
+                if (currState.files[filename]) {
+                    alert('File already exists!');
+                    return;
+                }
+                currState.files[filename] = '';
+                activeFile = filename;
+                markUnsaved();
+                renderStep();
+            });
+        }
+        
+        function deleteFile(filename) {
+            if (!confirm(`Delete file "${filename}"?`)) return;
+            
+            const currState = getState(currentStep);
+            delete currState.files[filename];
+            
+            // Update cursor if it was pointing to this file
+            if (currState.cursor?.file === filename) {
+                delete currState.cursor;
+            }
+            
+            // Select another file
+            const remainingFiles = Object.keys(currState.files || {});
+            activeFile = remainingFiles.length > 0 ? remainingFiles[0] : null;
+            
+            markUnsaved();
+            renderStep();
+        }
+        
+        function updateFileContent(content) {
+            if (!evalData || !activeFile) return;
+            const currState = getState(currentStep);
+            if (!currState.files) currState.files = {};
+            currState.files[activeFile] = content;
+            markUnsaved();
+        }
+        
+        function updatePrevFileContent(content) {
+            if (!evalData || !activeFile) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            if (!prevState.files) prevState.files = {};
+            prevState.files[activeFile] = content;
+            markUnsaved();
+        }
+        
+        function updatePrevCursor(file, line, column) {
+            if (!evalData) return;
+            const prevState = getState(currentStep - 1);
+            if (!prevState) return;
+            prevState.cursor = { file, line, column };
+            markUnsaved();
+        }
+        
+        function updateCursor(file, line, column) {
+            if (!evalData) return;
+            const currState = getState(currentStep);
+            currState.cursor = { file, line, column };
+            markUnsaved();
+        }
+        
+        function handleCursorClick(e) {
+            if (!cursorMode || !activeFile) return;
+            
+            // Find the clicked line element
+            let lineEl = e.target;
+            while (lineEl && !lineEl.classList.contains('code-line')) {
+                lineEl = lineEl.parentElement;
+            }
+            
+            if (!lineEl) return;
+            
+            // Get line number from the line-number span
+            const lineNumEl = lineEl.querySelector('.line-number');
+            if (!lineNumEl) return;
+            
+            const lineNumber = parseInt(lineNumEl.textContent);
+            if (isNaN(lineNumber)) return;
+            
+            // Calculate column from click position
+            const lineContent = lineEl.querySelector('.line-content');
+            if (!lineContent) return;
+            
+            const currState = getState(currentStep);
+            const fileContent = currState.files?.[activeFile] || '';
+            const lines = fileContent.split('\n');
+            const lineText = lines[lineNumber - 1] || '';
+            
+            // Get click position relative to line content
+            const rect = lineContent.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Estimate character width (monospace font)
+            // Create a measuring element
+            const measureSpan = document.createElement('span');
+            measureSpan.style.font = window.getComputedStyle(lineContent).font;
+            measureSpan.style.visibility = 'hidden';
+            measureSpan.style.position = 'absolute';
+            measureSpan.textContent = 'X';
+            document.body.appendChild(measureSpan);
+            const charWidth = measureSpan.getBoundingClientRect().width;
+            document.body.removeChild(measureSpan);
+            
+            // Calculate column (accounting for padding)
+            const paddingLeft = 8; // matches .line-content padding
+            const column = Math.max(0, Math.min(
+                lineText.length,
+                Math.round((clickX - paddingLeft) / charWidth)
+            ));
+            
+            // Update cursor and render while preserving scroll position
+            updateCursor(activeFile, lineNumber, column);
+            const prevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const currScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            const prevScrollTop = prevScroll?.scrollTop || 0;
+            const prevScrollLeft = prevScroll?.scrollLeft || 0;
+            const currScrollTop = currScroll?.scrollTop || 0;
+            const currScrollLeft = currScroll?.scrollLeft || 0;
+            renderStep();
+            const newPrevScroll = document.getElementById('prev-code-editor-container') || document.getElementById('prev-code');
+            const newCurrScroll = document.getElementById('code-editor-container') || document.getElementById('curr-code');
+            if (newPrevScroll) {
+                newPrevScroll.scrollTop = prevScrollTop;
+                newPrevScroll.scrollLeft = prevScrollLeft;
+            }
+            if (newCurrScroll) {
+                newCurrScroll.scrollTop = currScrollTop;
+                newCurrScroll.scrollLeft = currScrollLeft;
+            }
+        }
+
+        function goToStep(step) {
+            if (!evalData || step < 0 || step >= evalData.states.length) return;
+            currentStep = step;
+            renderStep();
+        }
+
+        function getState(index) {
+            if (index < 0 || index >= evalData.states.length) return null;
+            return evalData.states[index];
+        }
+
+        function getAllFiles(prevState, currState) {
+            const files = new Set();
+            if (prevState?.files) Object.keys(prevState.files).forEach(f => files.add(f));
+            if (currState?.files) Object.keys(currState.files).forEach(f => files.add(f));
+            return Array.from(files).sort();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Detect language from filename extension
+        function getLanguageFromFilename(filename) {
+            if (!filename) return null;
+            const ext = filename.split('.').pop()?.toLowerCase();
+            const langMap = {
+                'py': 'python',
+                'js': 'javascript',
+                'jsx': 'jsx',
+                'ts': 'typescript',
+                'tsx': 'tsx',
+                'json': 'json',
+                'yaml': 'yaml',
+                'yml': 'yaml',
+                'sh': 'bash',
+                'bash': 'bash',
+                'zsh': 'bash',
+                'css': 'css',
+                'scss': 'css',
+                'html': 'markup',
+                'htm': 'markup',
+                'xml': 'markup',
+                'svg': 'markup',
+                'go': 'go',
+                'rs': 'rust',
+                'java': 'java',
+                'c': 'c',
+                'h': 'c',
+                'cpp': 'cpp',
+                'cc': 'cpp',
+                'cxx': 'cpp',
+                'hpp': 'cpp',
+                'md': 'markdown',
+                'toml': 'toml',
+                'ini': 'ini',
+                'cfg': 'ini',
+                'env': 'bash',
+            };
+            return langMap[ext] || null;
+        }
+
+        // Apply syntax highlighting to a line of code
+        function highlightLine(line, language) {
+            if (!language || !Prism.languages[language]) {
+                return escapeHtml(line);
+            }
+            try {
+                return Prism.highlight(line, Prism.languages[language], language);
+            } catch (e) {
+                return escapeHtml(line);
+            }
+        }
+
+        function renderEditableCode(content, filename, idPrefix = '') {
+            const lines = content.split('\n');
+            const language = getLanguageFromFilename(filename);
+            
+            let lineNumbersHtml = '';
+            let backdropHtml = '';
+            
+            lines.forEach((line, idx) => {
+                const lineNum = idx + 1;
+                const highlightedLine = highlightLine(line, language);
+                lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+            });
+            
+            const prefix = idPrefix ? idPrefix + '-' : '';
+            return `<div class="code-editor-wrapper" id="${prefix}code-editor-wrapper">
+                <div class="code-editor-container" id="${prefix}code-editor-container">
+                    <div class="code-editor-line-numbers" id="${prefix}code-editor-line-numbers">${lineNumbersHtml}</div>
+                    <div class="code-editor-content">
+                        <div class="code-editor-backdrop" id="${prefix}code-editor-backdrop">${backdropHtml}</div>
+                        <textarea class="code-editor-textarea" id="${prefix}code-editor" spellcheck="false">${escapeHtml(content)}</textarea>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function renderCodeWithCursor(content, cursor, filename) {
+            if (!content) return '<div class="no-content">No file content</div>';
+            
+            const lines = content.split('\n');
+            const cursorLine = cursor?.file === filename ? cursor.line : null;
+            const cursorCol = cursor?.file === filename ? cursor.column : null;
+            const language = getLanguageFromFilename(filename);
+            
+            let html = '';
+            lines.forEach((line, idx) => {
+                const lineNum = idx + 1;
+                const isCursorLine = lineNum === cursorLine;
+                const lineClass = isCursorLine ? 'code-line cursor-line' : 'code-line';
+                
+                let lineHtml;
+                if (isCursorLine && cursorCol !== null) {
+                    // Insert cursor marker at the correct column
+                    // Highlight each part separately to maintain syntax highlighting
+                    const before = highlightLine(line.substring(0, cursorCol), language);
+                    const after = highlightLine(line.substring(cursorCol), language);
+                    lineHtml = before + '<span class="cursor-marker"></span>' + after;
+                } else {
+                    lineHtml = highlightLine(line, language);
+                }
+                
+                html += `<div class="${lineClass}">
+                    <span class="line-number">${lineNum}</span>
+                    <span class="line-content"><code>${lineHtml || ' '}</code></span>
+                    ${isCursorLine ? `<span class="cursor-info">L${cursorLine}:C${cursorCol}</span>` : ''}
+                </div>`;
+            });
+            return html;
+        }
+
+        // Compute LCS-based diff to identify actual added/removed lines
+        function computeDiff(prevLines, currLines) {
+            const m = prevLines.length;
+            const n = currLines.length;
+            
+            // Build LCS table
+            const dp = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+            for (let i = 1; i <= m; i++) {
+                for (let j = 1; j <= n; j++) {
+                    if (prevLines[i - 1] === currLines[j - 1]) {
+                        dp[i][j] = dp[i - 1][j - 1] + 1;
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            
+            // Backtrack to find diff operations
+            const result = [];
+            let i = m, j = n;
+            
+            while (i > 0 || j > 0) {
+                if (i > 0 && j > 0 && prevLines[i - 1] === currLines[j - 1]) {
+                    result.unshift({ type: 'equal', prevIdx: i - 1, currIdx: j - 1 });
+                    i--; j--;
+                } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+                    result.unshift({ type: 'add', currIdx: j - 1 });
+                    j--;
+                } else {
+                    result.unshift({ type: 'remove', prevIdx: i - 1 });
+                    i--;
+                }
+            }
+            
+            return result;
+        }
+
+        function renderDiffView(prevContent, currContent, prevCursor, currCursor, filename) {
+            const prevLines = prevContent ? prevContent.split('\n') : [];
+            const currLines = currContent ? currContent.split('\n') : [];
+            const language = getLanguageFromFilename(filename);
+            
+            // Handle case where one side is empty
+            if (prevLines.length === 0 && currLines.length === 0) {
+                return { 
+                    prevHtml: '<div class="no-content">No file content</div>', 
+                    currHtml: '<div class="no-content">No file content</div>' 
+                };
+            }
+            
+            const diff = computeDiff(prevLines, currLines);
+            
+            let prevHtml = '';
+            let currHtml = '';
+            
+            for (const op of diff) {
+                if (op.type === 'equal') {
+                    // Line exists in both - show on both sides
+                    const prevLineNum = op.prevIdx + 1;
+                    const currLineNum = op.currIdx + 1;
+                    const line = prevLines[op.prevIdx];
+                    
+                    const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
+                    const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
+                    
+                    let prevLineHtml, currLineHtml;
+                    
+                    if (prevIsCursor && prevCursor.column !== undefined) {
+                        const before = highlightLine(line.substring(0, prevCursor.column), language);
+                        const after = highlightLine(line.substring(prevCursor.column), language);
+                        prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        prevLineHtml = highlightLine(line, language);
+                    }
+                    
+                    if (currIsCursor && currCursor.column !== undefined) {
+                        const before = highlightLine(line.substring(0, currCursor.column), language);
+                        const after = highlightLine(line.substring(currCursor.column), language);
+                        currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        currLineHtml = highlightLine(line, language);
+                    }
+                    
+                    const prevClass = prevIsCursor ? 'code-line cursor-line' : 'code-line';
+                    const currClass = currIsCursor ? 'code-line cursor-line' : 'code-line';
+                    
+                    prevHtml += `<div class="${prevClass}">
+                        <span class="line-number">${prevLineNum}</span>
+                        <span class="line-content"><code>${prevLineHtml || ' '}</code></span>
+                        ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                    currHtml += `<div class="${currClass}">
+                        <span class="line-number">${currLineNum}</span>
+                        <span class="line-content"><code>${currLineHtml || ' '}</code></span>
+                        ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                } else if (op.type === 'remove') {
+                    // Line only in prev - show on left, placeholder on right
+                    const prevLineNum = op.prevIdx + 1;
+                    const line = prevLines[op.prevIdx];
+                    const prevIsCursor = prevCursor?.file === filename && prevCursor.line === prevLineNum;
+                    
+                    let prevLineHtml;
+                    if (prevIsCursor && prevCursor.column !== undefined) {
+                        const before = highlightLine(line.substring(0, prevCursor.column), language);
+                        const after = highlightLine(line.substring(prevCursor.column), language);
+                        prevLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        prevLineHtml = highlightLine(line, language);
+                    }
+                    
+                    const prevClass = 'code-line removed' + (prevIsCursor ? ' cursor-line' : '');
+                    
+                    prevHtml += `<div class="${prevClass}">
+                        <span class="line-number">${prevLineNum}</span>
+                        <span class="line-content"><code>${prevLineHtml || ' '}</code></span>
+                        ${prevIsCursor ? `<span class="cursor-info">L${prevLineNum}:C${prevCursor.column}</span>` : ''}
+                    </div>`;
+                    
+                    // Placeholder on current side
+                    currHtml += `<div class="code-line placeholder">
+                        <span class="line-number" style="opacity: 0.3"></span>
+                        <span class="line-content" style="opacity: 0.3"></span>
+                    </div>`;
+                    
+                } else if (op.type === 'add') {
+                    // Line only in curr - placeholder on left, show on right
+                    const currLineNum = op.currIdx + 1;
+                    const line = currLines[op.currIdx];
+                    const currIsCursor = currCursor?.file === filename && currCursor.line === currLineNum;
+                    
+                    let currLineHtml;
+                    if (currIsCursor && currCursor.column !== undefined) {
+                        const before = highlightLine(line.substring(0, currCursor.column), language);
+                        const after = highlightLine(line.substring(currCursor.column), language);
+                        currLineHtml = before + '<span class="cursor-marker"></span>' + after;
+                    } else {
+                        currLineHtml = highlightLine(line, language);
+                    }
+                    
+                    const currClass = 'code-line added' + (currIsCursor ? ' cursor-line' : '');
+                    
+                    // Placeholder on prev side
+                    prevHtml += `<div class="code-line placeholder">
+                        <span class="line-number" style="opacity: 0.3"></span>
+                        <span class="line-content" style="opacity: 0.3"></span>
+                    </div>`;
+                    
+                    currHtml += `<div class="${currClass}">
+                        <span class="line-number">${currLineNum}</span>
+                        <span class="line-content"><code>${currLineHtml || ' '}</code></span>
+                        ${currIsCursor ? `<span class="cursor-info">L${currLineNum}:C${currCursor.column}</span>` : ''}
+                    </div>`;
+                }
+            }
+            
+            return { prevHtml, currHtml };
+        }
+
+        function renderTerminal(terminal) {
+            if (!terminal) return '<div class="no-content">No terminal activity</div>';
+            
+            let html = '<div class="terminal-content">';
+            if (terminal.cwd) {
+                html += `<div class="terminal-cwd">${escapeHtml(terminal.cwd)}</div>`;
+            }
+            if (terminal.command) {
+                html += `<div class="terminal-command">${escapeHtml(terminal.command)}</div>`;
+            }
+            if (terminal.output) {
+                html += `<div class="terminal-output">${escapeHtml(terminal.output)}</div>`;
+            }
+            if (terminal.exit_code !== undefined) {
+                const exitClass = terminal.exit_code === 0 ? 'success' : 'error';
+                html += `<div class="terminal-exit ${exitClass}">Exit: ${terminal.exit_code}</div>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function renderStep() {
+            const currState = getState(currentStep);
+            const prevState = getState(currentStep - 1);
+            
+            currentStepEl.textContent = currState.step;
+            updateEvalBadge();
+            
+            btnFirst.disabled = currentStep === 0;
+            btnPrev.disabled = currentStep === 0;
+            btnNext.disabled = currentStep === evalData.states.length - 1;
+            btnLast.disabled = currentStep === evalData.states.length - 1;
+            deleteStepBtn.disabled = evalData.states.length <= 1;
+            
+            // Get all files from both states
+            const allFiles = getAllFiles(prevState, currState);
+            
+            // Determine active file
+            if (!activeFile || !allFiles.includes(activeFile)) {
+                // Prefer cursor file, then first file
+                if (currState.cursor?.file && allFiles.includes(currState.cursor.file)) {
+                    activeFile = currState.cursor.file;
+                } else if (allFiles.length > 0) {
+                    activeFile = allFiles[0];
+                } else {
+                    activeFile = null;
+                }
+            }
+            
+            // Build file tabs
+            let tabsHtml = '';
+            allFiles.forEach(file => {
+                const prevHas = prevState?.files?.[file];
+                const currHas = currState?.files?.[file];
+                let tabClass = 'file-tab';
+                if (file === activeFile) tabClass += ' active';
+                if (!prevHas && currHas) tabClass += ' new';
+                else if (prevHas && currHas && prevState.files[file] !== currState.files[file]) tabClass += ' modified';
+                const deleteBtn = editMode && currHas ? `<span class="delete-file-btn" data-file="${file}" title="Delete file">×</span>` : '';
+                tabsHtml += `<div class="${tabClass}" data-file="${file}">${file}${deleteBtn}</div>`;
+            });
+            
+            // Add "new file" button in edit mode
+            const addFileBtn = editMode ? '<button class="add-file-btn" id="add-file-btn">+ Add File</button>' : '';
+            
+            // Get file contents for diff
+            const prevContent = prevState?.files?.[activeFile] || null;
+            const currContent = currState?.files?.[activeFile] || null;
+            const prevCursor = prevState?.cursor;
+            const currCursor = currState?.cursor;
+            
+            let prevHtml, currHtml;
+            
+            if (editMode) {
+                // In edit mode, show editable code with syntax highlighting on both sides
+                prevHtml = activeFile && currentStep > 0
+                    ? renderEditableCode(prevContent || '', activeFile, 'prev')
+                    : '<div class="no-content">No previous step to edit</div>';
+                currHtml = activeFile 
+                    ? renderEditableCode(currContent || '', activeFile)
+                    : '<div class="no-content">No file selected</div>';
+            } else {
+                const diffResult = activeFile 
+                    ? renderDiffView(prevContent, currContent, prevCursor, currCursor, activeFile)
+                    : { prevHtml: '<div class="no-content">No file selected</div>', currHtml: '<div class="no-content">No file selected</div>' };
+                prevHtml = diffResult.prevHtml;
+                currHtml = diffResult.currHtml;
+            }
+            
+            // Cursor editor for edit mode (current step)
+            const cursorEditorHtml = editMode ? `
+                <div class="cursor-editor">
+                    <label>Cursor File:</label>
+                    <select id="cursor-file-select">
+                        <option value="">-- None --</option>
+                        ${allFiles.map(f => `<option value="${f}" ${currState.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                    </select>
+                    <label>Line:</label>
+                    <input type="number" id="cursor-line-input" min="1" value="${currState.cursor?.line || 1}">
+                    <label>Column:</label>
+                    <input type="number" id="cursor-col-input" min="0" value="${currState.cursor?.column || 0}">
+                </div>
+            ` : '';
+            
+            // Cursor editor for edit mode (previous step)
+            const prevCursorEditorHtml = editMode && currentStep > 0 ? `
+                <div class="cursor-editor">
+                    <label>Cursor File:</label>
+                    <select id="prev-cursor-file-select">
+                        <option value="">-- None --</option>
+                        ${allFiles.map(f => `<option value="${f}" ${prevState?.cursor?.file === f ? 'selected' : ''}>${f}</option>`).join('')}
+                    </select>
+                    <label>Line:</label>
+                    <input type="number" id="prev-cursor-line-input" min="1" value="${prevState?.cursor?.line || 1}">
+                    <label>Column:</label>
+                    <input type="number" id="prev-cursor-col-input" min="0" value="${prevState?.cursor?.column || 0}">
+                </div>
+            ` : '';
+            
+            mainContent.innerHTML = `
+                <div class="left-panel">
+                    <div class="panel-label prev">Previous Step (${currentStep > 0 ? currentStep - 1 : '-'})</div>
+                    <div class="files-section">
+                        <div class="section-header">Files ${prevState?.cursor ? `| Cursor: ${prevState.cursor.file}:${prevState.cursor.line}:${prevState.cursor.column}` : ''}</div>
+                        <div class="file-tabs" id="prev-file-tabs">${tabsHtml}</div>
+                        ${prevCursorEditorHtml}
+                        <div class="code-container" id="prev-code">${prevHtml}</div>
+                    </div>
+                    <div class="resize-handle" data-panel="left"></div>
+                    <div class="terminal-section" id="left-terminal">
+                        <div class="section-header">Terminal</div>
+                        ${renderTerminal(prevState?.terminal)}
+                    </div>
+                    ${currState.judge_assertions ? `
+                        <div class="assertions-section" style="visibility: hidden;">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="right-panel">
+                    <div class="panel-label current">Current Step (${currentStep})</div>
+                    <div class="files-section">
+                        <div class="section-header">Files ${currState.cursor ? `| Cursor: ${currState.cursor.file}:${currState.cursor.line}:${currState.cursor.column}` : ''}${addFileBtn}</div>
+                        <div class="file-tabs" id="curr-file-tabs">${tabsHtml}</div>
+                        ${cursorEditorHtml}
+                        <div class="code-container" id="curr-code">${currHtml}</div>
+                    </div>
+                    <div class="resize-handle" data-panel="right"></div>
+                    <div class="terminal-section" id="right-terminal">
+                        <div class="section-header">Terminal</div>
+                        ${renderTerminal(currState.terminal)}
+                    </div>
+                    ${editMode ? `
+                        <div class="resize-handle" data-panel="assertions"></div>
+                        <div class="assertions-section resizable" id="right-assertions">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <textarea class="assertions-editor" id="assertions-editor" placeholder="Enter judge assertions...">${escapeHtml(currState.judge_assertions || '')}</textarea>
+                        </div>
+                    ` : (currState.judge_assertions ? `
+                        <div class="assertions-section">
+                            <div class="assertions-title">Judge Assertions</div>
+                            <div class="assertions-content">${escapeHtml(currState.judge_assertions)}</div>
+                        </div>
+                    ` : '')}
+                </div>
+            `;
+            
+            // Setup resize handles
+            setupResizeHandles();
+            
+            // Add file tab click handlers
+            document.querySelectorAll('.file-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    // Don't switch file if clicking delete button
+                    if (e.target.classList.contains('delete-file-btn')) return;
+                    activeFile = tab.dataset.file;
+                    renderStep();
+                });
+            });
+            
+            // Delete file button handlers
+            document.querySelectorAll('.delete-file-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteFile(btn.dataset.file);
+                });
+            });
+            
+            // Add file button handler
+            const addFileBtnEl = document.getElementById('add-file-btn');
+            if (addFileBtnEl) {
+                addFileBtnEl.addEventListener('click', addNewFile);
+            }
+            
+            // Code editor handler (current step - right side)
+            const codeEditor = document.getElementById('code-editor');
+            const codeEditorContainer = document.getElementById('code-editor-container');
+            const codeEditorBackdrop = document.getElementById('code-editor-backdrop');
+            const codeEditorLineNumbers = document.getElementById('code-editor-line-numbers');
+            
+            if (codeEditor && codeEditorContainer && codeEditorBackdrop && codeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const currState = getState(currentStep);
+                if (currState.cursor && currState.cursor.file === activeFile) {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = currState.cursor.line;
+                    const targetCol = currState.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Set cursor position and focus
+                    codeEditor.focus();
+                    codeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updateBackdrop = () => {
+                    const content = codeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    codeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    codeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
+                codeEditor.addEventListener('input', (e) => {
+                    updateFileContent(e.target.value);
+                    updateBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                codeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    codeEditor.scrollTop = codeEditorContainer.scrollTop;
+                    codeEditor.scrollLeft = codeEditorContainer.scrollLeft;
+                });
+                
+                // Handle tab key in editor
+                codeEditor.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = codeEditor.selectionStart;
+                        const end = codeEditor.selectionEnd;
+                        codeEditor.value = codeEditor.value.substring(0, start) + '    ' + codeEditor.value.substring(end);
+                        codeEditor.selectionStart = codeEditor.selectionEnd = start + 4;
+                        updateFileContent(codeEditor.value);
+                        updateBackdrop();
+                    }
+                });
+            }
+            
+            // Code editor handler (previous step - left side)
+            const prevCodeEditor = document.getElementById('prev-code-editor');
+            const prevCodeEditorContainer = document.getElementById('prev-code-editor-container');
+            const prevCodeEditorBackdrop = document.getElementById('prev-code-editor-backdrop');
+            const prevCodeEditorLineNumbers = document.getElementById('prev-code-editor-line-numbers');
+            
+            if (prevCodeEditor && prevCodeEditorContainer && prevCodeEditorBackdrop && prevCodeEditorLineNumbers) {
+                // Position the cursor in the textarea based on eval state cursor
+                const prevState = getState(currentStep - 1);
+                if (prevState?.cursor && prevState.cursor.file === activeFile) {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const targetLine = prevState.cursor.line;
+                    const targetCol = prevState.cursor.column;
+                    
+                    // Calculate character offset from line and column
+                    let charOffset = 0;
+                    for (let i = 0; i < targetLine - 1 && i < lines.length; i++) {
+                        charOffset += lines[i].length + 1; // +1 for newline
+                    }
+                    // Add column offset (clamped to line length)
+                    const lineContent = lines[targetLine - 1] || '';
+                    charOffset += Math.min(targetCol, lineContent.length);
+                    
+                    // Don't auto-focus the prev editor - let the user decide which to edit
+                    prevCodeEditor.setSelectionRange(charOffset, charOffset);
+                }
+                
+                // Function to update the syntax-highlighted backdrop and line numbers
+                const updatePrevBackdrop = () => {
+                    const content = prevCodeEditor.value;
+                    const lines = content.split('\n');
+                    const language = getLanguageFromFilename(activeFile);
+                    
+                    let lineNumbersHtml = '';
+                    let backdropHtml = '';
+                    
+                    lines.forEach((line, idx) => {
+                        const lineNum = idx + 1;
+                        const highlightedLine = highlightLine(line, language);
+                        lineNumbersHtml += `<span class="line-num">${lineNum}</span>`;
+                        backdropHtml += `<span class="highlighted-line"><code>${highlightedLine || ' '}</code></span>`;
+                    });
+                    
+                    prevCodeEditorLineNumbers.innerHTML = lineNumbersHtml;
+                    prevCodeEditorBackdrop.innerHTML = backdropHtml;
+                };
+                
+                prevCodeEditor.addEventListener('input', (e) => {
+                    updatePrevFileContent(e.target.value);
+                    updatePrevBackdrop();
+                });
+                
+                // Sync scroll: container scrolls everything together
+                prevCodeEditorContainer.addEventListener('scroll', () => {
+                    // Move the textarea content to match scroll position
+                    prevCodeEditor.scrollTop = prevCodeEditorContainer.scrollTop;
+                    prevCodeEditor.scrollLeft = prevCodeEditorContainer.scrollLeft;
+                });
+                
+                // Handle tab key in editor
+                prevCodeEditor.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const start = prevCodeEditor.selectionStart;
+                        const end = prevCodeEditor.selectionEnd;
+                        prevCodeEditor.value = prevCodeEditor.value.substring(0, start) + '    ' + prevCodeEditor.value.substring(end);
+                        prevCodeEditor.selectionStart = prevCodeEditor.selectionEnd = start + 4;
+                        updatePrevFileContent(prevCodeEditor.value);
+                        updatePrevBackdrop();
+                    }
+                });
+            }
+            
+            // Cursor editor handlers (current step)
+            const cursorFileSelect = document.getElementById('cursor-file-select');
+            const cursorLineInput = document.getElementById('cursor-line-input');
+            const cursorColInput = document.getElementById('cursor-col-input');
+            
+            if (cursorFileSelect && cursorLineInput && cursorColInput) {
+                const updateCursorFromInputs = () => {
+                    const file = cursorFileSelect.value;
+                    const line = parseInt(cursorLineInput.value) || 1;
+                    const column = parseInt(cursorColInput.value) || 0;
+                    if (file) {
+                        updateCursor(file, line, column);
+                    } else {
+                        // Clear cursor if no file selected
+                        const currState = getState(currentStep);
+                        delete currState.cursor;
+                        markUnsaved();
+                    }
+                };
+                
+                cursorFileSelect.addEventListener('change', updateCursorFromInputs);
+                cursorLineInput.addEventListener('change', updateCursorFromInputs);
+                cursorColInput.addEventListener('change', updateCursorFromInputs);
+            }
+            
+            // Cursor editor handlers (previous step)
+            const prevCursorFileSelect = document.getElementById('prev-cursor-file-select');
+            const prevCursorLineInput = document.getElementById('prev-cursor-line-input');
+            const prevCursorColInput = document.getElementById('prev-cursor-col-input');
+            
+            if (prevCursorFileSelect && prevCursorLineInput && prevCursorColInput) {
+                const updatePrevCursorFromInputs = () => {
+                    const file = prevCursorFileSelect.value;
+                    const line = parseInt(prevCursorLineInput.value) || 1;
+                    const column = parseInt(prevCursorColInput.value) || 0;
+                    if (file) {
+                        updatePrevCursor(file, line, column);
+                    } else {
+                        // Clear cursor if no file selected
+                        const prevState = getState(currentStep - 1);
+                        if (prevState) {
+                            delete prevState.cursor;
+                            markUnsaved();
+                        }
+                    }
+                };
+                
+                prevCursorFileSelect.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorLineInput.addEventListener('change', updatePrevCursorFromInputs);
+                prevCursorColInput.addEventListener('change', updatePrevCursorFromInputs);
+            }
+            
+            // Assertions editor handler
+            const assertionsEditor = document.getElementById('assertions-editor');
+            if (assertionsEditor) {
+                assertionsEditor.addEventListener('input', (e) => {
+                    const currState = getState(currentStep);
+                    const value = e.target.value.trim();
+                    if (value) {
+                        currState.judge_assertions = value;
+                    } else {
+                        delete currState.judge_assertions;
+                    }
+                    markUnsaved();
+                });
+            }
+            
+            // Setup cursor mode click handling
+            const currCodeContainer = document.getElementById('curr-code');
+            if (cursorMode && currCodeContainer) {
+                currCodeContainer.classList.add('cursor-mode');
+                currCodeContainer.addEventListener('click', handleCursorClick);
+            }
+            
+            // Setup synchronized scrolling (only in non-edit mode)
+            const prevCode = document.getElementById('prev-code');
+            const currCode = document.getElementById('curr-code');
+            
+            if (prevCode && currCode && !editMode) {
+                let scrolling = false;
+                
+                prevCode.addEventListener('scroll', () => {
+                    if (!syncScroll || scrolling) return;
+                    scrolling = true;
+                    currCode.scrollTop = prevCode.scrollTop;
+                    currCode.scrollLeft = prevCode.scrollLeft;
+                    setTimeout(() => scrolling = false, 50);
+                });
+                
+                currCode.addEventListener('scroll', () => {
+                    if (!syncScroll || scrolling) return;
+                    scrolling = true;
+                    prevCode.scrollTop = currCode.scrollTop;
+                    prevCode.scrollLeft = currCode.scrollLeft;
+                    setTimeout(() => scrolling = false, 50);
+                });
+                
+                // Scroll cursor into view on current side (only when not in cursor mode to avoid jumps during editing)
+                if (currState.cursor?.file === activeFile && !cursorMode) {
+                    const cursorLine = currCode.querySelector('.cursor-line');
+                    if (cursorLine) {
+                        cursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
+                    }
+                }
+            }
+        }
+
+        function setupResizeHandles() {
+            const leftTerminal = document.getElementById('left-terminal');
+            const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
+            
+            // Apply persisted height
+            if (leftTerminal) leftTerminal.style.height = terminalHeight + 'px';
+            if (rightTerminal) rightTerminal.style.height = terminalHeight + 'px';
+            if (rightAssertions) rightAssertions.style.height = assertionsHeight + 'px';
+            
+            document.querySelectorAll('.resize-handle').forEach(handle => {
+                handle.addEventListener('mousedown', initResize);
+            });
+        }
+
+        function initResize(e) {
+            e.preventDefault();
+            
+            const handle = e.target;
+            const panel = handle.dataset.panel;
+            const leftTerminal = document.getElementById('left-terminal');
+            const rightTerminal = document.getElementById('right-terminal');
+            const rightAssertions = document.getElementById('right-assertions');
+            
+            const startY = e.clientY;
+            const isAssertions = panel === 'assertions';
+            const startHeight = isAssertions ? assertionsHeight : terminalHeight;
+            
+            // Disable text selection during drag
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'ns-resize';
+            
+            function onMouseMove(e) {
+                // Calculate new height (dragging up increases height)
+                const deltaY = startY - e.clientY;
+                const newHeight = Math.max(80, Math.min(window.innerHeight * 0.7, startHeight + deltaY));
+                
+                if (isAssertions) {
+                    assertionsHeight = newHeight;
+                    if (rightAssertions) rightAssertions.style.height = newHeight + 'px';
+                } else {
+                    terminalHeight = newHeight;
+                    // Apply to both terminals to keep them in sync
+                    if (leftTerminal) leftTerminal.style.height = newHeight + 'px';
+                    if (rightTerminal) rightTerminal.style.height = newHeight + 'px';
+                }
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+            }
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        }
+    </script>
+</body>
+</html>
+
