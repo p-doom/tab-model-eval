@@ -47,7 +47,7 @@ class FormatConverter(ABC):
             task_id=task_id,
             context=[],
             expected_response="",
-            expected_cursor={},
+            expected_cursor=None,
             assertions=get_assertions_for_eval_step(raw_yaml, eval_idx),
             input_files={},
             raw_yaml=raw_yaml,

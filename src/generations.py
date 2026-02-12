@@ -245,7 +245,7 @@ async def generate_for_test_case(
                 }
 
             generated = extract_response_content(response_text, test_case.format)
-            content_match = int(generated == test_case.expected_response)
+            response_match = int(generated == test_case.expected_response)
             predicted_files, error = apply_prediction(
                 test_case.format,
                 test_case.input_files,
@@ -269,14 +269,14 @@ async def generate_for_test_case(
                 )
 
             cursor_match = int(predicted_cursor == test_case.expected_cursor)
-            exact_match = int(content_match == 1 and cursor_match == 1)
+            exact_match = int(response_match == 1 and cursor_match == 1)
 
             samples.append(
                 {
                     "sample_idx": idx,
                     "response_text": response_text,
                     "generated": generated,
-                    "content_match": content_match,
+                    "response_match": response_match,
                     "cursor_match": cursor_match,
                     "exact_match": exact_match,
                     "predicted_files": predicted_files if error is None else None,
@@ -335,7 +335,7 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
                 "predicted_files": s.get("predicted_files"),
                 "predicted_cursor": s.get("predicted_cursor"),
                 "predicted_raw": s.get("generated", ""),
-                "content_match": s.get("content_match", 0),
+                "response_match": s.get("response_match", 0),
                 "cursor_match": s.get("cursor_match", 0),
                 "exact_match": s.get("exact_match", 0),
                 "prediction_error": s.get("prediction_error"),
@@ -345,11 +345,11 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
     task_num_samples = len(samples)
     task_num_errors = sum(1 for s in samples if s.get("prediction_error") is not None)
 
-    task_content_matches = sum(1 for s in samples if s.get("content_match", 0) == 1)
+    task_response_matches = sum(1 for s in samples if s.get("response_match", 0) == 1)
     task_cursor_matches = sum(1 for s in samples if s.get("cursor_match", 0) == 1)
-    task_exact_matches = 1 if task_content_matches == 1 and task_cursor_matches == 1 else 0
+    task_exact_matches = sum(1 for s in samples if s.get("exact_match", 0) == 1)
 
-    task_content_pass_at_k = 1 if task_content_matches > 0 else 0
+    task_response_pass_at_k = 1 if task_response_matches > 0 else 0
     task_cursor_pass_at_k = 1 if task_cursor_matches > 0 else 0
     task_exact_pass_at_k = 1 if task_exact_matches == 1 else 0
 
@@ -362,10 +362,10 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
         "metrics": {
             "task_num_samples": task_num_samples,
             "task_num_errors": task_num_errors,
-            "task_content_matches": task_content_matches,
+            "task_response_matches": task_response_matches,
             "task_cursor_matches": task_cursor_matches,
             "task_exact_matches": task_exact_matches,
-            "task_content_pass_at_k": task_content_pass_at_k,
+            "task_response_pass_at_k": task_response_pass_at_k,
             "task_cursor_pass_at_k": task_cursor_pass_at_k,
             "task_exact_pass_at_k": task_exact_pass_at_k,
         },
@@ -454,11 +454,11 @@ async def run_generation(args: Args, base_url: str, wandb_run: Optional[wandb.Ru
     num_samples_per_task = total_num_samples / len(yaml_results)
     total_num_errors = sum(r["metrics"]["task_num_errors"] for r in yaml_results)
 
-    total_content_matches = sum(r["metrics"]["task_content_matches"] for r in yaml_results)
+    total_response_matches = sum(r["metrics"]["task_response_matches"] for r in yaml_results)
     total_cursor_matches = sum(r["metrics"]["task_cursor_matches"] for r in yaml_results)
     total_exact_matches = sum(r["metrics"]["task_exact_matches"] for r in yaml_results)
 
-    content_pass_at_k = sum(r["metrics"]["task_content_pass_at_k"] for r in yaml_results)
+    response_pass_at_k = sum(r["metrics"]["task_response_pass_at_k"] for r in yaml_results)
     cursor_pass_at_k = sum(r["metrics"]["task_cursor_pass_at_k"] for r in yaml_results)
     exact_pass_at_k = sum(r["metrics"]["task_exact_pass_at_k"] for r in yaml_results)
 
@@ -468,10 +468,10 @@ async def run_generation(args: Args, base_url: str, wandb_run: Optional[wandb.Ru
                 f"{args.wandb_eval_type}/total_num_samples": total_num_samples,
                 f"{args.wandb_eval_type}/num_samples_per_task": num_samples_per_task,
                 f"{args.wandb_eval_type}/total_num_errors": total_num_errors,
-                f"{args.wandb_eval_type}/total_content_matches": total_content_matches,
+                f"{args.wandb_eval_type}/total_response_matches": total_response_matches,
                 f"{args.wandb_eval_type}/total_cursor_matches": total_cursor_matches,
                 f"{args.wandb_eval_type}/total_exact_matches": total_exact_matches,
-                f"{args.wandb_eval_type}/content_pass_at_k": content_pass_at_k,
+                f"{args.wandb_eval_type}/response_pass_at_k": response_pass_at_k,
                 f"{args.wandb_eval_type}/cursor_pass_at_k": cursor_pass_at_k,
                 f"{args.wandb_eval_type}/exact_pass_at_k": exact_pass_at_k,
             }
@@ -484,7 +484,7 @@ async def run_generation(args: Args, base_url: str, wandb_run: Optional[wandb.Ru
     print(f"Total samples: {total_num_samples}, samples per task: {num_samples_per_task}")
     print(f"Errors: {total_num_errors}, {total_num_errors / total_num_samples * 100:.1f}%")
     print(
-        f"Content matches: {total_content_matches}, {total_content_matches / total_num_samples * 100:.1f}%"
+        f"Response matches: {total_response_matches}, {total_response_matches / total_num_samples * 100:.1f}%"
     )
     print(
         f"Cursor matches: {total_cursor_matches}, {total_cursor_matches / total_num_samples * 100:.1f}%"
@@ -493,10 +493,10 @@ async def run_generation(args: Args, base_url: str, wandb_run: Optional[wandb.Ru
         f"Exact matches: {total_exact_matches}, {total_exact_matches / total_num_samples * 100:.1f}%"
     )
     print(
-        f"Content pass@k: {content_pass_at_k}, {content_pass_at_k / len(yaml_results) * 100:.1f}%"
+        f"Response pass@k: {response_pass_at_k}, {response_pass_at_k / len(yaml_results) * 100:.1f}%"
     )
     print(f"Cursor pass@k: {cursor_pass_at_k}, {cursor_pass_at_k / len(yaml_results) * 100:.1f}%")
-    print(f"Exac pass@k: {exact_pass_at_k}, {exact_pass_at_k / len(yaml_results) * 100:.1f}%")
+    print(f"Exact pass@k: {exact_pass_at_k}, {exact_pass_at_k / len(yaml_results) * 100:.1f}%")
 
 
 async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
