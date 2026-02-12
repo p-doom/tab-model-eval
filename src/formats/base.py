@@ -47,6 +47,7 @@ class FormatConverter(ABC):
             task_id=task_id,
             context=[],
             expected_response="",
+            expected_cursor={},
             assertions=get_assertions_for_eval_step(raw_yaml, eval_idx),
             input_files={},
             raw_yaml=raw_yaml,
@@ -84,6 +85,8 @@ class FormatConverter(ABC):
                     conversations, raw_yaml, eval_idx, modified_yaml
                 )
 
+                expected_cursor = raw_yaml.get("states", [])[eval_idx].get("cursor", {})
+
                 if not expected_response:
                     eval_type = get_eval_state_type(raw_yaml, eval_idx)
                     print(f"Warning: Could not find {eval_type} message for {task_id}, skipping")
@@ -97,6 +100,7 @@ class FormatConverter(ABC):
                         task_id=task_id,
                         context=context,
                         expected_response=expected_response,
+                        expected_cursor=expected_cursor,
                         assertions=assertions,
                         input_files=input_files,
                         raw_yaml=raw_yaml,

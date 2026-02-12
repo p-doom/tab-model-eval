@@ -15,6 +15,7 @@ class TestCaseWithYaml:
     task_id: str
     context: List[Dict[str, str]]
     expected_response: str
+    expected_cursor: Optional[Dict[str, int]]
     assertions: Optional[str]
     input_files: Dict[str, str]
     raw_yaml: Dict[str, Any]

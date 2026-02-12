@@ -5,12 +5,14 @@ import re
 import shlex
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 import httpx
 import tyro
 import yaml
+import wandb
+
 from openai import AsyncOpenAI
 from tqdm.asyncio import tqdm_asyncio
 
@@ -32,6 +34,13 @@ from src.formats.zeta import ZetaConverter
 
 @dataclass
 class Args:
+    wandb_project: str = "tab-model-eval"
+    wandb_name: str = "metrics_eval"
+    wandb_eval_type: str = "metrics_eval"
+    wandb_tags: list[str] = field(default_factory=list)
+    wandb_id: Optional[str] = None
+    wandb_group: str = "evals"
+
     input_format: str = ""
     yaml_input_dir: str = "data/eval/handcrafted"
     output_file: str = "data/eval/generations/generations.yaml"
@@ -236,7 +245,7 @@ async def generate_for_test_case(
                 }
 
             generated = extract_response_content(response_text, test_case.format)
-            exact_match = int(generated == test_case.expected_response)
+            content_match = int(generated == test_case.expected_response)
             predicted_files, error = apply_prediction(
                 test_case.format,
                 test_case.input_files,
@@ -259,11 +268,16 @@ async def generate_for_test_case(
                     generated, test_case.editable_range, test_case.editable_file
                 )
 
+            cursor_match = int(predicted_cursor == test_case.expected_cursor)
+            exact_match = int(content_match == 1 and cursor_match == 1)
+
             samples.append(
                 {
                     "sample_idx": idx,
                     "response_text": response_text,
                     "generated": generated,
+                    "content_match": content_match,
+                    "cursor_match": cursor_match,
                     "exact_match": exact_match,
                     "predicted_files": predicted_files if error is None else None,
                     "prediction_error": error,
@@ -321,14 +335,23 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
                 "predicted_files": s.get("predicted_files"),
                 "predicted_cursor": s.get("predicted_cursor"),
                 "predicted_raw": s.get("generated", ""),
+                "content_match": s.get("content_match", 0),
+                "cursor_match": s.get("cursor_match", 0),
                 "exact_match": s.get("exact_match", 0),
                 "prediction_error": s.get("prediction_error"),
             }
         )
 
-    num_samples = len(samples)
-    num_exact = sum(1 for s in samples if s.get("exact_match", 0) == 1)
-    pass_at_1 = 1 if num_exact > 0 else 0
+    task_num_samples = len(samples)
+    task_num_errors = sum(1 for s in samples if s.get("prediction_error") is not None)
+
+    task_content_matches = sum(1 for s in samples if s.get("content_match", 0) == 1)
+    task_cursor_matches = sum(1 for s in samples if s.get("cursor_match", 0) == 1)
+    task_exact_matches = 1 if task_content_matches == 1 and task_cursor_matches == 1 else 0
+
+    task_content_pass_at_k = 1 if task_content_matches > 0 else 0
+    task_cursor_pass_at_k = 1 if task_cursor_matches > 0 else 0
+    task_exact_pass_at_k = 1 if task_exact_matches == 1 else 0
 
     return {
         "task_id": task_id,
@@ -337,9 +360,14 @@ def build_yaml_result(raw_result: Dict[str, Any]) -> Dict[str, Any]:
         "states": states,
         "samples": samples,
         "metrics": {
-            "num_samples": num_samples,
-            "num_exact_matches": num_exact,
-            "pass_at_1": pass_at_1,
+            "task_num_samples": task_num_samples,
+            "task_num_errors": task_num_errors,
+            "task_content_matches": task_content_matches,
+            "task_cursor_matches": task_cursor_matches,
+            "task_exact_matches": task_exact_matches,
+            "task_content_pass_at_k": task_content_pass_at_k,
+            "task_cursor_pass_at_k": task_cursor_pass_at_k,
+            "task_exact_pass_at_k": task_exact_pass_at_k,
         },
     }
 
@@ -367,7 +395,7 @@ def write_yaml_output(
         yaml.dump(output, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
-async def run_generation(args: Args, base_url: str):
+async def run_generation(args: Args, base_url: str, wandb_run: Optional[wandb.Run] = None):
     input_format = validate_format(args)
 
     print(f"Loading YAML files from {args.yaml_input_dir}...")
@@ -422,18 +450,53 @@ async def run_generation(args: Args, base_url: str):
     print(f"Writing output to {args.output_file}...")
     write_yaml_output(args.output_file, yaml_results, config=args.__dict__)
 
-    total_samples = sum(r["metrics"]["num_samples"] for r in yaml_results)
-    total_exact = sum(r["metrics"]["num_exact_matches"] for r in yaml_results)
-    total_pass = sum(r["metrics"]["pass_at_1"] for r in yaml_results)
+    total_num_samples = sum(r["metrics"]["task_num_samples"] for r in yaml_results)
+    num_samples_per_task = total_num_samples / len(yaml_results)
+    total_num_errors = sum(r["metrics"]["task_num_errors"] for r in yaml_results)
+
+    total_content_matches = sum(r["metrics"]["task_content_matches"] for r in yaml_results)
+    total_cursor_matches = sum(r["metrics"]["task_cursor_matches"] for r in yaml_results)
+    total_exact_matches = sum(r["metrics"]["task_exact_matches"] for r in yaml_results)
+
+    content_pass_at_k = sum(r["metrics"]["task_content_pass_at_k"] for r in yaml_results)
+    cursor_pass_at_k = sum(r["metrics"]["task_cursor_pass_at_k"] for r in yaml_results)
+    exact_pass_at_k = sum(r["metrics"]["task_exact_pass_at_k"] for r in yaml_results)
+
+    if wandb_run is not None:
+        wandb_run.log(
+            {
+                f"{args.wandb_eval_type}/total_num_samples": total_num_samples,
+                f"{args.wandb_eval_type}/num_samples_per_task": num_samples_per_task,
+                f"{args.wandb_eval_type}/total_num_errors": total_num_errors,
+                f"{args.wandb_eval_type}/total_content_matches": total_content_matches,
+                f"{args.wandb_eval_type}/total_cursor_matches": total_cursor_matches,
+                f"{args.wandb_eval_type}/total_exact_matches": total_exact_matches,
+                f"{args.wandb_eval_type}/content_pass_at_k": content_pass_at_k,
+                f"{args.wandb_eval_type}/cursor_pass_at_k": cursor_pass_at_k,
+                f"{args.wandb_eval_type}/exact_pass_at_k": exact_pass_at_k,
+            }
+        )
 
     print("\n" + "=" * 50)
     print("Generation Complete")
     print("=" * 50)
     print(f"Tasks: {len(yaml_results)}")
-    print(f"Samples: {total_samples}")
-    print(f"Exact matches: {total_exact}")
-    print(f"Pass@1: {total_pass}/{len(yaml_results)} ({100*total_pass/len(yaml_results):.1f}%)")
-    print(f"Output: {args.output_file}")
+    print(f"Total samples: {total_num_samples}, samples per task: {num_samples_per_task}")
+    print(f"Errors: {total_num_errors}, {total_num_errors / total_num_samples * 100:.1f}%")
+    print(
+        f"Content matches: {total_content_matches}, {total_content_matches / total_num_samples * 100:.1f}%"
+    )
+    print(
+        f"Cursor matches: {total_cursor_matches}, {total_cursor_matches / total_num_samples * 100:.1f}%"
+    )
+    print(
+        f"Exact matches: {total_exact_matches}, {total_exact_matches / total_num_samples * 100:.1f}%"
+    )
+    print(
+        f"Content pass@k: {content_pass_at_k}, {content_pass_at_k / len(yaml_results) * 100:.1f}%"
+    )
+    print(f"Cursor pass@k: {cursor_pass_at_k}, {cursor_pass_at_k / len(yaml_results) * 100:.1f}%")
+    print(f"Exac pass@k: {exact_pass_at_k}, {exact_pass_at_k / len(yaml_results) * 100:.1f}%")
 
 
 async def wait_for_server(base_url: str, timeout: float = 300.0) -> None:
@@ -489,7 +552,7 @@ def launch_sglang_server(args: Args) -> subprocess.Popen:
     return subprocess.Popen(cmd, env=os.environ.copy(), stdout=sys.stdout, stderr=sys.stderr)
 
 
-async def amain(args: Args):
+async def amain(args: Args, wandb_run: Optional[wandb.Run] = None):
     base_url = f"http://{args.server_host}:{args.server_port}/v1"
     print(f"Using server at {base_url}")
 
@@ -498,7 +561,7 @@ async def amain(args: Args):
         if args.launch_server:
             server_proc = launch_sglang_server(args)
             await wait_for_server(f"http://{args.server_host}:{args.server_port}")
-        await run_generation(args, base_url)
+        await run_generation(args, base_url, wandb_run)
     finally:
         if server_proc:
             print("Shutting down server...")
@@ -511,5 +574,20 @@ async def amain(args: Args):
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-    asyncio.run(amain(args))
-    print("Done")
+
+    wandb_run = wandb.init(
+        project=args.wandb_project,
+        name=args.wandb_name,
+        id=args.wandb_id,
+        resume="allow" if args.wandb_id else None,
+        group=args.wandb_group,
+        tags=args.wandb_tags,
+        config={"eval_type": args.wandb_eval_type},
+    )
+
+    asyncio.run(amain(args, wandb_run))
+
+    if wandb_run is not None:
+        wandb_run.finish()
+
+    print("\nDone")
