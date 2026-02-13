@@ -1774,6 +1774,14 @@
         function goToStep(step) {
             if (!evalData || step < 0 || step >= evalData.states.length) return;
             currentStep = step;
+            // Follow cursor file when stepping through steps
+            const currState = getState(currentStep);
+            if (currState?.cursor?.file) {
+                const allFiles = getAllFiles(getState(currentStep - 1), currState);
+                if (allFiles.includes(currState.cursor.file)) {
+                    activeFile = currState.cursor.file;
+                }
+            }
             renderStep();
         }
 

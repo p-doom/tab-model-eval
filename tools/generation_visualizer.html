@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eval Step Visualizer</title>
+    <title>Generation Visualizer</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
     <!-- Prism.js for syntax highlighting -->
@@ -967,7 +967,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Eval Step Visualizer</h1>
+        <h1>Generation Visualizer</h1>
         <div class="file-input-wrapper">
             <label for="yaml-file">Load YAML File</label>
             <input type="file" id="yaml-file" accept=".yaml,.yml">
@@ -1045,6 +1045,7 @@
         let editMode = false;
         let cursorMode = false;
         let hasUnsavedChanges = false;
+        let shouldFocusCursor = false;
         let originalFileName = '';
         
         // Directory navigation state
@@ -1170,6 +1171,7 @@
             currentStep = 0;
             currentSampleIndex = -1;
             activeFile = null;
+            shouldFocusCursor = true;
             updateTaskInfo();
             renderStep();
         });
@@ -1656,6 +1658,7 @@
             navControls.style.display = 'flex';
             editModeToggle.style.display = 'flex';
             emptyState.style.display = 'none';
+            shouldFocusCursor = true;
             updateTaskSelector();
             updateTaskInfo();
             renderStep();
@@ -1702,6 +1705,7 @@
                 currentStep = 0;
                 currentSampleIndex = -1;
                 activeFile = null;
+                shouldFocusCursor = true;
                 updateTaskInfo();
                 renderStep();
             }
@@ -1714,6 +1718,7 @@
                 currentStep = 0;
                 currentSampleIndex = -1;
                 activeFile = null;
+                shouldFocusCursor = true;
                 updateTaskInfo();
                 renderStep();
             }
@@ -2011,6 +2016,7 @@
         function goToStep(step) {
             const task = getCurrentTask();
             if (!task) return;
+            shouldFocusCursor = true;
             
             const samples = getCurrentTaskSamples();
             const maxStateStep = getMaxVisibleStateStep(task);
@@ -2485,7 +2491,10 @@
             const allFiles = getAllFiles(leftState, rightState);
             
             // Determine active file
-            if (!activeFile || !allFiles.includes(activeFile)) {
+            // When stepping, always follow the cursor to its file
+            if (shouldFocusCursor && rightState?.cursor?.file && allFiles.includes(rightState.cursor.file)) {
+                activeFile = rightState.cursor.file;
+            } else if (!activeFile || !allFiles.includes(activeFile)) {
                 // Prefer cursor file, then first file
                 if (rightState?.cursor?.file && allFiles.includes(rightState.cursor.file)) {
                     activeFile = rightState.cursor.file;
@@ -2914,7 +2923,16 @@
                         cursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
                     }
                 }
+                // Also scroll previous panel cursor into view (when sync scroll is off)
+                if (!syncScroll && leftState?.cursor?.file === activeFile && !cursorMode) {
+                    const prevCursorLine = prevCode.querySelector('.cursor-line');
+                    if (prevCursorLine) {
+                        prevCursorLine.scrollIntoView({ block: 'center', behavior: 'auto' });
+                    }
+                }
             }
+            
+            shouldFocusCursor = false;
         }
 
         function setupResizeHandles() {
